@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chess-ai"
+version = "0.1.0"
+description = "Policy-value chess engine and coaching foundation"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "python-chess>=1.999",
+    "zstandard>=0.23",
+]
+
+[project.optional-dependencies]
+train = ["torch>=2.5"]
+dev = ["pytest>=8"]
+dashboard = ["Flask>=3.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
