@@ -22,3 +22,5 @@ dashboard = ["Flask>=3.0"]
 testpaths = ["tests"]
 pythonpath = ["."]
 
+[tool.setuptools.packages.find]
+include = ["chess_ai*"]
