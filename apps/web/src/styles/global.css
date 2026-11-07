@@ -11,6 +11,7 @@ a { color: inherit; }
 .primary-nav a { color: var(--color-muted); text-decoration: none; font-size: 0.95rem; }
 .primary-nav a:hover, .primary-nav a.active { color: var(--color-accent); }
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
+.connection-banner { padding: 10px 32px; border-bottom: 1px solid #d6b26c; background: #fff7df; color: #755719; font-size: 0.85rem; }
 .auth-actions { display: flex; align-items: center; gap: 10px; }
 .auth-state, .auth-user, .auth-guest-notice { color: var(--color-muted); font-size: 0.78rem; }
 .auth-guest-notice { max-width: 260px; line-height: 1.3; }
