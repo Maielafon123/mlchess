@@ -18,10 +18,10 @@ class DevLoginRequest(BaseModel):
 def public_user(user: AuthenticatedUser) -> CurrentUserV1:
     return CurrentUserV1(
         schema_version=1,
-        id=user.id,
+        id=str(user.id),
         kind=user.kind,
         display_name=user.display_name,
-        expires_at=user.expires_at,
+        expires_at=user.expires_at.isoformat().replace("+00:00", "Z"),
     )
 
 

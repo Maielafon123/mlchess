@@ -41,7 +41,14 @@ def test_logout_requires_csrf_and_dev_login_is_disabled_by_default():
         assert http.post("/api/v1/auth/dev-login", headers=headers()).status_code == 422
     app = create_app(Settings(environment="test", public_origin="http://testserver"))
     with TestClient(app) as http:
-        assert http.post("/api/v1/auth/dev-login", headers=headers()).status_code == 404
+        assert (
+            http.post(
+                "/api/v1/auth/dev-login",
+                json={"display_name": "Alice"},
+                headers=headers(),
+            ).status_code
+            == 404
+        )
 
 
 def test_production_rejects_dev_auth():
