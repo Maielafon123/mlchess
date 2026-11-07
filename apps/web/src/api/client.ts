@@ -19,7 +19,12 @@ function readCookie(name: string) {
 }
 
 export function createIdempotencyKey() {
-  return globalThis.crypto?.randomUUID?.() ?? `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0").slice(-12)}`;
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export class ApiClient {
@@ -30,7 +35,7 @@ export class ApiClient {
 
   constructor({ baseUrl = "", fetchImpl = fetch, csrfTokenProvider = () => readCookie(import.meta.env.VITE_CSRF_COOKIE_NAME ?? "mlchess_csrf"), timeoutMs = 15000 }: ApiClientOptions = {}) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
-    this.fetchImpl = fetchImpl;
+    this.fetchImpl = fetchImpl.bind(globalThis);
     this.csrfTokenProvider = csrfTokenProvider;
     this.timeoutMs = timeoutMs;
   }
@@ -47,25 +52,26 @@ export class ApiClient {
       if (csrf) headers.set("X-CSRF-Token", csrf);
     }
     const controller = new AbortController();
-    const testRuntime = typeof process !== "undefined" && process.env.NODE_ENV === "test";
-    const requestSignal = init.signal ?? (!testRuntime ? controller.signal : undefined);
-    const timeout = init.signal ? null : globalThis.setTimeout(() => controller.abort(), init.timeoutMs ?? this.timeoutMs);
-    if (init.signal) init.signal.addEventListener("abort", () => controller.abort(), { once: true });
-    let response: Response;
+    const abort = () => controller.abort(init.signal?.reason);
+    if (init.signal?.aborted) abort();
+    else init.signal?.addEventListener("abort", abort, { once: true });
+    const timeout = globalThis.setTimeout(() => controller.abort(), init.timeoutMs ?? this.timeoutMs);
     try {
-      response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+      const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
       ...init,
-      signal: requestSignal,
+      signal: controller.signal,
       credentials: init.credentials ?? "same-origin",
       headers,
       });
+      if (response.ok && (response.status === 204 || response.status === 205 || method === "HEAD")) return undefined as T;
+      const contentType = response.headers.get("content-type")?.split(";", 1)[0].trim() ?? "";
+      const payload: unknown = contentType === "application/json" || contentType.endsWith("+json") ? await response.json() : await response.text();
+      if (!response.ok) throw new ApiError(decodeProblemDetails(response.status, payload));
+      return payload as T;
     } finally {
-      if (timeout !== null) globalThis.clearTimeout(timeout);
+      globalThis.clearTimeout(timeout);
+      init.signal?.removeEventListener("abort", abort);
     }
-    const contentType = response.headers.get("content-type") ?? "";
-    const payload: unknown = contentType.includes("application/json") ? await response.json() : await response.text();
-    if (!response.ok) throw new ApiError(decodeProblemDetails(response.status, payload));
-    return payload as T;
   }
 
   get<T>(path: string, init?: RequestInit) {

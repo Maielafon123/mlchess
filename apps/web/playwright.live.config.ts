@@ -5,8 +5,9 @@ if (!baseURL) throw new Error("MLCHESS_LIVE_BASE_URL is required for test:e2e:li
 
 export default defineConfig({
   testDir: "./tests/e2e/live",
+  outputDir: "./test-results/live",
   fullyParallel: false,
   reporter: "list",
-  use: { baseURL, trace: "on", ...devices["Desktop Chrome"] },
+  use: { baseURL, trace: "retain-on-failure", ...devices["Desktop Chrome"] },
   projects: [{ name: "live-chromium", use: { ...devices["Desktop Chrome"] } }],
 });

@@ -26,3 +26,4 @@ describe("AiGameApi", () => {
     expect((received as { client_action_id: string }).client_action_id).toMatch(/^[0-9a-f-]{36}$|^takeback-/);
   });
 });
+// @vitest-environment node

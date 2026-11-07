@@ -52,6 +52,16 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
         setStatus("authenticated");
         return;
       }
+      if (config.mode === "development") {
+        try {
+          setUser(await client.developmentSignIn());
+          setStatus("authenticated");
+        } catch (error: unknown) {
+          setErrorCode(error instanceof Error ? error.name : "AUTH_LOGIN_FAILED");
+          setStatus("error");
+        }
+        return;
+      }
       client.beginSignIn();
     },
     signOut: async () => {

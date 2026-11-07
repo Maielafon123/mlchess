@@ -104,3 +104,30 @@ jobs:
       - run: python -m pytest backend/tests/games/test_postgres_commands.py backend/tests/games/test_postgres_worker.py -q
         env:
           MLCHESS_TEST_DATABASE_URL: postgresql+asyncpg://mlchess:disposable_ci_only@127.0.0.1:5432/mlchess
+
+  live-compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.25.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm --dir apps/web install --frozen-lockfile
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - run: python -m infra.init_compose_env
+      - run: docker compose --env-file .env.dev.local -f infra/compose.app.yml config --quiet
+      - run: docker compose --env-file .env.dev.local -f infra/compose.app.yml up -d --build --wait
+      - run: pnpm --dir apps/web test:e2e:live
+        env:
+          MLCHESS_LIVE_BASE_URL: http://localhost:8080
+      - if: always()
+        run: docker compose --env-file .env.dev.local -f infra/compose.app.yml down

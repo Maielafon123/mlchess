@@ -50,4 +50,34 @@ Readable mlchess_csrf cookie maps to X-CSRF-Token. Session cookie is HttpOnly,
 path=/, SameSite=Lax, Secure with HTTPS. Login rotates opaque tokens; logout
 revokes durable sessions; every private operation requires participant ACL.
 
-Next smallest task: A-I00/A-I01 same-origin Compose and B wire acceptance.
+## A-I00/A-I01/A-I02 live integration (2026-11-08)
+
+Integrated B #31 at 820f6b5. CCR-A-I02-CONSUMER documents bounded consumer
+repairs without changing v1: browser fetch binding, problem+json, empty204,
+body-read deadline/cancellation, real dev sessions, profile IDs, fenced worker
+polling, takeback and StrictMode idempotent create. Live/demo artifacts are
+separate and excluded from Git/Docker (they may contain disposable cookies).
+
+PASS: pinned Docker build (Linux Stockfish15.1-4 hash checked), Compose
+up --wait, Alembic0001-0003, six long-running services healthy, migrate exit0.
+Only gateway loopback8080 is published; data services have no host ports.
+PASS: pnpm test 47; build; lint. Demo Playwright3 PASS; real Compose Playwright2
+PASS (two distinct SQL users, ACL403, engine response, takeback, logout401).
+Backend: 465 PASS/2 Windows SKIP plus one setup failure caused by absent
+contracts/node_modules in the new worktree; npm ci installed missing tooling
+and the affected generator test is rerun separately. Ruff check/format PASS.
+No production/VPS deployment claimed by these local checks.
+
+## User priority update
+
+User now prioritizes mobile browser access by tomorrow and a private challenge
+link that works without login. Implement guest sessions + durable single-use
+invites, mobile layout and real two-phone/browser acceptance before resuming
+analysis/coach/learning/refactor tasks. Previous account-only friend policy is
+explicitly superseded by this request; document CCR and preserve rated-account
+restrictions. Public deployment must disable dev auth, use static web + TLS,
+SQL persistence, request/resource limits and preserve protected WireGuard.
+Domain requested; if absent investigate public-CA IP certificates (no self-signed
+browser bypass). Google OAuth must not block anonymous friendly games.
+
+Next smallest task: guest challenge links + mobile public deployment.

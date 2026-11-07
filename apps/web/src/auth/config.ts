@@ -1,4 +1,4 @@
-export type AuthMode = "fake" | "oidc";
+export type AuthMode = "fake" | "development" | "oidc";
 
 export type AuthConfig = {
   mode: AuthMode;
@@ -9,7 +9,7 @@ export type AuthConfig = {
 
 export function resolveAuthMode(raw: string | undefined, production = import.meta.env.PROD): AuthMode {
   if (raw === "oidc") return raw;
-  if (raw === "fake" && !production) return raw;
+  if ((raw === "fake" || raw === "development") && !production) return raw;
   if (!production) return "fake";
   throw new Error("VITE_AUTH_MODE must be explicitly set to 'oidc'; fake auth is forbidden in production");
 }

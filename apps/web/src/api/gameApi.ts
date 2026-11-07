@@ -10,8 +10,8 @@ export type GameCreateOptions = CreateGameV1;
 export class GameApi {
   constructor(protected readonly client: ApiClient = new ApiClient()) {}
 
-  create(mode: "ai" | "coach" = "ai", options: Omit<GameCreateOptions, "mode"> = { time_control: null, human_color: "white", ai_profile: "casual" }) {
-    return this.client.post<GameSnapshot>("/api/v1/games", { mode, ...options });
+  create(mode: "ai" | "coach" = "ai", options: Omit<GameCreateOptions, "mode"> = { time_control: null, human_color: "white", ai_profile: "casual" }, idempotencyKey?: string) {
+    return this.client.post<GameSnapshot>("/api/v1/games", { mode, ...options }, { idempotencyKey });
   }
 
   get(gameId: string) {

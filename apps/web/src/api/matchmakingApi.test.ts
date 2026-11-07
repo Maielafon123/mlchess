@@ -24,3 +24,4 @@ describe("MatchmakingApi", () => {
     expect(method).toBe("DELETE");
   });
 });
+// @vitest-environment node
