@@ -64,4 +64,8 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .pending-overlay { margin-bottom: 12px; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); color: var(--color-muted); }
 .error-banner { margin-bottom: 12px; padding: 10px 14px; border: 1px solid #d88484; border-radius: 10px; background: #fff3f3; color: #8d2525; }
 .game-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.ai-game-screen { display: grid; gap: 14px; max-width: 720px; }
+.ai-game-toolbar { display: flex; flex-wrap: wrap; gap: 12px; }
+.ai-game-toolbar label { display: grid; gap: 6px; color: var(--color-muted); font-size: 0.82rem; }
+.ai-game-toolbar select { min-width: 170px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout { grid-template-columns: 1fr; } .page { gap: 38px; } }

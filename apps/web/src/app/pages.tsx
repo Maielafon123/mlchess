@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { GameSessionScreen } from "../features/game/GameSessionScreen";
+import { AiGameScreen } from "../features/ai/AiGameScreen";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -20,7 +21,7 @@ export function HomePage() {
       <section className="section" aria-labelledby="modes-title">
         <div className="section-heading"><div className="eyebrow">MLChess</div><h2 id="modes-title">{t.home.modesTitle}</h2></div>
         <div className="card-grid card-grid-3">
-          <SectionCard title={t.home.aiTitle}><p>{t.home.aiDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
+          <SectionCard title={t.home.aiTitle}><p>{t.home.aiDescription}</p><Link className="button button-secondary" to="/play/ai">{t.home.aiTitle}</Link></SectionCard>
           <SectionCard title={t.home.coachTitle}><p>{t.home.coachDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
           <SectionCard title={t.home.learnTitle}><p>{t.home.learnDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
         </div>
@@ -41,6 +42,11 @@ export function PlayPage() {
       </div>
     </div>
   );
+}
+
+export function AiPage() {
+  const { t } = useI18n();
+  return <div className="page"><section className="page-heading"><div className="eyebrow">AI mode</div><h1>{t.home.aiTitle}</h1><p>{t.home.aiDescription}</p></section><AiGameScreen /></div>;
 }
 
 export function LearnPage() {
