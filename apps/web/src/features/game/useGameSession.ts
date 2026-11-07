@@ -48,7 +48,7 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
 
   const resign = useCallback(async () => {
     const snapshot = state.snapshot;
-    if (!snapshot || state.pending || !snapshot.capabilities.can_resign) return;
+    if (!snapshot || state.pending || snapshot.status !== "active") return;
     setState((current) => ({ ...current, pending: true, error: null }));
     try {
       const next = await resolvedApi.resign(snapshot.id, snapshot.version);

@@ -22,7 +22,7 @@ export function GameSessionScreen({ api, onAcceptedMove, mode = "ai" }: { api?: 
       />
       <div className="game-actions">
         <span className="status-chip">Version {snapshot.version}</span>
-        <button className="button button-secondary" type="button" onClick={() => void session.resign()} disabled={session.pending || !snapshot.capabilities.can_resign}>Resign</button>
+        <button className="button button-secondary" type="button" onClick={() => void session.resign()} disabled={session.pending || snapshot.status !== "active"}>Resign</button>
       </div>
     </div>
   );

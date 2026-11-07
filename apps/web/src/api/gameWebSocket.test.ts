@@ -20,8 +20,9 @@ describe("GameWebSocket", () => {
     client.connect();
     socket.emit("open", new Event("open"));
     expect(JSON.parse(socket.sent[0])).toMatchObject({ type: "subscribe", game_id: "g1", after_seq: 7 });
-    socket.emit("message", new MessageEvent("message", { data: JSON.stringify({ schema_version: 1, event_id: "e1", game_id: "g1", seq: 8, type: "move.accepted", occurred_at: "2026-01-01T00:00:00Z", payload: { version: 2 } }) }));
-    socket.emit("message", new MessageEvent("message", { data: JSON.stringify({ schema_version: 1, event_id: "e2", game_id: "other", seq: 9, type: "move.accepted", occurred_at: "2026-01-01T00:00:00Z", payload: {} }) }));
+    socket.emit("message", new MessageEvent("message", { data: JSON.stringify({ schema_version: 1, event_id: "e1", game_id: "g1", seq: 8, type: "game.move_committed", occurred_at: "2026-01-01T00:00:00Z", payload: { version: 2 } }) }));
+    socket.emit("message", new MessageEvent("message", { data: JSON.stringify({ schema_version: 1, event_id: "e2", game_id: "other", seq: 9, type: "game.move_committed", occurred_at: "2026-01-01T00:00:00Z", payload: {} }) }));
+    socket.emit("message", new MessageEvent("message", { data: JSON.stringify({ schema_version: 1, event_id: "e3", game_id: "g1", seq: 10, type: "move.accepted", occurred_at: "2026-01-01T00:00:00Z", payload: {} }) }));
     expect(onEnvelope).toHaveBeenCalledTimes(1);
     client.close();
   });

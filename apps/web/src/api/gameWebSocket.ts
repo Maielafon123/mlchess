@@ -1,5 +1,17 @@
 import { backoffDelay } from "./realtimeResilience";
 import type { WsEnvelope } from "./wsEnvelope";
+import type { GameEventV1 } from "./contracts";
+
+const SERVER_EVENT_TYPES = new Set<GameEventV1["type"]>([
+  "game.snapshot",
+  "server.resync_required",
+  "game.move_committed",
+  "game.status_changed",
+  "game.clock_sync",
+  "game.takeback_applied",
+  "analysis.ready",
+  "coach.ready",
+]);
 
 export type WebSocketLike = Pick<WebSocket, "send" | "close"> & {
   readonly readyState: number;
@@ -20,7 +32,7 @@ export type GameWebSocketOptions<TPayload> = {
 function isEnvelope<TPayload>(value: unknown): value is WsEnvelope<TPayload> {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
-  return item.schema_version === 1 && typeof item.event_id === "string" && typeof item.game_id === "string" && typeof item.seq === "number" && Number.isInteger(item.seq) && item.seq >= 0 && typeof item.type === "string" && typeof item.occurred_at === "string" && "payload" in item;
+  return item.schema_version === 1 && typeof item.event_id === "string" && typeof item.game_id === "string" && typeof item.seq === "number" && Number.isInteger(item.seq) && item.seq >= 0 && typeof item.type === "string" && SERVER_EVENT_TYPES.has(item.type as GameEventV1["type"]) && typeof item.occurred_at === "string" && "payload" in item;
 }
 
 export class GameWebSocket<TPayload> {
