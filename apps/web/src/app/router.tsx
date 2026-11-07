@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
-import { HomePage, LearnPage, PlayPage } from "./pages";
+import { AiPage, HomePage, LearnPage, PlayPage } from "./pages";
 
 export const router = createBrowserRouter([
   {
@@ -9,6 +9,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "play", element: <PlayPage /> },
+      { path: "play/ai", element: <AiPage /> },
       { path: "learn", element: <LearnPage /> },
     ],
   },

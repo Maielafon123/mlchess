@@ -19,7 +19,7 @@ export type MoveCommand = {
 };
 
 export class GameApi {
-  constructor(private readonly client: ApiClient = new ApiClient()) {}
+  constructor(protected readonly client: ApiClient = new ApiClient()) {}
 
   create() {
     return this.client.post<GameSnapshot>("/api/v1/games", { mode: "local" });
