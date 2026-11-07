@@ -1,0 +1,46 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--color-surface-soft); color: var(--color-ink); }
+button, select { font: inherit; }
+a { color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.app-shell { min-height: 100vh; }
+.topbar { min-height: 72px; display: flex; align-items: center; gap: 28px; padding: 0 32px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; letter-spacing: -0.02em; }
+.brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--color-accent); color: var(--color-surface); }
+.primary-nav { display: flex; align-items: center; gap: 22px; margin-right: auto; }
+.primary-nav a { color: var(--color-muted); text-decoration: none; font-size: 0.95rem; }
+.primary-nav a:hover, .primary-nav a.active { color: var(--color-accent); }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.language-toggle select { border: 1px solid var(--color-border); border-radius: 8px; padding: 7px 28px 7px 9px; background: var(--color-surface); color: var(--color-ink); }
+.page-content { max-width: var(--max-content); margin: 0 auto; padding: 64px 32px 80px; }
+.page { display: grid; gap: 54px; }
+.hero { max-width: 760px; padding: 28px 0 12px; }
+.eyebrow { color: var(--color-accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; }
+h1, h2 { margin: 0; letter-spacing: -0.045em; line-height: 1.08; }
+h1 { margin-top: 14px; font-size: clamp(2.5rem, 6vw, 5.2rem); }
+h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
+.hero-description, .page-heading p { max-width: 650px; margin: 24px 0 0; color: var(--color-muted); font-size: 1.12rem; line-height: 1.7; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 17px; border: 1px solid transparent; border-radius: 9px; cursor: pointer; text-decoration: none; font-weight: 650; }
+.button-primary { background: var(--color-accent); color: var(--color-surface); }
+.button-primary:hover { background: var(--color-accent-strong); }
+.button-secondary { border-color: var(--color-border); background: var(--color-surface); color: var(--color-ink); }
+.button-ghost { min-height: 36px; padding: 0 12px; background: transparent; color: var(--color-muted); }
+.section { display: grid; gap: 22px; }
+.section-heading { display: grid; gap: 2px; }
+.card-grid { display: grid; gap: 16px; }
+.card-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.section-card { min-height: 160px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; }
+.section-card-title { padding: 18px 20px 0; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-muted); }
+.section-card-body { display: grid; gap: 16px; padding: 14px 20px 20px; }
+.section-card-body p { margin: 0; color: var(--color-muted); line-height: 1.55; }
+.status-chip { display: inline-flex; justify-self: start; padding: 5px 9px; border-radius: 999px; background: var(--color-accent-soft); color: var(--color-accent-strong); font-size: 0.78rem; font-weight: 650; }
+.page-heading { max-width: 760px; }
+.page-heading h1 { font-size: clamp(2.5rem, 5vw, 4.4rem); }
+.status-banner { padding: 14px 16px; border: 1px solid var(--color-border); border-radius: 10px; color: var(--color-muted); background: var(--color-surface); }
+.play-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr); gap: 18px; align-items: start; }
+.board-panel { aspect-ratio: 1; display: grid; place-items: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; }
+.board-placeholder { display: grid; gap: 10px; place-items: center; padding: 24px; text-align: center; color: var(--color-muted); }
+.board-placeholder span { font-size: 4rem; color: var(--color-accent); }
+.board-placeholder p { margin: 0; max-width: 220px; line-height: 1.5; }
+@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout { grid-template-columns: 1fr; } .page { gap: 38px; } }
