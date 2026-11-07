@@ -7,9 +7,9 @@ export type AuthConfig = {
   logoutPath: string;
 };
 
-function resolveAuthMode(raw: string | undefined): AuthMode {
+export function resolveAuthMode(raw: string | undefined, production = import.meta.env.PROD): AuthMode {
   if (raw === "oidc" || raw === "fake") return raw;
-  if (import.meta.env.DEV) return "fake";
+  if (!production) return "fake";
   throw new Error("VITE_AUTH_MODE must be explicitly set to 'oidc' for production builds");
 }
 
