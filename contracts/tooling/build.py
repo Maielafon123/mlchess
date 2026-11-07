@@ -87,7 +87,7 @@ def assemble(root: Path = ROOT) -> dict:
         "info": {
             "title": "MLChess API contract review candidate",
             "version": "1.0.0",
-            "description": "Proposed schema-first interface; routes are not implemented by this specification.",
+            "description": "Schema-first review candidate. Only routes marked implemented-scaffold have runtime handlers; proposed routes are documentation.",
         },
         "servers": [{"url": "/"}],
         "security": [{"SessionCookie": []}],

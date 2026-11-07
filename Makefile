@@ -19,3 +19,7 @@ contract-compat:
 
 legacy-test:
 	OMP_NUM_THREADS=1 $(PYTHON) -m pytest tests -q
+
+.PHONY: backend-run
+backend-run:
+	$(PYTHON) -m uvicorn backend.app.main:create_app --factory --host 127.0.0.1 --port 8000 --no-access-log --no-server-header

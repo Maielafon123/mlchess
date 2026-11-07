@@ -127,6 +127,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["healthLive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["healthReady"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -390,6 +422,12 @@ export interface components {
                 clock: components["schemas"]["ClockV1"] | null;
             };
         };
+        HealthV1: {
+            /** @constant */
+            schema_version: 1;
+            /** @constant */
+            status: "ok";
+        };
         /** @description Persisted response returned identically on retry with the same actor/client_move_id and payload. snapshot.version = expected_version + 1. The move equals the last snapshot.moves item. Reuse with another payload gives 409 IDEMPOTENCY_CONFLICT. */
         MoveAcceptedV1: {
             /** @constant */
@@ -416,12 +454,12 @@ export interface components {
             type: string;
             title: string;
             /** @enum {integer} */
-            status: 400 | 401 | 403 | 404 | 409 | 422 | 429 | 500 | 503;
+            status: 400 | 401 | 403 | 404 | 409 | 422 | 429 | 500 | 503 | 405;
             /** @enum {string} */
-            code: "BAD_REQUEST" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "STALE_GAME_VERSION" | "IDEMPOTENCY_CONFLICT" | "NOT_YOUR_TURN" | "GAME_NOT_ACTIVE" | "DRAW_NOT_CLAIMABLE" | "ILLEGAL_MOVE" | "VALIDATION_ERROR" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE";
+            code: "BAD_REQUEST" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "STALE_GAME_VERSION" | "IDEMPOTENCY_CONFLICT" | "NOT_YOUR_TURN" | "GAME_NOT_ACTIVE" | "DRAW_NOT_CLAIMABLE" | "ILLEGAL_MOVE" | "VALIDATION_ERROR" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "METHOD_NOT_ALLOWED";
             detail: string;
             request_id: components["schemas"]["UUIDv4"];
-        } & (unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown);
+        } & (unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown & unknown);
         /** @description Control frame: seq is the current committed game cursor; does not allocate a durable event sequence. */
         ResyncRequiredEventV1: {
             /** @constant */
@@ -1210,6 +1248,64 @@ export interface operations {
                 };
             };
             /** @description Sanitized problem response */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    healthLive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service check passed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthV1"];
+                };
+            };
+            /** @description Service is not ready */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    healthReady: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service check passed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthV1"];
+                };
+            };
+            /** @description Service is not ready */
             503: {
                 headers: {
                     [name: string]: unknown;

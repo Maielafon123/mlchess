@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "type": "urn:mlchess:problem:method-not-allowed",
+  "title": "Method not allowed",
+  "status": 405,
+  "code": "METHOD_NOT_ALLOWED",
+  "detail": "This HTTP method is not available for this resource.",
+  "request_id": "fa4509f2-bc32-44c8-bad7-a09a2bf06914"
+}

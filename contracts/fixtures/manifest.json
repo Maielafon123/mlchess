@@ -134,5 +134,13 @@
   {
     "path": "analysis/result-missed-mate.json",
     "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "common/health-ok.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1"
+  },
+  {
+    "path": "common/error-method-not-allowed.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
   }
 ]
