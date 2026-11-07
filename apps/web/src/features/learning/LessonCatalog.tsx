@@ -5,7 +5,7 @@ const progressKey = "mlchess.lesson-status";
 function readProgress(): Record<string, LessonStatus> { try { return JSON.parse(localStorage.getItem(progressKey) ?? "{}"); } catch { return {}; } }
 
 export function LessonCatalog({ api }: { api?: LearningApi }) {
-  const learningApi = useMemo(() => api ?? new LearningApi(), [api]);
+  const learningApi = useMemo(() => api ?? LearningApi.demo(), [api]);
   const [items, setItems] = useState<Lesson[]>([]); const [selected, setSelected] = useState<Lesson | null>(null); const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(1); const [progress, setProgress] = useState(readProgress);
   useEffect(() => { void learningApi.list(page).then((result) => { setItems(result.items.map((item) => ({ ...item, status: progress[item.id] ?? item.status }))); setTotalPages(result.total_pages); }); }, [learningApi, page, progress]);
   const updateStatus = (lesson: Lesson, status: LessonStatus) => { const next = { ...progress, [lesson.id]: status }; localStorage.setItem(progressKey, JSON.stringify(next)); setProgress(next); setSelected({ ...lesson, status }); };

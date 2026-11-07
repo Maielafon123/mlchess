@@ -7,6 +7,8 @@
 - B-FIX-07: coach polling now uses bounded exponential backoff, full request identity, terminal timeout, and cancellation by request generation.
 - B-FIX-08: completed puzzle attempts are terminal; duplicate progress events are idempotent.
 - B-FIX-09 (B-owned portion): client endpoint/header corrections and honest demo-state labeling.
+- B-FIX-09 (continued): friend/rated screens render server snapshots and submit moves through `GameApi`; PvP screens still expose no coach/analysis controls.
+- Learning demo adapters are now explicit (`LearningApi.demo()`, `PuzzleApi.demo()`, `ProgressApi.demo()`); real clients use `/api/v1/learning/*`.
 - B-002 foundation: learning schemas, router boundary, and migration proposal for A's Alembic owner.
 - B-023 provenance guard: generated exercises require finished, server-verified analysis provenance.
 

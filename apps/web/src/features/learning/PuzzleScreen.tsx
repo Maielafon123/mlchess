@@ -3,7 +3,7 @@ import { GameBoard, type MoveRecord } from "../../components/GameBoard";
 import { PuzzleApi, type Puzzle } from "../../api/puzzleApi";
 
 export function PuzzleScreen({ api }: { api?: PuzzleApi }) {
-  const [puzzle, setPuzzle] = useState<Puzzle | null>(null); const [attempts, setAttempts] = useState<MoveRecord[]>([]); const [message, setMessage] = useState("Choose a move"); const [hintIndex, setHintIndex] = useState(0); const [replay, setReplay] = useState(false); const resolvedApi = useMemo(() => api ?? new PuzzleApi(), [api]);
+  const [puzzle, setPuzzle] = useState<Puzzle | null>(null); const [attempts, setAttempts] = useState<MoveRecord[]>([]); const [message, setMessage] = useState("Choose a move"); const [hintIndex, setHintIndex] = useState(0); const [replay, setReplay] = useState(false); const resolvedApi = useMemo(() => api ?? PuzzleApi.demo(), [api]);
   useEffect(() => { void resolvedApi.get("back-rank").then(setPuzzle).catch(() => setMessage("Puzzle unavailable — try again later.")); }, [resolvedApi]);
   if (!puzzle) return <div className="status-banner" role="status">Loading puzzle…</div>;
   const currentFen = replay && puzzle.solution.length ? puzzle.solution[puzzle.solution.length - 1].fen : puzzle.fen;

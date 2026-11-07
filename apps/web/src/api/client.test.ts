@@ -23,4 +23,11 @@ describe("ApiClient", () => {
       problem: { status: 422, code: "MOCK_VALIDATION_ERROR", request_id: "mock-request-0001" },
     });
   });
+
+  it("adds an idempotency key to mutating requests", async () => {
+    let key = "";
+    const client = new ApiClient({ fetchImpl: (async (_input, init) => { key = new Headers(init?.headers).get("Idempotency-Key") ?? ""; return new Response("{}", { status: 200, headers: { "content-type": "application/json" } }); }) as typeof fetch });
+    await client.post("/api/v1/test", {});
+    expect(key).toMatch(/^[0-9a-f-]{36}$/);
+  });
 });
