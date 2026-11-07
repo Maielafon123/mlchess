@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
-import { AiPage, CoachPage, FriendPage, HomePage, LearnPage, PlayPage, ReportPage } from "./pages";
+import { AiPage, CoachPage, FriendPage, HomePage, LearnPage, MatchmakingPage, PlayPage, ReportPage } from "./pages";
 
 export const router = createBrowserRouter([
   {
@@ -13,6 +13,7 @@ export const router = createBrowserRouter([
       { path: "play/coach", element: <CoachPage /> },
       { path: "play/report", element: <ReportPage /> },
       { path: "play/friend", element: <FriendPage /> },
+      { path: "play/matchmaking", element: <MatchmakingPage /> },
       { path: "learn", element: <LearnPage /> },
     ],
   },

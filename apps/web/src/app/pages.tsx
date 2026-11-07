@@ -5,6 +5,7 @@ import { AiGameScreen } from "../features/ai/AiGameScreen";
 import { CoachGameScreen } from "../features/coach/CoachGameScreen";
 import { PostGameReport } from "../components/PostGameReport";
 import { FriendInviteScreen } from "../features/friend/FriendInviteScreen";
+import { MatchmakingScreen } from "../features/matchmaking/MatchmakingScreen";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -64,6 +65,10 @@ export function ReportPage() {
 
 export function FriendPage() {
   return <div className="page"><section className="page-heading"><div className="eyebrow">Friend game</div><h1>Play locally with a friend</h1><p>Invite links and clocks are controlled by the server.</p></section><FriendInviteScreen /></div>;
+}
+
+export function MatchmakingPage() {
+  return <div className="page"><section className="page-heading"><div className="eyebrow">Rated play</div><h1>Find an opponent</h1><p>Matchmaking, clocks and results are controlled by the server.</p></section><MatchmakingScreen /></div>;
 }
 
 export function LearnPage() {
