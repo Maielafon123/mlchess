@@ -82,4 +82,14 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .analysis-alternatives li { display: flex; justify-content: space-between; gap: 12px; color: var(--color-muted); }
 .pv-replay { display: grid; gap: 10px; padding-top: 10px; border-top: 1px solid var(--color-border); }
 .pv-controls button { padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
-@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout { grid-template-columns: 1fr; } .page { gap: 38px; } }
+.coach-game-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr); gap: 18px; align-items: start; }
+.coach-panel { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.coach-status { margin: 0; color: var(--color-muted); line-height: 1.5; }
+.hint-ladder { display: grid; gap: 8px; }
+.hint-ladder button { padding: 9px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); text-align: left; cursor: pointer; }
+.hint-ladder button.active { border-color: var(--color-accent); background: var(--color-accent-soft); }
+.hint-ladder button:disabled { cursor: not-allowed; opacity: 0.55; }
+.coach-explanation { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+.coach-explanation h3, .coach-explanation p { margin: 0; }
+.coach-explanation p { color: var(--color-muted); line-height: 1.5; }
+@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout { grid-template-columns: 1fr; } .page { gap: 38px; } }

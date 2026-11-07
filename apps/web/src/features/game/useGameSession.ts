@@ -18,7 +18,7 @@ function conflictSnapshot(error: unknown): GameSnapshot | null {
   return snapshot && typeof snapshot === "object" ? snapshot as GameSnapshot : null;
 }
 
-export function useGameSession(api?: GameApi) {
+export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSnapshot) => void) {
   const resolvedApi = useMemo(() => api ?? new GameApi(), [api]);
   const [state, setState] = useState<SessionState>({ snapshot: null, pending: false, error: null });
 
@@ -39,11 +39,12 @@ export function useGameSession(api?: GameApi) {
     try {
       const next = await resolvedApi.move(snapshot.id, { uci, client_move_id: clientMoveId(), expected_version: snapshot.version });
       setState({ snapshot: next, pending: false, error: null });
+      onAcceptedMove?.(next);
     } catch (error: unknown) {
       const rollback = conflictSnapshot(error);
       setState((current) => ({ snapshot: rollback ?? current.snapshot, pending: false, error: error instanceof Error ? error.message : "Move rejected" }));
     }
-  }, [resolvedApi, state.pending, state.snapshot]);
+  }, [onAcceptedMove, resolvedApi, state.pending, state.snapshot]);
 
   const resign = useCallback(async () => {
     const snapshot = state.snapshot;
