@@ -11,6 +11,7 @@
 - Learning demo adapters are now explicit (`LearningApi.demo()`, `PuzzleApi.demo()`, `ProgressApi.demo()`); real clients use `/api/v1/learning/*`.
 - B-002 foundation: learning schemas, router boundary, and migration proposal for A's Alembic owner.
 - B-023 provenance guard: generated exercises require finished, server-verified analysis provenance.
+- B-FIX-10 foundation: real ESLint gate, production-auth config test, endpoint contract tests, and a reconnecting WS boundary with strict envelope validation.
 
 ## Not claimed as complete
 
