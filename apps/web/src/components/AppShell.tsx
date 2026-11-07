@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useI18n } from "../i18n/I18nProvider";
 import { LanguageToggle } from "./LanguageToggle";
+import { AuthStatus } from "../auth/AuthStatus";
 
 export function AppShell() {
   const { t } = useI18n();
@@ -19,7 +20,7 @@ export function AppShell() {
         </nav>
         <div className="topbar-actions">
           <LanguageToggle />
-          <button className="button button-ghost" type="button">{t.navigation.signIn}</button>
+          <AuthStatus />
         </div>
       </header>
       <main className="page-content"><Outlet /></main>
