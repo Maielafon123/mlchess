@@ -4,6 +4,7 @@ import { GameSessionScreen } from "../features/game/GameSessionScreen";
 import { AiGameScreen } from "../features/ai/AiGameScreen";
 import { CoachGameScreen } from "../features/coach/CoachGameScreen";
 import { PostGameReport } from "../components/PostGameReport";
+import { FriendInviteScreen } from "../features/friend/FriendInviteScreen";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -59,6 +60,10 @@ export function CoachPage() {
 export function ReportPage() {
   const { t } = useI18n();
   return <div className="page"><section className="page-heading"><div className="eyebrow">Post-game review</div><h1>{t.home.title}</h1><p>Review only verified engine decisions from a finished game.</p></section><PostGameReport report={{ game_id: "pending", status: "pending", result: "unknown", analyzed_plies: 0, total_plies: 0, decisions: [] }} /></div>;
+}
+
+export function FriendPage() {
+  return <div className="page"><section className="page-heading"><div className="eyebrow">Friend game</div><h1>Play locally with a friend</h1><p>Invite links and clocks are controlled by the server.</p></section><FriendInviteScreen /></div>;
 }
 
 export function LearnPage() {
