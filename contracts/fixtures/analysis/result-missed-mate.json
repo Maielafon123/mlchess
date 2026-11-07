@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "analysis_id": "00000000-0000-4000-8000-000000000035",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 0,
+  "ply": 4,
+  "position_key": "1d4a4b48dd12e1b1e13951c25615467ccf1721200fb6a72cfdb7752517af10e3",
+  "before_fen": "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2",
+  "after_fen": "rnbqkbnr/pppp1pp1/7p/4p3/6P1/5P2/PPPPP2P/RNBQKBNR w KQkq - 0 3",
+  "played_move_uci": "h7h6",
+  "best_move_uci": "d8h4",
+  "top_moves": [
+    {
+      "uci": "d8h4",
+      "san": "Qh4#",
+      "pv_uci": [
+        "d8h4"
+      ],
+      "score": {
+        "kind": "mate",
+        "value": -1,
+        "pov": "white"
+      }
+    }
+  ],
+  "score_before": {
+    "kind": "mate",
+    "value": -1,
+    "pov": "white"
+  },
+  "score_after": {
+    "kind": "cp",
+    "value": -200,
+    "pov": "white"
+  },
+  "quality": "blunder",
+  "quality_method": "mate-score-v1",
+  "cp_loss": null,
+  "engine": {
+    "name": "stockfish",
+    "version": "fixture-1",
+    "model_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "binary_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "limits": {
+      "time_ms": 100,
+      "nodes": 10000,
+      "depth": null
+    },
+    "multipv": 1,
+    "threads": 1,
+    "hash_mb": 32
+  },
+  "facts": {
+    "checks": false,
+    "captures": false,
+    "material_delta": 0,
+    "motifs_verified": [],
+    "verified_claims": []
+  },
+  "created_at": "2026-11-07T14:00:00Z"
+}

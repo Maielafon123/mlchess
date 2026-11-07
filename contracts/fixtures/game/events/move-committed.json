@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "00000000-0000-4000-8000-000000000012",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "seq": 1,
+  "type": "game.move_committed",
+  "occurred_at": "2026-11-07T14:00:00Z",
+  "payload": {
+    "version": 1,
+    "revision": 0,
+    "move": {
+      "ply": 1,
+      "uci": "g1f3",
+      "san": "Nf3"
+    },
+    "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+    "side_to_move": "black",
+    "clock": {
+      "white_remaining_ms": 599000,
+      "black_remaining_ms": 600000,
+      "running_side": "black",
+      "server_now": "2026-11-07T14:00:00Z"
+    }
+  }
+}

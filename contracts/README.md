@@ -1,9 +1,9 @@
-# A-001: common and game contracts (review candidate)
+# A-001/A-002: common, game and analysis contracts (review candidates)
 
 These are JSON Schema 2020-12 YAML sources, not implemented HTTP endpoints.
 A owns `common/`, `game/`, this validator and the matching fixtures. The first
 contract gate remains pending B review and green CI. Once accepted, v1 changes
-must follow compatibility review. Analysis/WS arrive in A-002; OpenAPI assembly,
+must follow compatibility review. Analysis/WS are specified in A-002; OpenAPI assembly,
 generated Pydantic/TypeScript and compatibility/drift checks arrive in A-003.
 No generated API file is hand-authored in this PR.
 
@@ -24,10 +24,14 @@ exclude `.venv-contracts`. On Windows activate with
 `.venv-contracts\Scripts\Activate.ps1`. The schemas use stable identifiers under
 `https://mlchess.local/contracts/`; these are identifiers, not network endpoints.
 The validator resolves every reference offline from this checkout, checks schema
-syntax, rejects duplicate YAML keys and validates all 12 golden examples. It also
+syntax, rejects duplicate YAML keys and validates all 34 golden examples. It also
 replays example histories with python-chess to verify FEN, SAN, ply and turn.
 The fixture manifest maps each JSON payload to its schema; payload files contain
 only the actual request or response, so frontend mocks can consume them directly.
+
+Analysis details: [analysis/README.md](analysis/README.md). WebSocket cursor and
+resync rules: [game/events.md](game/events.md). These extend the A-001 fixtures
+for B-001/B-010 mocks while the same contract review gate remains pending.
 
 ## Wire decisions for B review
 

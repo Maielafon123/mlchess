@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "analysis_id": "00000000-0000-4000-8000-000000000027",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 0,
+  "ply": 9,
+  "position_key": "ea9be4ce329bdf6f46a8a293b225c62c67d992f49a9c1ac6d6ed20ebbf17c97b",
+  "before_fen": "rnbqkbnr/pPppppp1/8/8/8/8/1PPPPPpP/RNBQKBNR w KQkq - 0 5",
+  "after_fen": "Qnbqkbnr/p1ppppp1/8/8/8/8/1PPPPPpP/RNBQKBNR b KQk - 0 5",
+  "played_move_uci": "b7a8q",
+  "best_move_uci": "b7a8q",
+  "top_moves": [
+    {
+      "uci": "b7a8q",
+      "san": "bxa8=Q",
+      "pv_uci": [
+        "b7a8q"
+      ],
+      "score": {
+        "kind": "cp",
+        "value": 30,
+        "pov": "white"
+      }
+    }
+  ],
+  "score_before": {
+    "kind": "cp",
+    "value": 30,
+    "pov": "white"
+  },
+  "score_after": {
+    "kind": "cp",
+    "value": 30,
+    "pov": "white"
+  },
+  "quality": "best",
+  "quality_method": "cp-loss-v1",
+  "cp_loss": 0,
+  "engine": {
+    "name": "stockfish",
+    "version": "fixture-1",
+    "model_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "binary_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "limits": {
+      "time_ms": 100,
+      "nodes": 10000,
+      "depth": null
+    },
+    "multipv": 1,
+    "threads": 1,
+    "hash_mb": 32
+  },
+  "facts": {
+    "checks": false,
+    "captures": true,
+    "material_delta": 1300,
+    "motifs_verified": [
+      "promotion"
+    ],
+    "verified_claims": [
+      {
+        "fact_id": "00000000-0000-4000-8000-000000000036",
+        "kind": "capture",
+        "evidence": {
+          "uci": "b7a8q",
+          "captured_piece": "rook",
+          "square": "a8"
+        }
+      },
+      {
+        "fact_id": "00000000-0000-4000-8000-000000000037",
+        "kind": "promotion",
+        "evidence": {
+          "uci": "b7a8q",
+          "promoted_piece": "queen"
+        }
+      }
+    ]
+  },
+  "created_at": "2026-11-07T14:00:00Z"
+}

@@ -46,5 +46,93 @@
   {
     "path": "common/error-illegal-move.json",
     "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+  },
+  {
+    "path": "analysis/request-quick.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisRequestV1"
+  },
+  {
+    "path": "analysis/result-cp-white.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/result-cp-black.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/result-mate.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/job-pending.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1"
+  },
+  {
+    "path": "analysis/job-running.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1"
+  },
+  {
+    "path": "analysis/job-done.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1"
+  },
+  {
+    "path": "analysis/job-failed.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1"
+  },
+  {
+    "path": "analysis/error-active-pvp.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+  },
+  {
+    "path": "game/events/snapshot.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/move-committed.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/analysis-ready.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/coach-ready.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/clock-sync.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/takeback-applied.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/status-changed.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "game/events/resync-required.json",
+    "schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1"
+  },
+  {
+    "path": "analysis/result-capture.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/result-en-passant.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/result-castling.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/result-promotion.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
+  },
+  {
+    "path": "analysis/result-missed-mate.json",
+    "schema": "https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1"
   }
 ]

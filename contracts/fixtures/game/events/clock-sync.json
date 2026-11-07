@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "event_id": "00000000-0000-4000-8000-000000000015",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "seq": 4,
+  "type": "game.clock_sync",
+  "occurred_at": "2026-11-07T14:00:00Z",
+  "payload": {
+    "version": 1,
+    "revision": 0,
+    "ply": 1,
+    "clock": {
+      "white_remaining_ms": 599000,
+      "black_remaining_ms": 599000,
+      "running_side": "black",
+      "server_now": "2026-11-07T14:00:00Z"
+    }
+  }
+}

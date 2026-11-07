@@ -1,0 +1,450 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://mlchess.local/contracts/game/events.v1.yaml
+title: "MLChess game stream v1 \u2014 A-002 review candidate"
+$defs:
+  GameSnapshotEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: &id002
+        type: integer
+        const: 1
+      event_id: &id001
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: game.snapshot
+      occurred_at: &id003
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime
+      payload:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
+    description: 'Control frame: seq is the current committed game cursor; does not allocate a durable
+      event sequence.'
+  GameMoveCommittedEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: game.move_committed
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - version
+        - revision
+        - move
+        - fen
+        - side_to_move
+        - clock
+        properties:
+          version: &id004
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          revision: &id005
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          move:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveV1
+          fen: &id006
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/FenV1
+          side_to_move:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+          clock:
+            oneOf:
+            - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+            - type: 'null'
+    description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
+      commit.'
+  GameClockSyncEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: game.clock_sync
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - version
+        - revision
+        - ply
+        - clock
+        properties:
+          version: *id004
+          revision: *id005
+          ply:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          clock:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+    description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
+      commit.'
+  GameTakebackAppliedEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: game.takeback_applied
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - version
+        - from_ply
+        - to_ply
+        - new_revision
+        - fen
+        - side_to_move
+        - clock
+        properties:
+          version:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          from_ply:
+            type: integer
+            minimum: 1
+            maximum: 9007199254740991
+          to_ply:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          new_revision:
+            type: integer
+            minimum: 1
+            maximum: 9007199254740991
+          fen: *id006
+          side_to_move:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+          clock:
+            oneOf:
+            - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+            - type: 'null'
+    description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
+      commit.'
+  AnalysisReadyEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: analysis.ready
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - analysis_id
+        - revision
+        - ply
+        properties:
+          analysis_id: *id001
+          revision:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          ply:
+            type: integer
+            minimum: 1
+            maximum: 9007199254740991
+    description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
+      commit.'
+  CoachReadyEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: coach.ready
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - explanation_id
+        - analysis_id
+        - revision
+        - ply
+        properties:
+          explanation_id: *id001
+          analysis_id: *id001
+          revision:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          ply:
+            type: integer
+            minimum: 1
+            maximum: 9007199254740991
+    description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
+      commit.'
+  ResyncRequiredEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: server.resync_required
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - after_seq
+        - latest_seq
+        - reason
+        properties:
+          after_seq:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          latest_seq:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          reason:
+            type: string
+            enum:
+            - cursor_ahead
+            - replay_unavailable
+            - sequence_gap
+    description: 'Control frame: seq is the current committed game cursor; does not allocate a durable
+      event sequence.'
+  GameStatusChangedEventV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - event_id
+    - game_id
+    - seq
+    - type
+    - occurred_at
+    - payload
+    properties:
+      schema_version: *id002
+      event_id: *id001
+      game_id: *id001
+      seq:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      type:
+        type: string
+        const: game.status_changed
+      occurred_at: *id003
+      payload:
+        type: object
+        additionalProperties: false
+        required:
+        - version
+        - revision
+        - status
+        - result
+        - termination
+        - clock
+        properties:
+          version: *id004
+          revision: *id005
+          status:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameStatusV1
+          result:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1/properties/result
+          termination:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1/properties/termination
+          clock:
+            oneOf:
+            - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+            - type: 'null'
+        allOf:
+        - if:
+            properties:
+              status:
+                type: string
+                enum:
+                - waiting
+                - active
+            required:
+            - status
+          then:
+            properties:
+              result:
+                type: 'null'
+              termination:
+                type: 'null'
+        - if:
+            properties:
+              status:
+                const: finished
+            required:
+            - status
+          then:
+            properties:
+              result:
+                type: string
+                enum:
+                - white
+                - black
+                - draw
+              termination:
+                type: string
+                not:
+                  const: aborted
+        - if:
+            properties:
+              status:
+                const: aborted
+            required:
+            - status
+          then:
+            properties:
+              result:
+                type: 'null'
+              termination:
+                const: aborted
+        - if:
+            properties:
+              status:
+                type: string
+                enum:
+                - waiting
+                - finished
+                - aborted
+            required:
+            - status
+          then:
+            properties:
+              clock:
+                oneOf:
+                - type: 'null'
+                - type: object
+                  properties:
+                    running_side:
+                      type: 'null'
+    description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
+      commit.'
+  GameEventV1:
+    oneOf:
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameSnapshotEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameMoveCommittedEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameClockSyncEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameTakebackAppliedEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/AnalysisReadyEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/CoachReadyEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/ResyncRequiredEventV1
+    - $ref: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameStatusChangedEventV1
+    description: Read-only server-to-client stream. Discriminate by type before consuming payload; unknown
+      event types fail validation. Snapshot/resync control frames carry a cursor but are handled separately
+      from durable event dedup. Matchmaking has REST polling, not a game stream event.

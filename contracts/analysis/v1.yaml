@@ -1,0 +1,497 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://mlchess.local/contracts/analysis/v1.yaml
+title: "MLChess analysis v1 \u2014 A-002 review candidate"
+$defs:
+  ScoreV1:
+    oneOf:
+    - type: object
+      additionalProperties: false
+      required:
+      - kind
+      - value
+      - pov
+      properties:
+        kind:
+          type: string
+          const: cp
+        value:
+          type: integer
+        pov:
+          type: string
+          const: white
+    - type: object
+      additionalProperties: false
+      required:
+      - kind
+      - value
+      - pov
+      properties:
+        kind:
+          type: string
+          const: mate
+        value:
+          type: integer
+        pov:
+          type: string
+          const: white
+    description: 'White POV always. cp is centipawns; mate is signed UCI mate distance in moves. Mate
+      zero is a terminal position: the board identifies the mated side. Never convert a mate score to
+      centipawns.'
+  EngineLimitsV1:
+    type: object
+    additionalProperties: false
+    required:
+    - time_ms
+    - nodes
+    - depth
+    properties:
+      time_ms:
+        oneOf:
+        - type: integer
+          minimum: 1
+          maximum: 30000
+        - type: 'null'
+      nodes:
+        oneOf:
+        - type: integer
+          minimum: 1
+          maximum: 10000000
+        - type: 'null'
+      depth:
+        oneOf:
+        - type: integer
+          minimum: 1
+          maximum: 64
+        - type: 'null'
+    anyOf:
+    - properties:
+        time_ms:
+          type: integer
+    - properties:
+        nodes:
+          type: integer
+    - properties:
+        depth:
+          type: integer
+    description: Effective server-selected worker limits. At least one non-null bound. These fields are
+      metadata, never accepted from a public analysis request.
+  EngineMetadataV1:
+    type: object
+    additionalProperties: false
+    required:
+    - name
+    - version
+    - model_hash
+    - binary_sha256
+    - limits
+    - multipv
+    - threads
+    - hash_mb
+    properties:
+      name:
+        type: string
+        const: stockfish
+      version:
+        type: string
+        minLength: 1
+        maxLength: 80
+      model_hash: &id001
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      binary_sha256: *id001
+      limits:
+        $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineLimitsV1
+      multipv:
+        type: integer
+        minimum: 1
+        maximum: 3
+      threads:
+        type: integer
+        minimum: 1
+        maximum: 4
+      hash_mb:
+        type: integer
+        minimum: 16
+        maximum: 512
+  TopMoveV1:
+    type: object
+    additionalProperties: false
+    required:
+    - uci
+    - san
+    - pv_uci
+    - score
+    properties:
+      uci: &id002
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/UciMoveV1
+      san:
+        type: string
+        minLength: 1
+        maxLength: 16
+      pv_uci:
+        type: array
+        minItems: 1
+        maxItems: 128
+        items: *id002
+      score:
+        $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/ScoreV1
+    description: Ranked at before_fen from the mover POV; uci is the first PV move and san is its SAN
+      at before_fen. Replay every PV for legality.
+  AnalysisRequestV1:
+    type: object
+    additionalProperties: false
+    required:
+    - ply
+    - analysis_level
+    properties:
+      ply:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      analysis_level:
+        type: string
+        enum:
+        - quick
+        - deep
+    description: Participant-scoped analysis of a server-reconstructed move. Idempotency-Key UUIDv4 header
+      required; no client FEN, scores, engine paths or free resource budgets. Server captures revision/position_key
+      when accepting the request.
+  VerifiedClaimV1:
+    oneOf:
+    - type: object
+      additionalProperties: false
+      required:
+      - fact_id
+      - kind
+      - evidence
+      properties:
+        fact_id: &id003
+          $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+        kind:
+          type: string
+          const: check
+        evidence:
+          type: object
+          additionalProperties: false
+          required:
+          - uci
+          - after_fen
+          properties:
+            uci: *id002
+            after_fen: &id004
+              $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/FenV1
+    - type: object
+      additionalProperties: false
+      required:
+      - fact_id
+      - kind
+      - evidence
+      properties:
+        fact_id: *id003
+        kind:
+          type: string
+          const: capture
+        evidence:
+          type: object
+          additionalProperties: false
+          required:
+          - uci
+          - captured_piece
+          - square
+          properties:
+            uci: *id002
+            captured_piece:
+              type: string
+              enum:
+              - pawn
+              - knight
+              - bishop
+              - rook
+              - queen
+            square:
+              type: string
+              pattern: ^[a-h][1-8]$
+    - type: object
+      additionalProperties: false
+      required:
+      - fact_id
+      - kind
+      - evidence
+      properties:
+        fact_id: *id003
+        kind:
+          type: string
+          const: promotion
+        evidence:
+          type: object
+          additionalProperties: false
+          required:
+          - uci
+          - promoted_piece
+          properties:
+            uci: *id002
+            promoted_piece:
+              type: string
+              enum:
+              - knight
+              - bishop
+              - rook
+              - queen
+    - type: object
+      additionalProperties: false
+      required:
+      - fact_id
+      - kind
+      - evidence
+      properties:
+        fact_id: *id003
+        kind:
+          type: string
+          const: checkmate
+        evidence:
+          type: object
+          additionalProperties: false
+          required:
+          - uci
+          - after_fen
+          - winner
+          properties:
+            uci: *id002
+            after_fen: *id004
+            winner:
+              $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+    description: Only mechanically verifiable claims about the played move. Free text, engine-generated
+      motives and unverified threats are outside this v1 vocabulary.
+  AnalysisFactsV1:
+    type: object
+    additionalProperties: false
+    required:
+    - checks
+    - captures
+    - material_delta
+    - motifs_verified
+    - verified_claims
+    properties:
+      checks:
+        type: boolean
+      captures:
+        type: boolean
+      material_delta:
+        type: integer
+      motifs_verified:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+          - checkmate
+          - promotion
+          - en_passant
+          - castling
+      verified_claims:
+        type: array
+        maxItems: 16
+        items:
+          $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/VerifiedClaimV1
+    description: checks/captures describe the played move. material_delta is material gained by the mover
+      on this move using pawn=100, knight=320, bishop=330, rook=500, queen=900; it is not an engine evaluation.
+      Motifs are limited to facts the v1 verifier can prove.
+  AnalysisResultV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - analysis_id
+    - game_id
+    - revision
+    - ply
+    - position_key
+    - before_fen
+    - after_fen
+    - played_move_uci
+    - best_move_uci
+    - top_moves
+    - score_before
+    - score_after
+    - quality
+    - quality_method
+    - cp_loss
+    - engine
+    - facts
+    - created_at
+    properties:
+      schema_version: &id005
+        type: integer
+        const: 1
+      analysis_id: *id003
+      game_id: *id003
+      revision:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      ply:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      position_key: *id001
+      before_fen: *id004
+      after_fen: *id004
+      played_move_uci: *id002
+      best_move_uci: *id002
+      top_moves:
+        type: array
+        minItems: 1
+        maxItems: 3
+        items:
+          $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/TopMoveV1
+      score_before:
+        $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/ScoreV1
+      score_after:
+        $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/ScoreV1
+      quality:
+        type: string
+        enum:
+        - best
+        - good
+        - inaccuracy
+        - mistake
+        - blunder
+        - unclassified
+      quality_method:
+        type: string
+        enum:
+        - cp-loss-v1
+        - mate-score-v1
+      cp_loss:
+        oneOf:
+        - type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        - type: 'null'
+      engine:
+        $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineMetadataV1
+      facts:
+        $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisFactsV1
+      created_at: &id006
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime
+    allOf:
+    - if:
+        anyOf:
+        - properties:
+            score_before:
+              properties:
+                kind:
+                  const: mate
+              required:
+              - kind
+        - properties:
+            score_after:
+              properties:
+                kind:
+                  const: mate
+              required:
+              - kind
+      then:
+        properties:
+          cp_loss:
+            type: 'null'
+          quality_method:
+            const: mate-score-v1
+      else:
+        properties:
+          cp_loss:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          quality_method:
+            const: cp-loss-v1
+    description: Engine facts only; no coach prose. position_key = sha256(before_fen + "|" + played_move_uci).
+      Replay the played move to after_fen and each candidate PV from before_fen. cp_loss = max(0, (score_before.value
+      - score_after.value) * (1 for a white mover, -1 for black)), only when both scores are cp. No public
+      arbitrary-FEN endpoint.
+  AnalysisJobV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - id
+    - game_id
+    - revision
+    - ply
+    - position_key
+    - status
+    - analysis_id
+    - error
+    - created_at
+    - updated_at
+    properties:
+      schema_version: *id005
+      id: *id003
+      game_id: *id003
+      revision:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      ply:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      position_key: *id001
+      status:
+        type: string
+        enum:
+        - pending
+        - running
+        - done
+        - failed
+      analysis_id:
+        oneOf:
+        - *id003
+        - type: 'null'
+      error:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        - type: 'null'
+      created_at: *id006
+      updated_at: *id006
+    allOf:
+    - if:
+        properties:
+          status:
+            type: string
+            enum:
+            - pending
+            - running
+        required:
+        - status
+      then:
+        properties:
+          analysis_id:
+            type: 'null'
+          error:
+            type: 'null'
+    - if:
+        properties:
+          status:
+            const: done
+        required:
+        - status
+      then:
+        properties:
+          analysis_id: *id003
+          error:
+            type: 'null'
+    - if:
+        properties:
+          status:
+            const: failed
+        required:
+        - status
+      then:
+        properties:
+          analysis_id:
+            type: 'null'
+          error:
+            $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+    description: Postgres durable job snapshot; Redis enqueue is not completion. Every worker/result read
+      repeats participant, phase, revision and position_key checks. A stale result cannot become current.

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "analysis_id": "00000000-0000-4000-8000-000000000002",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 0,
+  "ply": 4,
+  "position_key": "b7fd99a28a3350aa3d56aa88f4ebfcc97ca73eabfdc6b55fb3eb1b15efccf5ec",
+  "before_fen": "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2",
+  "after_fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+  "played_move_uci": "d8h4",
+  "best_move_uci": "d8h4",
+  "top_moves": [
+    {
+      "uci": "d8h4",
+      "san": "Qh4#",
+      "pv_uci": [
+        "d8h4"
+      ],
+      "score": {
+        "kind": "mate",
+        "value": -1,
+        "pov": "white"
+      }
+    }
+  ],
+  "score_before": {
+    "kind": "mate",
+    "value": -1,
+    "pov": "white"
+  },
+  "score_after": {
+    "kind": "mate",
+    "value": 0,
+    "pov": "white"
+  },
+  "quality": "best",
+  "quality_method": "mate-score-v1",
+  "cp_loss": null,
+  "engine": {
+    "name": "stockfish",
+    "version": "fixture-1",
+    "model_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "binary_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "limits": {
+      "time_ms": 100,
+      "nodes": 10000,
+      "depth": null
+    },
+    "multipv": 1,
+    "threads": 1,
+    "hash_mb": 32
+  },
+  "facts": {
+    "checks": true,
+    "captures": false,
+    "material_delta": 0,
+    "motifs_verified": [
+      "checkmate"
+    ],
+    "verified_claims": [
+      {
+        "fact_id": "00000000-0000-4000-8000-000000000003",
+        "kind": "check",
+        "evidence": {
+          "uci": "d8h4",
+          "after_fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"
+        }
+      },
+      {
+        "fact_id": "00000000-0000-4000-8000-000000000004",
+        "kind": "checkmate",
+        "evidence": {
+          "uci": "d8h4",
+          "after_fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+          "winner": "black"
+        }
+      }
+    ]
+  },
+  "created_at": "2026-11-07T14:00:00Z"
+}

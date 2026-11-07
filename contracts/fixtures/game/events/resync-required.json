@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "event_id": "00000000-0000-4000-8000-000000000018",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "seq": 6,
+  "type": "server.resync_required",
+  "occurred_at": "2026-11-07T14:00:00Z",
+  "payload": {
+    "after_seq": 20,
+    "latest_seq": 6,
+    "reason": "cursor_ahead"
+  }
+}

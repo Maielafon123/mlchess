@@ -29,7 +29,7 @@ def validate(name, payload, domain="game"):
 
 
 def test_all_golden_fixtures_and_local_references():
-    assert validate_fixtures() == 12
+    assert validate_fixtures() == 34
 
 
 @pytest.mark.parametrize(
