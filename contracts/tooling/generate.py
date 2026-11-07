@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -99,6 +100,8 @@ def generate(root: Path = ROOT, *, check: bool = False) -> None:
     repo = root.parent
     spec = assemble(root)
     ts_cli = root / "node_modules/.bin/openapi-typescript"
+    if os.name == "nt":
+        ts_cli = ts_cli.with_suffix(".cmd")
     if not ts_cli.is_file():
         raise RuntimeError("Install pinned Node tools first: npm --prefix contracts ci")
     with tempfile.TemporaryDirectory(prefix="mlchess-contracts-") as folder:
