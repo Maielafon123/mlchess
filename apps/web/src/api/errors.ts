@@ -5,6 +5,8 @@ export type ProblemDetails = {
   code: string;
   detail: string;
   request_id: string;
+  /** Optional server snapshot used to roll back a stale optimistic command. */
+  snapshot?: unknown;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -24,6 +26,7 @@ export function decodeProblemDetails(status: number, payload: unknown): ProblemD
     code: stringField(body.code, "HTTP_ERROR"),
     detail: stringField(body.detail, `Request failed with status ${status}`),
     request_id: stringField(body.request_id, "unknown"),
+    snapshot: body.snapshot,
   };
 }
 

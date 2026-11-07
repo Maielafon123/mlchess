@@ -60,4 +60,8 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .move-history p { margin: 0; color: var(--color-muted); }
 .move-history ol { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 10px; padding-left: 24px; }
 .move-history pre { white-space: pre-wrap; color: var(--color-muted); }
+.game-session { position: relative; width: 100%; }
+.pending-overlay { margin-bottom: 12px; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); color: var(--color-muted); }
+.error-banner { margin-bottom: 12px; padding: 10px 14px; border: 1px solid #d88484; border-radius: 10px; background: #fff3f3; color: #8d2525; }
+.game-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout { grid-template-columns: 1fr; } .page { gap: 38px; } }
