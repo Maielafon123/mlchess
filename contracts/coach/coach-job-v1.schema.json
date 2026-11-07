@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.dev/contracts/coach/coach-job-v1.schema.json",
+  "title": "CoachJobV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "job_id", "status", "game_id", "analysis_id", "revision", "ply"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "job_id": { "$ref": "#/$defs/uuid" },
+    "status": { "type": "string", "enum": ["pending", "ready", "failed"] },
+    "game_id": { "$ref": "#/$defs/uuid" },
+    "analysis_id": { "$ref": "#/$defs/uuid" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "ply": { "type": "integer", "minimum": 1 },
+    "explanation": { "$ref": "coach-explanation-v1.schema.json" },
+    "error_code": { "type": "string", "pattern": "^[A-Z0-9_:-]+$", "maxLength": 80 }
+  },
+  "allOf": [
+    { "if": { "properties": { "status": { "const": "ready" } } }, "then": { "required": ["explanation"] } },
+    { "if": { "properties": { "status": { "const": "failed" } } }, "then": { "required": ["error_code"] } }
+  ],
+  "$defs": { "uuid": { "type": "string", "format": "uuid" } }
+}

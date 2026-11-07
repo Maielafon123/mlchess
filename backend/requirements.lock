@@ -1,4 +1,6 @@
 annotated-doc==0.0.5
+aiosqlite==0.21.0
+attrs==26.1.0
 annotated-types==0.8.0
 alembic==1.17.2
 asyncpg==0.30.0
@@ -12,6 +14,8 @@ h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.20
+jsonschema==4.25.1
+jsonschema-specifications==2025.9.1
 iniconfig==2.3.1
 packaging==26.3
 pluggy==1.7.0
@@ -20,6 +24,8 @@ pydantic-settings==2.12.0
 pydantic_core==2.41.5
 Pygments==2.21.0
 pytest==9.0.2
+referencing==0.36.2
+rpds-py==2026.9.1
 python-dotenv==1.2.4
 ruff==0.15.0
 starlette==0.49.3

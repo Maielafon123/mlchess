@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.dev/contracts/learning/puzzle-attempt-v1.schema.json",
+  "title": "PuzzleAttemptV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "attempt_id", "result", "completed", "next_ply"],
+  "properties": {
+    "schema_version": {"const": 1}, "attempt_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "result": {"type": "string", "enum": ["correct", "incorrect", "illegal", "completed"]},
+    "completed": {"type": "boolean"}, "next_ply": {"type": "integer", "minimum": 0}
+  }
+}

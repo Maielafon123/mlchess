@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.dev/contracts/coach/coach-request-v1.schema.json",
+  "title": "CoachRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "game_id", "analysis_id", "revision", "ply", "language", "level"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "game_id": { "$ref": "#/$defs/uuid" },
+    "analysis_id": { "$ref": "#/$defs/uuid" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "ply": { "type": "integer", "minimum": 1 },
+    "language": { "type": "string", "enum": ["ru", "en"] },
+    "level": {
+      "type": "string",
+      "enum": ["short", "detailed", "observation", "direction", "idea", "candidates", "solution"]
+    },
+    "student_context_version": { "type": "string", "minLength": 1, "maxLength": 120 }
+  },
+  "$defs": { "uuid": { "type": "string", "format": "uuid" } }
+}

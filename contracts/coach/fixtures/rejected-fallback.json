@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 0,
+  "ply": 3,
+  "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+  "language": "ru",
+  "level": "short",
+  "summary": "Разбор доступен по проверенным данным партии.",
+  "why": "Автоматическое объяснение не прошло проверку grounding, поэтому показан безопасный шаблон.",
+  "question": "Откройте варианты движка, чтобы продолжить разбор.",
+  "referenced_uci": [],
+  "highlight_squares": [],
+  "claim_refs": [],
+  "template_id": "coach.fallback.v1",
+  "confidence": "fallback",
+  "model_id": "fake/coach-v1",
+  "prompt_version": "coach-v1",
+  "fallback_used": true
+}

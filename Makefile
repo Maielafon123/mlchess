@@ -23,3 +23,7 @@ legacy-test:
 .PHONY: backend-run
 backend-run:
 	$(PYTHON) -m uvicorn backend.app.main:create_app --factory --host 127.0.0.1 --port 8000 --no-access-log --no-server-header
+
+.PHONY: release-preflight
+release-preflight:
+	$(PYTHON) -m infra.release_check
