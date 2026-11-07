@@ -54,6 +54,22 @@ def test_white_black_turns_san_and_immutable_history():
         after_black.version = 0
 
 
+def test_solo_takeback_advances_revision_and_archives_branch():
+    game = replay("e2e4 e7e5 g1f3", mode=Mode.COACH)
+    rolled = game.takeback(actor=chess.WHITE, expected_version=3, plies=2)
+    assert [move.uci for move in rolled.moves] == ["e2e4"]
+    assert rolled.version == 4
+    assert rolled.revision == 1
+    assert rolled.archived_lines == (game.moves,)
+
+
+@pytest.mark.parametrize("mode", [Mode.FRIEND, Mode.RATED])
+def test_pvp_takeback_is_forbidden(mode):
+    game = replay("e2e4 e7e5", mode=mode)
+    with pytest.raises(ModeRestriction):
+        game.takeback(actor=chess.WHITE, expected_version=2, plies=2)
+
+
 def test_board_exposure_cannot_mutate_domain():
     game = replay("e2e4 e7e5")
     board = game.board

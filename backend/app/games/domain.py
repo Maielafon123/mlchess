@@ -131,6 +131,8 @@ class GameDomain:
     result: Result | None = None
     termination: EndReason | None = None
     draw_offer: chess.Color | None = None
+    revision: int = 0
+    archived_lines: tuple[tuple[MoveRecord, ...], ...] = ()
     _board: chess.Board = field(init=False, repr=False, compare=False)
 
     def __post_init__(self):
@@ -148,6 +150,12 @@ class GameDomain:
             raise InvalidHistory(
                 "History must be immutable and fit its command version"
             )
+        if type(self.revision) is not int or self.revision < 0:
+            raise InvalidHistory("Revision must be a nonnegative integer")
+        if not isinstance(self.archived_lines, tuple) or any(
+            not isinstance(line, tuple) for line in self.archived_lines
+        ):
+            raise InvalidHistory("Archived lines must be immutable")
         board = _initial_board(self.initial_fen)
         if board.fen() != self.initial_fen:
             raise InvalidHistory("Initial FEN must be canonical")
@@ -356,6 +364,25 @@ class GameDomain:
             result=Result.DRAW,
             termination=EndReason.DRAW_AGREEMENT,
             draw_offer=None,
+        )
+
+    def takeback(
+        self, *, actor: chess.Color, expected_version: int, plies: int
+    ) -> GameDomain:
+        self._command(actor, expected_version)
+        if self.mode not in {Mode.AI, Mode.COACH}:
+            raise ModeRestriction("Takeback is available only in solo games")
+        if plies not in {1, 2} or plies > len(self.moves):
+            raise GameError("Takeback must remove one or two existing plies")
+        return replace(
+            self,
+            moves=self.moves[:-plies],
+            version=self.version + 1,
+            result=None,
+            termination=None,
+            draw_offer=None,
+            revision=self.revision + 1,
+            archived_lines=self.archived_lines + (self.moves,),
         )
 
     def to_pgn(self) -> str:
