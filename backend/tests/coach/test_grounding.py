@@ -37,6 +37,7 @@ def test_valid_grounded_explanation_is_accepted():
     (lambda value: value.update(language="en"), "REQUEST_METADATA_MISMATCH"),
     (lambda value: value.update(prompt_version="coach-v0"), "PROMPT_VERSION_MISMATCH"),
     (lambda value: value.update(fallback_used=True), "PROVIDER_FALLBACK_NOT_VERIFIED"),
+    (lambda value: value.update(summary="Consider e2e4, not e7e5, in this position."), "UNVERIFIED_TEXT_MOVE"),
 ])
 def test_every_unsafe_case_returns_deterministic_fallback(mutation, code):
     candidate = dict(VALID)
