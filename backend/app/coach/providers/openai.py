@@ -8,7 +8,7 @@ constructs prompts from untrusted client text.
 from collections.abc import Callable
 from typing import Any
 
-from .base import PROMPT_VERSION, CoachProviderError, CoachRequest, CoachSettings
+from .base import PROMPT_VERSION, CoachProviderError, CoachRequest, CoachSettings, build_grounded_prompt
 
 
 class OpenAICoachProvider:
@@ -21,7 +21,7 @@ class OpenAICoachProvider:
     def explain(self, request: CoachRequest) -> dict[str, Any]:
         if self._generate is None:
             raise CoachProviderError("PROVIDER_UNAVAILABLE", "OpenAI transport is not configured", retryable=True)
-        prompt = f"prompt_version={PROMPT_VERSION}\nrequest={request!r}"
+        prompt = build_grounded_prompt(request)
         try:
             result = self._generate(self.model_id, prompt, self.settings.timeout_seconds)
         except TimeoutError as exc:

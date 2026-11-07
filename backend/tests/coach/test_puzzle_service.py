@@ -29,3 +29,11 @@ def test_repeated_attempt_is_idempotent():
 def test_unknown_puzzle_is_rejected():
     with pytest.raises(KeyError):
         PuzzleGrader(CURATED_PUZZLES).start("student-1", "missing")
+
+
+def test_submit_after_completion_returns_terminal_result_instead_of_index_error():
+    grader = PuzzleGrader(CURATED_PUZZLES)
+    grader.submit("student-1", "back-rank", attempt_id="a1", uci="d1d8")
+    result = grader.submit("student-1", "back-rank", attempt_id="a2", uci="g1f1")
+    assert result["result"] == "completed"
+    assert result["completed"] is True

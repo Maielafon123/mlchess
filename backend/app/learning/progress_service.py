@@ -27,14 +27,20 @@ class ProgressService:
     def __init__(self, *, now: Callable[[], datetime] | None = None):
         self.now = now or (lambda: datetime.now(timezone.utc))
         self.students: dict[str, StudentProgress] = {}
+        self.events: dict[tuple[str, str], SkillProgress] = {}
 
     def get(self, student_id: str) -> StudentProgress:
         return self.students.setdefault(student_id, StudentProgress(student_id))
 
-    def record_server_result(self, student_id: str, skill: str, *, result: str, hints_used: int = 0) -> SkillProgress:
+    def record_server_result(self, student_id: str, skill: str, *, result: str, event_id: str, hints_used: int = 0) -> SkillProgress:
         """Only server grader results may award progress; client booleans are absent."""
         if result not in {"correct", "incorrect", "illegal"}:
             raise ValueError("unsupported server result")
+        if not event_id or len(event_id) > 120:
+            raise ValueError("event_id is required and bounded")
+        duplicate = self.events.get((student_id, event_id))
+        if duplicate is not None:
+            return duplicate
         progress = self.get(student_id).skills.setdefault(skill, SkillProgress(skill))
         progress.attempts += 1
         progress.hints_used += max(0, hints_used)
@@ -45,6 +51,7 @@ class ProgressService:
         else:
             progress.streak = 0
             progress.due_at = self.now()
+        self.events[(student_id, event_id)] = progress
         return progress
 
     def review_queue(self, student_id: str) -> list[SkillProgress]:
@@ -57,3 +64,4 @@ class ProgressService:
 
     def delete(self, student_id: str) -> None:
         self.students.pop(student_id, None)
+        self.events = {key: value for key, value in self.events.items() if key[0] != student_id}

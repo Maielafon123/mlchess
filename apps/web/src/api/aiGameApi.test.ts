@@ -13,9 +13,9 @@ afterAll(() => server.close());
 describe("AiGameApi", () => {
   it("sends profile and side when creating an AI game", async () => {
     let received: unknown;
-    server.use(http.post("http://localhost/api/v1/games/ai", async ({ request }) => { received = await request.json(); return HttpResponse.json({ id: "ai-1" }); }));
+    server.use(http.post("http://localhost/api/v1/games", async ({ request }) => { received = await request.json(); return HttpResponse.json({ id: "ai-1" }); }));
     await new AiGameApi(new ApiClient({ baseUrl: "http://localhost" })).createAi({ profile_id: "club", side: "black" });
-    expect(received).toEqual({ profile_id: "club", side: "black" });
+    expect(received).toEqual({ mode: "ai", time_control: null, human_color: "black", ai_profile: "club" });
   });
 
   it("calls takeback with the expected server version", async () => {

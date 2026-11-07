@@ -18,19 +18,19 @@ function conflictSnapshot(error: unknown): GameSnapshot | null {
   return snapshot && typeof snapshot === "object" ? snapshot as GameSnapshot : null;
 }
 
-export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSnapshot) => void) {
+export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSnapshot) => void, mode: "ai" | "coach" = "ai") {
   const resolvedApi = useMemo(() => api ?? new GameApi(), [api]);
   const [state, setState] = useState<SessionState>({ snapshot: null, pending: false, error: null });
 
   useEffect(() => {
     let cancelled = false;
-    resolvedApi.create().then((snapshot) => {
+    resolvedApi.create(mode).then((snapshot) => {
       if (!cancelled) setState({ snapshot, pending: false, error: null });
     }).catch((error: unknown) => {
       if (!cancelled) setState({ snapshot: null, pending: false, error: error instanceof Error ? error.message : "Unable to create game" });
     });
     return () => { cancelled = true; };
-  }, [resolvedApi]);
+  }, [resolvedApi, mode]);
 
   const move = useCallback(async (uci: string) => {
     const snapshot = state.snapshot;

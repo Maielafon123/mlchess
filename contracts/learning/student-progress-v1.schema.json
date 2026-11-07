@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.dev/contracts/learning/student-progress-v1.schema.json",
+  "title": "StudentProgressV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "student_id", "skills"],
+  "properties": {
+    "schema_version": {"const": 1}, "student_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "skills": {"type": "array", "maxItems": 100, "items": {"type": "object", "additionalProperties": false, "required": ["skill", "attempts", "correct", "hints_used", "streak", "due_at"], "properties": {"skill": {"type": "string", "maxLength": 80}, "attempts": {"type": "integer", "minimum": 0}, "correct": {"type": "integer", "minimum": 0}, "hints_used": {"type": "integer", "minimum": 0}, "streak": {"type": "integer", "minimum": 0}, "due_at": {"type": ["string", "null"], "format": "date-time"}}}}
+  }
+}

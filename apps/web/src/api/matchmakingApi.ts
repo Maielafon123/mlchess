@@ -7,10 +7,10 @@ export type RatedGame = { game_id: string; status: "active" | "finished"; result
 
 export class MatchmakingApi {
   constructor(private readonly client: ApiClient = new ApiClient()) {}
-  join(pool: string) { return this.client.post<MatchTicket>("/api/v1/matchmaking/tickets", { pool }); }
+  join(pool: string) { return this.client.post<MatchTicket>("/api/v1/matchmaking/tickets", { time_control: pool, rating_pool: pool }); }
   get(ticketId: string) { return this.client.get<MatchTicket>(`/api/v1/matchmaking/tickets/${encodeURIComponent(ticketId)}`); }
-  cancel(ticketId: string) { return this.client.post<MatchTicket>(`/api/v1/matchmaking/tickets/${encodeURIComponent(ticketId)}/cancel`, {}); }
+  cancel(ticketId: string) { return this.client.delete<MatchTicket>(`/api/v1/matchmaking/tickets/${encodeURIComponent(ticketId)}`); }
   game(gameId: string) { return this.client.get<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}`); }
   resign(gameId: string) { return this.client.post<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}/resign`, {}); }
-  offerDraw(gameId: string) { return this.client.post<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}/draw-offer`, {}); }
+  offerDraw(gameId: string) { return this.client.post<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}/draw-offers`, {}); }
 }

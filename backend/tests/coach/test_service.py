@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from jsonschema import Draft202012Validator, RefResolver
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -44,7 +45,7 @@ def test_stale_revision_never_uses_provider_explanation():
 def test_router_exposes_202_then_200_ready():
     service = CoachService(provider=FakeCoachProvider(CoachSettings()))
     app = FastAPI()
-    app.include_router(create_router(service, facts_loader=lambda _request: facts()))
+    app.include_router(create_router(service, facts_loader=lambda _request: facts(), access_guard=lambda _request: True, enqueue=lambda job_id: service.run(job_id, facts())))
     client = TestClient(app)
     response = client.post("/api/v1/coach-requests", json={"schema_version": 1, "game_id": FIXTURE["game_id"], "analysis_id": FIXTURE["analysis_id"], "revision": 3, "ply": FIXTURE["ply"], "language": "en", "level": "detailed"})
     assert response.status_code == 202
@@ -60,7 +61,44 @@ def test_quota_hook_is_normalized_to_429():
 
     service = CoachService(provider=FakeCoachProvider(), quota_hook=reject)
     app = FastAPI()
-    app.include_router(create_router(service))
+    app.include_router(create_router(service, access_guard=lambda _request: True))
     client = TestClient(app)
     response = client.post("/api/v1/coach-requests", json={"schema_version": 1, "game_id": FIXTURE["game_id"], "analysis_id": FIXTURE["analysis_id"], "revision": 3, "ply": FIXTURE["ply"], "language": "en", "level": "detailed"})
     assert response.status_code == 429
+
+
+def test_router_denies_without_explicit_access_guard():
+    service = CoachService(provider=FakeCoachProvider())
+    app = FastAPI()
+    app.include_router(create_router(service))
+    client = TestClient(app)
+    response = client.post("/api/v1/coach-requests", json={"schema_version": 1, "game_id": FIXTURE["game_id"], "analysis_id": FIXTURE["analysis_id"], "revision": 3, "ply": FIXTURE["ply"], "language": "en", "level": "detailed"})
+    assert response.status_code == 403
+
+
+def test_get_pending_does_not_execute_provider():
+    calls = 0
+
+    class Provider(FakeCoachProvider):
+        def explain(self, request):
+            nonlocal calls
+            calls += 1
+            return super().explain(request)
+
+    service = CoachService(provider=Provider())
+    app = FastAPI()
+    app.include_router(create_router(service, access_guard=lambda _request: True))
+    client = TestClient(app)
+    response = client.post("/api/v1/coach-requests", json={"schema_version": 1, "game_id": FIXTURE["game_id"], "analysis_id": FIXTURE["analysis_id"], "revision": 3, "ply": FIXTURE["ply"], "language": "en", "level": "detailed"})
+    assert response.status_code == 202
+    assert response.json()["schema_version"] == 1
+    client.get(f"/api/v1/coach-requests/{response.json()['job_id']}")
+    assert calls == 0
+
+
+def test_job_payload_matches_published_contract():
+    schema = json.loads((ROOT / "contracts/coach/coach-job-v1.schema.json").read_text(encoding="utf-8"))
+    resolver = RefResolver("https://mlchess.dev/contracts/coach/coach-job-v1.schema.json", schema, {"https://mlchess.dev/contracts/coach/coach-explanation-v1.schema.json": json.loads((ROOT / "contracts/coach/coach-explanation-v1.schema.json").read_text(encoding="utf-8"))})
+    service = CoachService(provider=FakeCoachProvider())
+    job = service.submit(request())
+    Draft202012Validator(schema, resolver=resolver).validate(job.payload())
