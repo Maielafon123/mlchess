@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useI18n } from "../i18n/I18nProvider";
 import { LanguageToggle } from "./LanguageToggle";
 import { AuthStatus } from "../auth/AuthStatus";
+import { ConnectionStatus } from "./ConnectionStatus";
 
 export function AppShell() {
   const { t } = useI18n();
@@ -23,6 +24,7 @@ export function AppShell() {
           <AuthStatus />
         </div>
       </header>
+      <ConnectionStatus />
       <main className="page-content"><Outlet /></main>
     </div>
   );
