@@ -16,6 +16,12 @@ missing HTTP operations plus the game WebSocket. The historical results and
 dependency table below describe the preceding integration baseline; the full
 release remains blocked by the remaining dependencies.
 
+The engine worker follow-up adds separate-process gameplay execution with
+PostgreSQL leases/fencing, bounded retries, crash recovery and per-job move
+deduplication. It preserves the board history and rejects old replies after
+takeback. RQ transport, realtime fanout and the remaining HTTP operations are
+still outstanding. See `infra/engine-worker-runbook.md`.
+
 ## Verified locally on Windows / Python 3.12 / Node 24
 
 - Combined backend: 432 passed, 2 skipped. Two additional release-preflight

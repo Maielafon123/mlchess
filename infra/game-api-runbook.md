@@ -68,8 +68,8 @@ discard response/history evidence. Pre-existing synthetic baseline game rows
 without full `game_states` history return 503 until explicitly imported with
 trusted complete history; a bare FEN is not silently promoted to a valid game.
 
-AI turns are now durably requested in outbox, but the running engine worker is
-the next dependency. Friend creation waits for the A-018 invitation acceptance
+AI turns are durably requested in outbox and processed by the separate worker
+described in `engine-worker-runbook.md`. Friend creation waits for the A-018 invitation acceptance
 flow. Production OIDC/guest auth, WebSocket fanout, analysis, coach and learning
 composition remain separate dependencies. The current B temporary clients need
 to adopt the generated request/response types described above; do not weaken the

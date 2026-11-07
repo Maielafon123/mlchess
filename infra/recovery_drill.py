@@ -33,6 +33,7 @@ from backend.app.infra.models import Game, GameState, GamePlayer
 def migration_sql() -> str:
     output = io.StringIO()
     config = Config("backend/alembic.ini", output_buffer=output)
+    config.attributes["ignore_environment_url"] = True
     config.set_main_option("sqlalchemy.url", "postgresql+asyncpg://unused/unused")
     command.upgrade(config, "head", sql=True)
     return output.getvalue()

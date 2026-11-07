@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import os
-import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+
+import chess
+import chess.engine
 
 
 class EngineError(RuntimeError):
@@ -21,6 +23,8 @@ class EngineBudget:
 
     def __post_init__(self) -> None:
         values = (self.time_ms, self.nodes, self.depth)
+        if any(value is not None and type(value) is not int for value in values):
+            raise ValueError("Engine bounds must be integers")
         if not any(value is not None for value in values):
             raise ValueError("At least one engine bound is required")
         if self.time_ms is not None and not 1 <= self.time_ms <= 120_000:
@@ -49,6 +53,15 @@ class EngineMove:
     depth: int | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class EngineLine:
+    uci: str
+    san: str
+    pv_uci: tuple[str, ...]
+    score: EngineScore
+    depth: int | None
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -58,6 +71,10 @@ def sha256_file(path: Path) -> str:
 
 
 class UciEngineAdapter:
+    """Synchronous worker-only adapter with bounded UCI startup and commands."""
+
+    PROFILES = {"beginner": 0, "casual": 6, "club": 12, "strong": 20}
+
     def __init__(self, binary: Path, *, sha256: str | None = None) -> None:
         path = binary.resolve()
         if not path.is_file() or not os.access(path, os.X_OK):
@@ -65,70 +82,129 @@ class UciEngineAdapter:
         if sha256 is not None and sha256_file(path).lower() != sha256.lower():
             raise EngineError("Configured engine binary hash does not match")
         self.binary = path
-        self._process: subprocess.Popen[str] | None = None
+        self._engine: chess.engine.SimpleEngine | None = None
 
-    def _start(self) -> subprocess.Popen[str]:
-        process = subprocess.Popen(
-            [str(self.binary)],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            bufsize=1,
-            shell=False,
-        )
-        self._process = process
-        self._send("uci")
-        self._read_until("uciok")
-        self._send("isready")
-        self._read_until("readyok")
-        return process
-
-    def _send(self, command: str) -> None:
-        if self._process is None or self._process.stdin is None:
-            raise EngineError("Engine is not running")
-        self._process.stdin.write(command + "\n")
-        self._process.stdin.flush()
-
-    def _read_until(self, marker: str) -> list[str]:
-        if self._process is None or self._process.stdout is None:
-            raise EngineError("Engine is not running")
-        lines: list[str] = []
-        for line in self._process.stdout:
-            line = line.strip()
-            lines.append(line)
-            if line == marker:
-                return lines
-        raise EngineError("Engine exited before completing UCI command")
+    def _start(self) -> chess.engine.SimpleEngine:
+        if self._engine is None:
+            self._engine = chess.engine.SimpleEngine.popen_uci(
+                [str(self.binary)], timeout=5.0, shell=False, stderr=subprocess.DEVNULL
+            )
+            options = {
+                key: value
+                for key, value in {"Threads": 1, "Hash": 32}.items()
+                if key in self._engine.options
+            }
+            self._engine.configure(options)
+        return self._engine
 
     def stop(self) -> None:
-        if self._process is not None:
+        engine, self._engine = self._engine, None
+        if engine is not None:
             try:
-                self._send("quit")
-                self._process.wait(timeout=1)
-            except (OSError, subprocess.TimeoutExpired):
-                self._process.kill()
+                engine.quit()
+            except (TimeoutError, OSError, chess.engine.EngineError):
+                pass
             finally:
-                self._process = None
+                engine.close()
 
-    def choose_move(self, fen: str, *, budget: EngineBudget) -> EngineMove:
-        process = self._process or self._start()
-        self._send(f"position fen {fen}")
-        limits = []
-        if budget.time_ms is not None:
-            limits.append(f"movetime {budget.time_ms}")
-        if budget.nodes is not None:
-            limits.append(f"nodes {budget.nodes}")
-        if budget.depth is not None:
-            limits.append(f"depth {budget.depth}")
-        self._send("go " + " ".join(limits))
-        if process.stdout is None:
-            raise EngineError("Engine output is unavailable")
-        for line in process.stdout:
-            line = line.strip()
-            if line.startswith("bestmove "):
-                move = line.split()[1]
-                if not re.fullmatch(r"[a-h][1-8][a-h][1-8][qrbn]?", move):
-                    raise EngineError("Engine returned malformed UCI move")
-                return EngineMove(move)
-        raise EngineError("Engine exited without bestmove")
+    @staticmethod
+    def _board(position: str | chess.Board) -> chess.Board:
+        try:
+            board = (
+                position.copy(stack=True)
+                if isinstance(position, chess.Board)
+                else chess.Board(position)
+            )
+        except ValueError:
+            raise EngineError("Invalid engine position") from None
+        if not board.is_valid() or board.is_game_over(claim_draw=False):
+            raise EngineError("Engine position is invalid or finished")
+        return board
+
+    @staticmethod
+    def _limit(budget: EngineBudget) -> chess.engine.Limit:
+        return chess.engine.Limit(
+            time=budget.time_ms / 1000 if budget.time_ms else None,
+            depth=budget.depth,
+            nodes=budget.nodes,
+        )
+
+    @staticmethod
+    def _score(info: dict) -> EngineScore | None:
+        score = info.get("score")
+        if score is None:
+            return None
+        white = score.white()
+        return (
+            EngineScore("white", mate=white.mate())
+            if white.is_mate()
+            else EngineScore("white", cp=white.score())
+        )
+
+    def _configure(self, profile: str) -> chess.engine.SimpleEngine:
+        if profile not in self.PROFILES:
+            raise EngineError("Unknown server engine profile")
+        engine = self._start()
+        if "Skill Level" in engine.options:
+            engine.configure({"Skill Level": self.PROFILES[profile]})
+        return engine
+
+    def choose_move(
+        self, fen: str | chess.Board, *, budget: EngineBudget, profile: str = "strong"
+    ) -> EngineMove:
+        board = self._board(fen)
+        try:
+            result = self._configure(profile).play(
+                board,
+                self._limit(budget),
+                info=chess.engine.INFO_SCORE | chess.engine.INFO_BASIC,
+            )
+            if result.move is None or result.move not in board.legal_moves:
+                raise EngineError("Engine returned an illegal move")
+            return EngineMove(
+                board.uci(result.move),
+                self._score(result.info),
+                result.info.get("depth"),
+            )
+        except (TimeoutError, OSError, chess.engine.EngineError, EngineError):
+            self.stop()
+            raise EngineError("Engine command failed or timed out") from None
+
+    def analyze(
+        self, position: str | chess.Board, *, budget: EngineBudget, multipv: int = 3
+    ) -> tuple[EngineLine, ...]:
+        if type(multipv) is not int or not 1 <= multipv <= 3:
+            raise EngineError("MultiPV is outside the server allowlist")
+        board = self._board(position)
+        try:
+            infos = self._configure("strong").analyse(
+                board,
+                self._limit(budget),
+                multipv=min(multipv, board.legal_moves.count()),
+                info=chess.engine.INFO_SCORE
+                | chess.engine.INFO_PV
+                | chess.engine.INFO_BASIC,
+            )
+            lines = []
+            for info in infos:
+                pv, score = info.get("pv", []), self._score(info)
+                if not pv or score is None:
+                    raise EngineError("Engine analysis is incomplete")
+                replay = board.copy(stack=True)
+                for move in pv:
+                    if move not in replay.legal_moves:
+                        raise EngineError("Engine returned an illegal variation")
+                    replay.push(move)
+                lines.append(
+                    EngineLine(
+                        board.uci(pv[0]),
+                        board.san(pv[0]),
+                        tuple(move.uci() for move in pv),
+                        score,
+                        info.get("depth"),
+                    )
+                )
+            return tuple(lines)
+        except (TimeoutError, OSError, chess.engine.EngineError, EngineError):
+            self.stop()
+            raise EngineError("Engine analysis failed or timed out") from None
