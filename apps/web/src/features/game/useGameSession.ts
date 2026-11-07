@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError } from "../../api/errors";
 import { GameApi, type GameSnapshot } from "../../api/gameApi";
 import { createIdempotencyKey } from "../../api/client";
+import { ensurePublicSession } from "../../auth/guestSession";
 
 type SessionState = {
   snapshot: GameSnapshot | null;
@@ -26,7 +27,7 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
 
   useEffect(() => {
     let cancelled = false;
-    resolvedApi.create(mode, undefined, creationKey).then((snapshot) => {
+    ensurePublicSession().then(() => resolvedApi.create(mode, undefined, creationKey)).then((snapshot) => {
       if (!cancelled) setState({ snapshot, pending: false, error: null });
     }).catch((error: unknown) => {
       if (!cancelled) setState({ snapshot: null, pending: false, error: error instanceof Error ? error.message : "Unable to create game" });

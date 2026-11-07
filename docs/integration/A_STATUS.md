@@ -66,6 +66,9 @@ PASS (two distinct SQL users, ACL403, engine response, takeback, logout401).
 Backend: 465 PASS/2 Windows SKIP plus one setup failure caused by absent
 contracts/node_modules in the new worktree; npm ci installed missing tooling
 and the affected generator test is rerun separately. Ruff check/format PASS.
+Affected generator test PASS after npm ci; generated check/SDK typecheck/tests
+PASS. PR #34 merged at b9d51c719cf4be5f201a82292f5c32e83175ca5b; all five CI
+jobs PASS, including live-compose run42413995948.
 No production/VPS deployment claimed by these local checks.
 
 ## User priority update
@@ -77,7 +80,27 @@ analysis/coach/learning/refactor tasks. Previous account-only friend policy is
 explicitly superseded by this request; document CCR and preserve rated-account
 restrictions. Public deployment must disable dev auth, use static web + TLS,
 SQL persistence, request/resource limits and preserve protected WireGuard.
-Domain requested; if absent investigate public-CA IP certificates (no self-signed
-browser bypass). Google OAuth must not block anonymous friendly games.
+User confirmed NO domain: use the supplied public IP with a publicly trusted
+certificate. Google OAuth must not block anonymous friendly games.
+
+## A-I13 guest/mobile implementation
+
+CCR-A-I13-GUEST-CHALLENGE records the explicit policy change. SQL guest sessions,
+24h single-use invitations, exact replay without raw tokens in receipts, locked
+join, server event and browser-seat restoration implemented. Guest session7days.
+Guest route is real session issuance; dev login remains disabled in server config.
+Limiter/body/resource bounds added. Rated and active-PvP coaching/undo stay denied.
+
+Local evidence: full backend478 PASS/2 Windows SKIP; subsequent guest/settings
+target17 PASS. PostgreSQL concurrent-accept regression1 PASS. Schemas41 golden
+examples, generator and structural compatibility PASS; SDK typecheck/2tests PASS.
+Web48 unit PASS including the worker/takeback UI race regression.
+Build/lint/demo3 PASS; static Compose live8 PASS including Android Chromium and
+iPhone WebKit touch, two guest users, third-user rejection, refresh, AI black side
+and takeback. Mobile screenshots inspected;320px layout has no horizontal overflow.
+
+Production Compose/static gateway/images and server initializer implemented;
+Caddy config validated locally. Public TLS/VPS acceptance and exact merge CI
+remain pending. No all-mode production signoff is implied by guest/mobile checks.
 
 Next smallest task: guest challenge links + mobile public deployment.

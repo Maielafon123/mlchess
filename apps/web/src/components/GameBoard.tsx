@@ -116,14 +116,14 @@ export function GameBoard({ fen, moves, orientation = "white", disabled = false,
           ))}
         </div>
       )}
-      <div className="board-controls">
+      <details className="board-input"><summary>Ввести ход с клавиатуры</summary><div className="board-controls">
         <label htmlFor="uci-input">UCI move</label>
         <input id="uci-input" value={uciInput} onChange={(event) => setUciInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitUci(); }} placeholder="e2e4" disabled={disabled} />
         <button type="button" onClick={submitUci} disabled={disabled || !isUci(uciInput)}>Submit</button>
-      </div>
+      </div></details>
       <div className="move-history" aria-label="Move history">
         <h3>Move history</h3>
-        {moves.length === 0 ? <p>No moves yet.</p> : <ol>{moves.map((move) => <li key={move.ply}>{move.san}</li>)}</ol>}
+        {moves.length === 0 ? <p>No moves yet.</p> : <ol>{moves.map((move) => <li key={move.ply}><span className="move-number">{move.ply % 2 ? Math.ceil(move.ply / 2) + ". " : "… "}</span><span>{move.san}</span></li>)}</ol>}
         <details><summary>PGN</summary><pre>{moves.map((move, index) => `${index % 2 === 0 ? `${Math.floor(index / 2) + 1}. ` : ""}${move.san}`).join(" ")}</pre></details>
       </div>
     </section>

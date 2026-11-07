@@ -4,8 +4,8 @@ import { type AiGameOptions, aiProfiles as profiles } from "../../api/aiGameApi"
 import { useAiGameSession } from "./useAiGameSession";
 
 export function AiGameScreen() {
-  const [profileId, setProfileId] = useState(profiles[1].id);
-  const [side, setSide] = useState<AiGameOptions["side"]>("white");
+  const [profileId, setProfileId] = useState(() => profiles.find((profile) => profile.id === new URLSearchParams(window.location.search).get("profile"))?.id ?? profiles[1].id);
+  const [side, setSide] = useState<AiGameOptions["side"]>(() => new URLSearchParams(window.location.search).get("side") === "black" ? "black" : "white");
   const options = useMemo(() => ({ profile_id: profileId, side }), [profileId, side]);
   const session = useAiGameSession(options);
   const snapshot = session.snapshot;

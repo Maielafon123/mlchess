@@ -7,6 +7,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 
+class AcceptInvitationV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    token: str = Field(..., pattern="^[A-Za-z0-9_-]{43}$")
+
+
 class AnalysisRequestV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -91,12 +98,23 @@ class GameStatusV1(RootModel[Literal["waiting", "active", "finished", "aborted"]
     root: Literal["waiting", "active", "finished", "aborted"]
 
 
+class GuestSessionRequestV1(BaseModel):
+    pass
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+
 class HealthV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
     schema_version: Literal[1]
     status: Literal["ok"]
+
+
+class InviteUrl(RootModel[str]):
+    root: str = Field(..., max_length=2048)
 
 
 class Payload6(BaseModel):
@@ -319,6 +337,13 @@ class CreateGameV1(BaseModel):
     ai_profile: Literal["beginner", "casual", "club", "strong"] | None = None
 
 
+class CreateInvitationV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    game_id: UUIDv4
+
+
 class CurrentUserV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -417,6 +442,19 @@ class GameTakebackAppliedEventV1(BaseModel):
     type: Literal["game.takeback_applied"]
     occurred_at: UTCDateTime
     payload: Payload5
+
+
+class InviteSnapshotV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    invite_id: UUIDv4
+    game_id: UUIDv4
+    state: Literal["waiting", "active", "expired", "full"]
+    expires_at: UTCDateTime
+    created_by_current_user: bool
+    invite_url: InviteUrl | None = None
 
 
 class MoveV1(BaseModel):

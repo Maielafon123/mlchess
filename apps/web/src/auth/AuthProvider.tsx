@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { ApiClient } from "../api";
 import { authConfig, type AuthConfig } from "./config";
 import { AuthClient, type AuthUser } from "./authClient";
+import { ensureGuestSession } from "./guestSession";
 
 export type AuthStatus = "loading" | "guest" | "authenticated" | "forbidden" | "error";
 
@@ -28,7 +29,7 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
       setStatus("guest");
       return () => { active = false; };
     }
-    void client.getMe().then((currentUser) => {
+    void (config.mode === "guest" ? ensureGuestSession() : client.getMe()).then((currentUser) => {
       if (!active) return;
       setUser(currentUser);
       setStatus(currentUser ? "authenticated" : "guest");
@@ -58,6 +59,16 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
           setStatus("authenticated");
         } catch (error: unknown) {
           setErrorCode(error instanceof Error ? error.name : "AUTH_LOGIN_FAILED");
+          setStatus("error");
+        }
+        return;
+      }
+      if (config.mode === "guest") {
+        try {
+          setUser(await ensureGuestSession());
+          setStatus("authenticated");
+        } catch (error: unknown) {
+          setErrorCode(error instanceof Error ? error.name : "GUEST_SESSION_FAILED");
           setStatus("error");
         }
         return;

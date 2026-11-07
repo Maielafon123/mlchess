@@ -1148,3 +1148,27 @@ export const fixture36 = {
   "detail": "This HTTP method is not available for this resource.",
   "request_id": "fa4509f2-bc32-44c8-bad7-a09a2bf06914"
 } satisfies components["schemas"]["ProblemDetailsV1"];
+
+// invitations/guest-session.json
+export const fixture37 = {} satisfies components["schemas"]["GuestSessionRequestV1"];
+
+// invitations/create.json
+export const fixture38 = {
+  "game_id": "10000000-0000-4000-8000-000000000002"
+} satisfies components["schemas"]["CreateInvitationV1"];
+
+// invitations/accept.json
+export const fixture39 = {
+  "token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+} satisfies components["schemas"]["AcceptInvitationV1"];
+
+// invitations/waiting.json
+export const fixture40 = {
+  "schema_version": 1,
+  "invite_id": "10000000-0000-4000-8000-000000000001",
+  "game_id": "10000000-0000-4000-8000-000000000002",
+  "state": "waiting",
+  "expires_at": "2026-11-09T00:00:00Z",
+  "created_by_current_user": true,
+  "invite_url": "https://example.test/play/friend?invite=10000000-0000-4000-8000-000000000001#token=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+} satisfies components["schemas"]["InviteSnapshotV1"];

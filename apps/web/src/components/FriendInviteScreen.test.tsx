@@ -6,8 +6,8 @@ import { FriendInviteScreen } from "../features/friend/FriendInviteScreen";
 describe("FriendInviteScreen", () => {
   it("starts in a safe create-invite state", () => {
     render(<FriendInviteScreen api={{ create: vi.fn(), get: vi.fn(), accept: vi.fn() } as never} />);
-    expect(screen.getByRole("button", { name: "Create private invite" })).toBeInTheDocument();
-    expect(screen.getByText("No coach or analysis")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Создать вызов" })).toBeInTheDocument();
+    expect(screen.getByText("В этой партии нет подсказок тренера или анализа.")).toBeInTheDocument();
   });
 
   it("renders the authoritative game snapshot after the invite becomes active", async () => {
@@ -15,8 +15,8 @@ describe("FriendInviteScreen", () => {
     const gameApi = { get: vi.fn().mockResolvedValue({ id: "g", status: "active", fen: "8/8/8/8/8/8/8/K6k w - - 0 1", moves: [], version: 1, revision: 0, capabilities: { can_move: false, can_resign: true } }), move: vi.fn(), resign: vi.fn(), create: vi.fn() };
     const user = userEvent.setup();
     render(<FriendInviteScreen api={inviteApi as never} gameApi={gameApi as never} />);
-    await screen.findByRole("button", { name: "Create private invite" });
-    await user.click(screen.getByRole("button", { name: "Create private invite" }));
+    await screen.findByRole("button", { name: "Создать вызов" });
+    await user.click(screen.getByRole("button", { name: "Создать вызов" }));
     await waitFor(() => expect(gameApi.get).toHaveBeenCalledWith("g"));
     expect(await screen.findByRole("region", { name: "Game board" })).toBeInTheDocument();
   });

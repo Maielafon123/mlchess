@@ -48,7 +48,8 @@ for B-001/B-010 mocks while the same contract review gate remains pending.
 - `CurrentUserV1.id` identifies the authenticated actor: account ID or opaque
   guest actor ID. `kind` distinguishes them; `display_name` is required and
   nullable. `expires_at` is the session expiration for either kind. Guest actors
-  cannot use friend/rated; that requires runtime session authorization.
+  may use private unrated friend games by explicit user decision (CCR-A-I13).
+  Rated matchmaking still requires an account.
 - The public create command accepts `friend`, `ai`, `coach`. `GameModeV1`
   additionally includes `rated`, whose games are created by matchmaking.
   `time_control` is required, nullable for unclocked games; solo creation also

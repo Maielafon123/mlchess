@@ -14,9 +14,9 @@ docker compose --env-file .env.dev.local -f infra/compose.app.yml config --quiet
 docker compose --env-file .env.dev.local -f infra/compose.app.yml up -d --build --wait
 ```
 
-Open http://localhost:8080 and sign in. Development login creates a distinct
-server account for each browser login. Production frontend/backend both reject
-this mode. Named volumes preserve accounts, sessions, games and jobs on restart.
+Open http://localhost:8080. Default guest mode establishes a real SQL session
+automatically. MLCHESS_WEB_AUTH_MODE=development selects manual dev login;
+production forbids development/fake auth. Named volumes retain games and jobs.
 The API and worker run separately with non-root UID, bounded CPU/RAM, read-only
 root filesystems and no capabilities. PostgreSQL/Redis have no published ports.
 Only the gateway publishes a loopback port. Network subnets can be overridden
@@ -35,10 +35,14 @@ pnpm --dir apps/web test:e2e:live
 pnpm --dir apps/web test:e2e
 ```
 
-The live suite uses two Chromium contexts, real durable login/logout, ACL,
+The live suite uses Chromium/WebKit contexts, real durable sessions, ACL,
 human move, background engine reply, persisted snapshot and takeback. It does
 not mock API requests. Failure traces may contain test session cookies: keep
 test-results private; Docker/Git exclude them. No real OAuth secrets are used.
+
+Add -f infra/compose.static-test.yml after the base Compose file to test the
+actual static build. CI uses this overlay. Public deployment uses the separate
+compose.server.yml and [server runbook](server-runbook.md), with dev auth disabled.
 
 Stop containers while retaining data:
 

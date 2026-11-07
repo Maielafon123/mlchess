@@ -1,0 +1,45 @@
+{
+	admin off
+	http_port 8080
+	https_port 8443
+	default_sni {$MLCHESS_SITE_ADDRESS}
+	servers {
+		max_header_size 16KB
+		timeouts {
+			read_header 5s
+			read_body 10s
+			idle 60s
+		}
+	}
+}
+https://{$MLCHESS_SITE_ADDRESS} {
+	tls {
+		issuer acme {
+			dir https://acme-v02.api.letsencrypt.org/directory
+			profile shortlived
+		}
+	}
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Strict-Transport-Security "max-age=86400"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		-Server
+	}
+	@backend path /api/* /ws/* /health/*
+	handle @backend {
+		request_body {
+			max_size 32KB
+		}
+		reverse_proxy api:8000 {
+			header_up Host {http.request.host}
+			header_up -Forwarded
+		}
+	}
+	handle {
+		reverse_proxy web:8080
+	}
+}

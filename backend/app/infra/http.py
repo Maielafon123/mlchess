@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -137,7 +138,61 @@ class SafeHTTPMiddleware:
             if rejected:
                 await problem_response(rejected, request_id)(scope, receive, safe_send)
             else:
-                await self.app(scope, receive, safe_send)
+                handler_receive = receive
+                if scope["method"] in {"POST", "PUT", "PATCH", "DELETE"}:
+                    lengths = [
+                        v
+                        for k, v in scope.get("headers", [])
+                        if k.lower() == b"content-length"
+                    ]
+                    if len(lengths) > 1 or (
+                        lengths and (not lengths[0].isdigit() or len(lengths[0]) > 8)
+                    ):
+                        await problem_response(400, request_id)(
+                            scope, receive, safe_send
+                        )
+                        return
+                    if lengths and int(lengths[0]) > 16384:
+                        await problem_response(422, request_id)(
+                            scope, receive, safe_send
+                        )
+                        return
+                    chunks, size = [], 0
+                    try:
+                        async with asyncio.timeout(5):
+                            for _ in range(128):
+                                message = await receive()
+                                if message["type"] != "http.request":
+                                    raise ValueError("Incomplete body")
+                                chunk = message.get("body", b"")
+                                size += len(chunk)
+                                if size > 16384:
+                                    raise ValueError("Body limit")
+                                chunks.append(chunk)
+                                if not message.get("more_body", False):
+                                    break
+                            else:
+                                raise ValueError("Body fragment limit")
+                    except (TimeoutError, ValueError):
+                        await problem_response(422, request_id)(
+                            scope, receive, safe_send
+                        )
+                        return
+                    body, consumed = b"".join(chunks), False
+
+                    async def buffered_receive():
+                        nonlocal consumed
+                        if consumed:
+                            return await receive()
+                        consumed = True
+                        return {
+                            "type": "http.request",
+                            "body": body,
+                            "more_body": False,
+                        }
+
+                    handler_receive = buffered_receive
+                await self.app(scope, handler_receive, safe_send)
         except Exception:
             event = "request.failed"
             if not started:

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.local/contracts/invitations/v1.yaml",
+  "title": "Guest friendly challenge v1",
+  "$defs": {
+    "GuestSessionRequestV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "CreateInvitationV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "game_id"
+      ],
+      "properties": {
+        "game_id": {
+          "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+        }
+      }
+    },
+    "AcceptInvitationV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
+      }
+    },
+    "InviteSnapshotV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "invite_id",
+        "game_id",
+        "state",
+        "expires_at",
+        "created_by_current_user",
+        "invite_url"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "invite_id": {
+          "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "waiting",
+            "active",
+            "expired",
+            "full"
+          ]
+        },
+        "expires_at": {
+          "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime"
+        },
+        "created_by_current_user": {
+          "type": "boolean"
+        },
+        "invite_url": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

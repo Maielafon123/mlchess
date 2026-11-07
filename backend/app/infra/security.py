@@ -22,6 +22,16 @@ class SlidingWindowLimiter:
 
     def check(self, key: str, *, now: float | None = None) -> None:
         current = time.monotonic() if now is None else now
+        if key not in self._events and len(self._events) >= 4096:
+            expired = [
+                item
+                for item, values in self._events.items()
+                if not values or values[-1] <= current - self.window_seconds
+            ]
+            for item in expired:
+                del self._events[item]
+            if len(self._events) >= 4096:
+                raise RateLimitExceeded
         events = self._events[key]
         cutoff = current - self.window_seconds
         while events and events[0] <= cutoff:

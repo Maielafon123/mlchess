@@ -1,12 +1,18 @@
-import { ApiClient } from "./client";
+import { ApiClient, createIdempotencyKey } from "./client";
+import type { components } from "../../../../contracts/generated/api";
 
 /** Temporary B-016 boundary until A-018/A-019 contracts are generated. */
-export type InviteState = "waiting" | "active" | "expired" | "full";
-export type InviteSnapshot = { invite_id: string; game_id: string | null; state: InviteState; invite_url: string; created_by_current_user?: boolean; opponent: { display_name: string; connected: boolean } | null; clocks: { white_ms: number; black_ms: number; server_timestamp: string } | null };
+export type InviteSnapshot = components["schemas"]["InviteSnapshotV1"];
+export type InviteState = InviteSnapshot["state"];
 
 export class InviteApi {
+  private readonly gameKey = createIdempotencyKey();
+  private readonly inviteKey = createIdempotencyKey();
   constructor(private readonly client: ApiClient = new ApiClient()) {}
-  create() { return this.client.post<InviteSnapshot>("/api/v1/invitations", { mode: "friend" }); }
+  async create() {
+    const game = await this.client.post<{ id: string }>("/api/v1/games", { mode: "friend", time_control: null }, { idempotencyKey: this.gameKey });
+    return this.client.post<InviteSnapshot>("/api/v1/invitations", { game_id: game.id }, { idempotencyKey: this.inviteKey });
+  }
   get(inviteId: string) { return this.client.get<InviteSnapshot>(`/api/v1/invitations/${encodeURIComponent(inviteId)}`); }
-  accept(inviteId: string) { return this.client.post<InviteSnapshot>(`/api/v1/invitations/${encodeURIComponent(inviteId)}/accept`, {}); }
+  accept(inviteId: string, token: string, idempotencyKey = createIdempotencyKey()) { return this.client.post<InviteSnapshot>(`/api/v1/invitations/${encodeURIComponent(inviteId)}/accept`, { token }, { idempotencyKey }); }
 }

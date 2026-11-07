@@ -1,0 +1,528 @@
+{
+  "paths": {
+    "/api/v1/auth/guest": {
+      "post": {
+        "operationId": "guestSession",
+        "x-implementation-status": "implemented-durable",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/GuestSessionRequestV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/CurrentUserV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invitations": {
+      "post": {
+        "operationId": "createInvitation",
+        "x-implementation-status": "implemented-durable",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/CreateInvitationV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invitations/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getInvitation",
+        "x-implementation-status": "implemented-durable",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invitations/{id}/accept": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "acceptInvitation",
+        "x-implementation-status": "implemented-durable",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/AcceptInvitationV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized problem",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

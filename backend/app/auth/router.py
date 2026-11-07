@@ -7,7 +7,8 @@ from backend.app.infra.generated.contracts import CurrentUserV1
 from backend.app.infra.problems import PublicProblem
 from backend.app.infra.security import RateLimitExceeded
 
-from .service import AuthService, AuthenticatedUser
+from .service import AuthService, AuthenticatedUser, now_utc
+from backend.app.infra.generated.contracts import GuestSessionRequestV1
 
 router = APIRouter(prefix="/api/v1", tags=["auth"])
 
@@ -28,6 +29,56 @@ def public_user(user: AuthenticatedUser) -> CurrentUserV1:
 
 def auth_service(request: Request) -> AuthService:
     return request.app.state.auth_service
+
+
+def session_cookies(
+    response: Response, request: Request, token: str, csrf: str, user: AuthenticatedUser
+) -> None:
+    secure = request.app.state.settings.public_origin.startswith("https://")
+    max_age = max(0, int((user.expires_at - now_utc()).total_seconds()))
+    response.set_cookie(
+        "mlchess_session",
+        token,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        path="/",
+        max_age=max_age,
+    )
+    response.set_cookie(
+        "mlchess_csrf",
+        csrf,
+        httponly=False,
+        secure=secure,
+        samesite="lax",
+        path="/",
+        max_age=max_age,
+    )
+
+
+@router.post("/auth/guest", response_model=CurrentUserV1, operation_id="guestSession")
+async def guest_session(
+    payload: GuestSessionRequestV1, response: Response, request: Request
+):
+    if request.app.state.database_factory is None:
+        raise PublicProblem(503)
+    service = auth_service(request)
+    previous = request.cookies.get("mlchess_session")
+    record = await service.authenticate(previous)
+    if record and service.valid_csrf(record, request.cookies.get("mlchess_csrf")):
+        return public_user(record.user)
+    client = request.client.host if request.client else "unknown"
+    try:
+        request.app.state.guest_login_limiter.check(client)
+    except RateLimitExceeded:
+        raise PublicProblem(429) from None
+    if record:
+        token, csrf, user = await service.issue_session(record.user)
+        await service.revoke(previous)
+    else:
+        token, csrf, user = await service.issue_guest_session()
+    session_cookies(response, request, token, csrf, user)
+    return public_user(user)
 
 
 async def current_session(request: Request):
@@ -51,13 +102,7 @@ async def dev_login(payload: DevLoginRequest, response: Response, request: Reque
     token, csrf, user = await auth_service(request).issue_dev_session(
         display_name=payload.display_name
     )
-    secure = request.app.state.settings.public_origin.startswith("https://")
-    response.set_cookie(
-        "mlchess_session", token, httponly=True, secure=secure, samesite="lax", path="/"
-    )
-    response.set_cookie(
-        "mlchess_csrf", csrf, httponly=False, secure=secure, samesite="lax", path="/"
-    )
+    session_cookies(response, request, token, csrf, user)
     return public_user(user)
 
 

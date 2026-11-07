@@ -1,6 +1,6 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--color-surface-soft); color: var(--color-ink); }
-button, select { font: inherit; }
+button, select, input { font: inherit; }
 a { color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .app-shell { min-height: 100vh; }
@@ -59,7 +59,10 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .move-history { padding: 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); }
 .move-history h3 { margin: 0 0 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted); }
 .move-history p { margin: 0; color: var(--color-muted); }
-.move-history ol { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 10px; padding-left: 24px; }
+.move-history ol { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 10px; padding: 0; list-style: none; }
+.move-number { color: var(--color-muted); }
+.board-input summary { cursor: pointer; color: var(--color-muted); padding: 10px 0; }
+.friend-screen h1 { font-size: 1.6rem; margin: 0; }
 .move-history pre { white-space: pre-wrap; color: var(--color-muted); }
 .game-session { position: relative; width: 100%; }
 .pending-overlay { margin-bottom: 12px; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); color: var(--color-muted); }
@@ -105,6 +108,12 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .decision-detail { display: grid; gap: 10px; }
 .decision-detail > p { margin: 0; }
 .friend-screen { display: grid; gap: 16px; max-width: 720px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.friend-screen > *, .page > *, .play-layout > *, .coach-game-layout > * { min-width: 0; }
+.friend-description { margin: 0; color: var(--color-muted); line-height: 1.55; }
+.invite-link-label { display: grid; gap: 8px; width: 100%; min-width: 0; font-size: 0.88rem; }
+.invite-link-label input { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface-soft); color: var(--color-ink); }
+.board-frame { touch-action: manipulation; }
+.button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
 .invite-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .invite-row code { flex: 1; min-width: 220px; overflow: auto; padding: 10px; border-radius: 8px; background: var(--color-surface-soft); color: var(--color-muted); }
 .friend-game-status { display: grid; gap: 12px; }
@@ -147,3 +156,33 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .privacy-notice strong { color: var(--color-ink); }
 .privacy-notice p { margin: 6px 0 0; line-height: 1.45; }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .report-content, .catalog-grid, .puzzle-layout, .progress-grid { grid-template-columns: 1fr; } .page { gap: 38px; } }
+@media (max-width: 480px) {
+  .topbar { gap: 10px; padding: 12px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); }
+  .topbar-actions { margin-left: auto; gap: 8px; flex-wrap: wrap; max-width: 100%; }
+  .auth-user, .auth-guest-notice { display: none; }
+  .primary-nav { justify-content: space-between; gap: 12px; padding: 4px 0; }
+  .primary-nav a { display: inline-flex; align-items: center; min-height: 44px; }
+  .page-content { padding: 24px max(12px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  .page { gap: 24px; }
+  h1, .page-heading h1 { font-size: clamp(1.9rem, 8vw, 2.5rem); }
+  h2 { font-size: 1.5rem; }
+  .hero { padding: 8px 0; }
+  .hero-description, .page-heading p { margin-top: 16px; font-size: 1rem; line-height: 1.5; }
+  .hero-actions > .button { flex: 1 1 140px; }
+  .button, .button-ghost, button, input, select { min-height: 44px; }
+  input, select { font-size: 16px; }
+  .friend-screen, .ai-game-screen, .coach-panel, .puzzle-screen, .progress-dashboard, .post-game-report, .matchmaking-screen { padding: 12px; }
+  .board-panel { aspect-ratio: auto; display: block; padding: 12px; }
+  .board-controls label { flex-basis: 100%; }
+  .board-controls input { min-width: 0; width: 120px; }
+  .board-controls button { padding: 10px 14px; }
+  .move-history { max-height: 200px; overflow: auto; }
+  .analysis-header { flex-wrap: wrap; gap: 8px; }
+  .invite-row .button { flex: 1 1 140px; }
+  .ai-game-toolbar { flex-direction: column; align-items: stretch; }
+  .ai-game-toolbar select { width: 100%; min-width: 0; }
+  .pool-grid { grid-template-columns: 1fr; }
+  .section-card-body, .section-card-title { padding-left: 16px; padding-right: 16px; }
+  .connection-banner { padding: 10px 12px; }
+  pre { max-width: 100%; overflow: auto; }
+}

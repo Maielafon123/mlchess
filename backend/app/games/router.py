@@ -19,6 +19,7 @@ from backend.app.infra.generated.contracts import (
     TakebackV1,
 )
 from backend.app.infra.problems import PublicProblem
+from backend.app.infra.security import RateLimitExceeded
 
 router = APIRouter(prefix="/api/v1/games", tags=["games"])
 UUID_PATTERN = r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -75,6 +76,10 @@ async def writer(
         record, values[0]
     ):
         raise PublicProblem(403)
+    try:
+        request.app.state.command_limiter.check(str(record.user.id))
+    except RateLimitExceeded:
+        raise PublicProblem(429) from None
     return record
 
 
@@ -104,8 +109,6 @@ async def create_game(
     record: Annotated[SessionRecord, Depends(writer)],
     idempotency_key: Annotated[str, Header(max_length=36)],
 ):
-    if record.user.kind != "account" and payload.mode == "friend":
-        raise PublicProblem(403)
     return await service(request).create(
         record.user.id,
         key(request, idempotency_key),

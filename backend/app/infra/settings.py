@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     readiness_timeout_ms: int = Field(default=500, ge=10, le=5000)
     database_url: str | None = Field(default=None, repr=False)
     database_auto_create: bool = False
+    invitation_secret: str | None = Field(
+        default=None, pattern=r"^[A-Za-z0-9_-]{43,128}$", repr=False
+    )
 
     @field_validator("public_origin")
     @classmethod

@@ -3,6 +3,7 @@ x-backend-env: &backend-env
   MLCHESS_ENVIRONMENT: development
   MLCHESS_PUBLIC_ORIGIN: ${MLCHESS_PUBLIC_ORIGIN:?Run infra.init_compose_env first}
   MLCHESS_DEV_AUTH_ENABLED: "true"
+  MLCHESS_INVITATION_SECRET: ${MLCHESS_INVITATION_SECRET:?Required}
   MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@postgres:5432/mlchess
 x-runtime: &runtime
   init: true
@@ -96,7 +97,7 @@ services:
     build: {context: .., dockerfile: infra/Dockerfile.web, target: dev}
     mem_limit: 512m
     cpus: 0.4
-    environment: {VITE_AUTH_MODE: development}
+    environment: {VITE_AUTH_MODE: "${MLCHESS_WEB_AUTH_MODE:-guest}"}
     tmpfs:
       - /tmp:size=64m,mode=1777
       - /workspace/apps/web/node_modules/.vite:uid=1000,gid=1000,size=64m

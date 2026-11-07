@@ -21,6 +21,8 @@ from backend.app.auth.service import (
 )
 from backend.app.games.durable import DurableGameService
 from backend.app.games.router import router as games_router
+from backend.app.games.invitation_router import router as invitation_router
+from backend.app.games.invitation_service import InvitationService
 from backend.app.infra.db import create_engine, create_schema, session_factory
 from backend.app.infra.models import GameState, GameMove, WorkerJob
 from backend.app.coach.router import router as coach_router
@@ -88,14 +90,26 @@ def create_app(
     app.state.settings = settings
     app.state.metrics = MetricsRegistry()
     app.state.dev_login_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
+    app.state.guest_login_limiter = SlidingWindowLimiter(limit=120, window_seconds=600)
+    app.state.command_limiter = SlidingWindowLimiter(limit=120, window_seconds=60)
     app.state.auth_service = AuthService(
         SqlAlchemySessionStore(factory) if factory else InMemorySessionStore(),
         session_ttl_seconds=settings.session_ttl_seconds,
     )
     app.state.game_service = DurableGameService(factory) if factory else None
+    app.state.invitation_service = (
+        InvitationService(
+            factory,
+            secret=settings.invitation_secret,
+            public_origin=settings.public_origin,
+        )
+        if factory and settings.invitation_secret
+        else None
+    )
     app.state.database_factory = factory
     app.include_router(auth_router)
     app.include_router(games_router)
+    app.include_router(invitation_router)
     app.include_router(coach_router)
     app.include_router(learning_router)
     app.add_middleware(

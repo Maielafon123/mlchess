@@ -1,19 +1,150 @@
 import { useEffect, useMemo, useState } from "react";
 import { InviteApi, type InviteSnapshot } from "../../api/inviteApi";
 import { GameApi, type GameSnapshot } from "../../api/gameApi";
+import { createIdempotencyKey } from "../../api/client";
+import { ApiError } from "../../api/errors";
+import { ensurePublicSession } from "../../auth/guestSession";
 import { GameBoard } from "../../components/GameBoard";
+
+function rememberGame(gameId: string, inviteId: string) {
+  const query = new URLSearchParams({ game: gameId, invite: inviteId });
+  window.history.replaceState(window.history.state, "", "/play/friend?" + query.toString());
+}
 
 export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?: GameApi }) {
   const resolvedApi = useMemo(() => api ?? new InviteApi(), [api]);
   const resolvedGameApi = useMemo(() => gameApi ?? new GameApi(), [gameApi]);
+  const acceptKey = useMemo(() => createIdempotencyKey(), []);
+  const [entry] = useState(() => ({
+    game: new URLSearchParams(window.location.search).get("game"),
+    invite: new URLSearchParams(window.location.search).get("invite"),
+    token: new URLSearchParams(window.location.hash.slice(1)).get("token"),
+  }));
   const [snapshot, setSnapshot] = useState<InviteSnapshot | null>(null);
   const [game, setGame] = useState<GameSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
   const [copied, setCopied] = useState(false);
-  const create = async () => { setError(null); try { setSnapshot(await resolvedApi.create()); } catch (value) { setError(value instanceof Error ? value.message : "Invite unavailable"); } };
-  const accept = async () => { if (!snapshot) return; try { setSnapshot(await resolvedApi.accept(snapshot.invite_id)); } catch (value) { setError(value instanceof Error ? value.message : "Invite cannot be accepted"); } };
-  const copy = async () => { if (!snapshot) return; try { if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable"); await navigator.clipboard.writeText(snapshot.invite_url); setCopied(true); } catch { setError("Clipboard access was denied; copy the invite link manually."); } };
-  useEffect(() => { if (snapshot?.state !== "active" || !snapshot.game_id) return; void resolvedGameApi.get(snapshot.game_id).then(setGame).catch((value) => setError(value instanceof Error ? value.message : "Game snapshot unavailable")); }, [resolvedGameApi, snapshot?.game_id, snapshot?.state]);
-  const move = async (uci: string) => { if (!game?.capabilities.can_move) return; try { const clientMoveId = globalThis.crypto?.randomUUID?.() ?? `move-${Date.now()}`; setGame(await resolvedGameApi.move(game.id, { uci, client_move_id: clientMoveId, expected_version: game.version })); } catch (value) { setError(value instanceof Error ? value.message : "Move rejected; resync required"); } };
-  return <section className="friend-screen" aria-label="Friend game"><div className="analysis-header"><h2>Play with a friend</h2><span className="status-chip">No coach or analysis</span></div>{error && <div className="error-banner" role="alert">{error}</div>}{!snapshot && <button className="button button-primary" type="button" onClick={() => void create()}>Create private invite</button>}{snapshot && <><div className="invite-row"><code>{snapshot.invite_url}</code><button className="button button-secondary" type="button" onClick={() => void copy()}>{copied ? "Copied" : "Copy invite"}</button></div>{snapshot.state === "waiting" && <div className="pending-overlay" role="status">Waiting for your friend…</div>}{snapshot.state === "expired" && <div className="error-banner" role="alert">This invite has expired.</div>}{snapshot.state === "full" && <div className="error-banner" role="alert">This game is already full.</div>}{snapshot.state === "waiting" && !snapshot.created_by_current_user && <button className="button button-secondary" type="button" onClick={() => void accept()}>Accept invite</button>}{snapshot.state === "active" && <div className="friend-game-status"><span className={snapshot.opponent?.connected ? "presence online" : "presence offline"}>{snapshot.opponent?.connected ? "Opponent online" : "Opponent disconnected"}</span>{snapshot.clocks && <div className="server-clocks"><strong>{Math.ceil(snapshot.clocks.white_ms / 1000)}s</strong><strong>{Math.ceil(snapshot.clocks.black_ms / 1000)}s</strong></div>}</div>}{game && <GameBoard fen={game.fen} moves={game.moves} disabled={!game.capabilities.can_move} onMoveAttempt={(uci) => void move(uci)} />}</>}</section>;
+
+  useEffect(() => {
+    if (!entry.invite && !entry.game) return;
+    let cancelled = false;
+    setPending(true);
+    void (async () => {
+      try {
+        await ensurePublicSession();
+        let invitation: InviteSnapshot | null = null;
+        if (entry.invite) {
+          try { invitation = await resolvedApi.get(entry.invite); }
+          catch (value: unknown) {
+            if (entry.token && value instanceof ApiError && value.problem.status === 403) invitation = await resolvedApi.accept(entry.invite, entry.token, acceptKey);
+            else throw value;
+          }
+        }
+        const gameId = invitation?.game_id ?? entry.game;
+        if (!gameId) throw new Error("В ссылке не найдена партия.");
+        const next = await resolvedGameApi.get(gameId);
+        if (!cancelled) {
+          setSnapshot(invitation);
+          setGame(next);
+          if (invitation) rememberGame(gameId, invitation.invite_id);
+        }
+      } catch (value: unknown) {
+        if (!cancelled) setError(value instanceof ApiError && [403, 409].includes(value.problem.status) ? "Этот вызов уже принят, истёк или недоступен в этом браузере." : value instanceof Error ? value.message : "Не удалось принять вызов.");
+      } finally {
+        if (!cancelled) setPending(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [acceptKey, entry, resolvedApi, resolvedGameApi]);
+
+  const gameId = game?.id ?? snapshot?.game_id;
+  const finished = game?.status === "finished";
+  const expired = snapshot?.state === "expired";
+  const invitationId = snapshot?.invite_id;
+  useEffect(() => {
+    if (!gameId || finished || expired) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    let polls = 0;
+    const poll = async () => {
+      try {
+        const next = await resolvedGameApi.get(gameId);
+        if (!cancelled) setGame((current) => !current || next.version >= current.version ? next : current);
+        if (next.status === "waiting" && invitationId && polls++ % 10 === 0) {
+          const invitation = await resolvedApi.get(invitationId);
+          if (!cancelled) setSnapshot(invitation);
+        }
+      } catch (value: unknown) {
+        if (!cancelled) setError(value instanceof Error ? value.message : "Проверяем соединение…");
+      } finally {
+        if (!cancelled) timer = setTimeout(poll, document.hidden ? 5000 : 1000);
+      }
+    };
+    timer = setTimeout(poll, 1000);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [expired, finished, gameId, invitationId, resolvedApi, resolvedGameApi]);
+
+  const create = async () => {
+    if (pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      await ensurePublicSession();
+      const invitation = await resolvedApi.create();
+      setSnapshot(invitation);
+      setGame(await resolvedGameApi.get(invitation.game_id));
+      rememberGame(invitation.game_id, invitation.invite_id);
+    } catch (value: unknown) {
+      setError(value instanceof Error ? value.message : "Не удалось создать вызов.");
+    } finally { setPending(false); }
+  };
+  const copy = async () => {
+    if (!snapshot?.invite_url) return;
+    try {
+      await navigator.clipboard.writeText(snapshot.invite_url);
+      setCopied(true);
+    } catch { setError("Выделите и скопируйте ссылку из поля ниже."); }
+  };
+  const move = async (uci: string) => {
+    if (!game?.capabilities.can_move || pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      const next = await resolvedGameApi.move(game.id, { uci, client_move_id: createIdempotencyKey(), expected_version: game.version });
+      setGame((current) => !current || next.version >= current.version ? next : current);
+    } catch (value: unknown) {
+      setError(value instanceof Error ? value.message : "Ход не принят. Обновляем позицию…");
+      try { setGame(await resolvedGameApi.get(game.id)); } catch { /* polling retries */ }
+    } finally { setPending(false); }
+  };
+  const resign = async () => {
+    if (!game || pending) return;
+    setPending(true);
+    try { setGame(await resolvedGameApi.resign(game.id, game.version)); }
+    catch (value: unknown) { setError(value instanceof Error ? value.message : "Не удалось завершить партию."); }
+    finally { setPending(false); }
+  };
+  const waiting = game?.status === "waiting" && snapshot?.state !== "expired";
+  return <section className="friend-screen" aria-label="Friend game">
+    <div className="analysis-header"><h1>Игра с другом</h1><span className="status-chip">Без регистрации</span></div>
+    <p className="friend-description">{game?.status === "active" ? "Нажмите фигуру, затем поле для хода. Партия сохраняется автоматически." : "Отправьте ссылку другу. Он сразу займёт второе место; партия сохранится в ваших браузерах."}</p>
+    {error && <div className="error-banner" role="alert">{error}</div>}
+    {!snapshot && !game && !entry.invite && !entry.game && <button className="button button-primary" type="button" disabled={pending} onClick={() => void create()}>Создать вызов</button>}
+    {pending && <div className="status-banner" role="status">Подключаемся…</div>}
+    {snapshot?.invite_url && waiting && <div className="invite-row">
+      <label className="invite-link-label">Ссылка для друга<input aria-label="Ссылка для друга" readOnly value={snapshot.invite_url} onFocus={(event) => event.currentTarget.select()} /></label>
+      <button className="button button-secondary" type="button" onClick={() => void copy()}>{copied ? "Скопировано" : "Копировать ссылку"}</button>
+      {typeof navigator.share === "function" && <button className="button button-secondary" type="button" onClick={() => void navigator.share({ title: "Шахматный вызов", url: snapshot.invite_url! }).catch(() => {})}>Поделиться</button>}
+    </div>}
+    {waiting && <div className="status-banner" role="status">Ожидаем друга… Ссылка действует 24 часа.</div>}
+    {snapshot?.state === "expired" && <div className="error-banner">Срок ссылки истёк. <a href="/play/friend">Создать новый вызов</a></div>}
+    {game && <>
+      <div className="friend-game-status" role="status">{finished ? "Партия завершена: " + (game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : "победили чёрные") : game.status === "active" ? game.capabilities.can_move ? "Ваш ход" : "Ход соперника" : "Партия ещё не началась"}</div>
+      <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || !game.capabilities.can_move} onMoveAttempt={(uci) => void move(uci)} />
+      {game.status === "active" && <button className="button button-secondary" type="button" disabled={pending} onClick={() => void resign()}>Сдаться</button>}
+      {finished && <a className="button button-primary" href="/play/friend">Новая партия</a>}
+    </>}
+    <p className="friend-description">В этой партии нет подсказок тренера или анализа.</p>
+  </section>;
 }

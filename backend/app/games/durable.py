@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, replace
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from uuid import UUID, uuid4
 
 import chess
@@ -373,6 +373,28 @@ class DurableGameService:
             if cached is not None:
                 return cached
             now = await self.now(session)
+            # SQL serialization keeps guest resource quotas safe across API replicas.
+            if session.bind.dialect.name == "postgresql":
+                await session.execute(select(func.pg_advisory_xact_lock(750120261108)))
+            own_active = await session.scalar(
+                select(func.count())
+                .select_from(Game)
+                .join(GamePlayer)
+                .where(
+                    GamePlayer.user_id == actor_id,
+                    Game.status.in_(["waiting", "active"]),
+                )
+            )
+            recent_active = await session.scalar(
+                select(func.count())
+                .select_from(Game)
+                .where(
+                    Game.status.in_(["waiting", "active"]),
+                    Game.created_at > now - timedelta(days=1),
+                )
+            )
+            if own_active >= 20 or recent_active >= 500:
+                raise PublicProblem(429)
             mode = Mode(payload["mode"])
             domain = GameDomain.start(mode)
             game = Game(
