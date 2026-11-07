@@ -18,7 +18,11 @@ export function useCoachFeedback(api?: CoachApi) {
     setState({ explanation: null, pending: true, error: null });
     try {
       const job = await resolvedApi.request({ ...input, schema_version: 1, level });
-      const ready = job.status === "ready" ? job : await resolvedApi.get(job.job_id);
+      let ready = job;
+      for (let attempt = 0; ready.status === "pending" && attempt < 5; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 250));
+        ready = await resolvedApi.get(job.job_id);
+      }
       if (id !== requestId.current) return;
       if (!ready.explanation || ready.explanation.revision !== input.revision) {
         setState({ explanation: null, pending: false, error: "Coach feedback is stale for this position." });

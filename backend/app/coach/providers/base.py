@@ -6,6 +6,7 @@ replace this with generated Pydantic models without changing provider policy.
 
 from dataclasses import dataclass, field
 from typing import Any, Protocol
+import json
 
 PROMPT_VERSION = "coach-v1"
 
@@ -46,3 +47,10 @@ class CoachProvider(Protocol):
     model_id: str
 
     def explain(self, request: CoachRequest) -> dict[str, Any]: ...
+
+
+def build_grounded_prompt(request: CoachRequest) -> str:
+    """Serialize bounded analysis facts; never pass raw PGN or instructions."""
+    allowed_analysis = {key: request.analysis[key] for key in ("referenced_uci", "highlight_squares", "claim_refs", "best_move", "quality") if key in request.analysis}
+    payload = {"prompt_version": PROMPT_VERSION, "game_id": request.game_id, "analysis_id": request.analysis_id, "revision": request.revision, "ply": request.ply, "language": request.language, "level": request.level, "analysis": allowed_analysis}
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
