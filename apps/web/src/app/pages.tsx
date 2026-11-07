@@ -6,6 +6,7 @@ import { CoachGameScreen } from "../features/coach/CoachGameScreen";
 import { PostGameReport } from "../components/PostGameReport";
 import { FriendInviteScreen } from "../features/friend/FriendInviteScreen";
 import { MatchmakingScreen } from "../features/matchmaking/MatchmakingScreen";
+import { LessonCatalog } from "../features/learning/LessonCatalog";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -76,6 +77,7 @@ export function LearnPage() {
   return (
     <div className="page">
       <section className="page-heading"><div className="eyebrow">{t.learn.eyebrow}</div><h1>{t.learn.title}</h1><p>{t.learn.description}</p></section>
+      <LessonCatalog />
       <div className="card-grid card-grid-3">
         <SectionCard title={t.learn.lessonTitle}><p>{t.learn.lessonDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
         <SectionCard title={t.learn.puzzleTitle}><p>{t.learn.puzzleDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
