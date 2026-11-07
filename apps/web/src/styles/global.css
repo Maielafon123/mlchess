@@ -103,4 +103,12 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .decision-list span { color: var(--color-muted); font-size: 0.8rem; }
 .decision-detail { display: grid; gap: 10px; }
 .decision-detail > p { margin: 0; }
+.friend-screen { display: grid; gap: 16px; max-width: 720px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.invite-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.invite-row code { flex: 1; min-width: 220px; overflow: auto; padding: 10px; border-radius: 8px; background: var(--color-surface-soft); color: var(--color-muted); }
+.friend-game-status { display: grid; gap: 12px; }
+.presence { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; }
+.presence::before { width: 9px; height: 9px; border-radius: 50%; background: #a6a6a6; content: ""; }
+.presence.online::before { background: #2c9d67; }
+.server-clocks { display: flex; justify-content: space-between; padding: 14px; border: 1px solid var(--color-border); border-radius: 8px; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .report-content { grid-template-columns: 1fr; } .page { gap: 38px; } }
