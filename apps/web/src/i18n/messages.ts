@@ -7,6 +7,14 @@ export const messages = {
       learn: "Обучение",
       signIn: "Войти",
     },
+    auth: {
+      loading: "Проверяем сессию…",
+      guestNotice: "Гостевой режим: партии доступны, прогресс сохранится после входа.",
+      signedInAs: "Вы вошли как",
+      signOut: "Выйти",
+      error: "Не удалось проверить сессию",
+      forbidden: "Недостаточно прав для этого действия",
+    },
     home: {
       eyebrow: "Chess platform",
       title: "Играйте, разбирайтесь, растите",
@@ -54,6 +62,14 @@ export const messages = {
       play: "Play",
       learn: "Learn",
       signIn: "Sign in",
+    },
+    auth: {
+      loading: "Checking session…",
+      guestNotice: "Guest mode: games are available; progress is saved after sign-in.",
+      signedInAs: "Signed in as",
+      signOut: "Sign out",
+      error: "The session could not be checked",
+      forbidden: "You do not have permission for this action",
     },
     home: {
       eyebrow: "Chess platform",
