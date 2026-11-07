@@ -5,17 +5,16 @@ import sys
 from uuid import uuid4
 
 import pytest
-
-pytestmark = pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="The restricted Windows runner cannot create asyncio self-pipes",
-)
-
 from backend.app.games.domain import NotYourTurn, StaleVersion
 from backend.app.games.service import (
     ForbiddenGameActor,
     IdempotencyConflict,
     InMemoryGameCommandService,
+)
+
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="The restricted Windows runner cannot create asyncio self-pipes",
 )
 
 
