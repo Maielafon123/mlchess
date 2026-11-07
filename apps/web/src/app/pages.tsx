@@ -8,6 +8,7 @@ import { FriendInviteScreen } from "../features/friend/FriendInviteScreen";
 import { MatchmakingScreen } from "../features/matchmaking/MatchmakingScreen";
 import { LessonCatalog } from "../features/learning/LessonCatalog";
 import { PuzzleScreen } from "../features/learning/PuzzleScreen";
+import { ProgressDashboard } from "../features/learning/ProgressDashboard";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -75,6 +76,10 @@ export function MatchmakingPage() {
 
 export function PuzzlePage() {
   return <div className="page"><section className="page-heading"><div className="eyebrow">Puzzles</div><h1>Solve a chess puzzle</h1><p>Moves are graded by the server; hints are progressive.</p></section><PuzzleScreen /></div>;
+}
+
+export function ProgressPage() {
+  return <div className="page"><section className="page-heading"><div className="eyebrow">Progress</div><h1>Review what you learned</h1><p>Progress and review dates come from server-graded attempts.</p></section><ProgressDashboard /></div>;
 }
 
 export function LearnPage() {
