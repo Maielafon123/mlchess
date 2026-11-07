@@ -1,7 +1,8 @@
 # A-027 integration evidence
 
 Status: **release blocked**. This integration combines the A foundation with B's
-`codex/review-hardening` at `9a985d9`. Passing library and UI demo tests is not
+`codex/review-hardening` at `9a985d9`, plus the independent prose grounding fix
+`d664104` (PR #29). Passing library and UI demo tests is not
 evidence that a deployed game can be played end to end.
 
 ## Verified locally on Windows / Python 3.12 / Node 24

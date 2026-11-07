@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 import json
+import re
 
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -29,6 +30,9 @@ _INJECTION_MARKERS = (
     "system message",
     "developer message",
     "<|system|>",
+)
+_UCI_PATTERN = re.compile(
+    r"(?<![a-z0-9])[a-h][1-8][a-h][1-8][qrbn]?(?![a-z0-9])", re.IGNORECASE
 )
 
 
@@ -96,6 +100,14 @@ def _contains_injection(value: Any) -> bool:
     return False
 
 
+def _contains_unverified_move_text(
+    raw: dict[str, Any], verified_uci: frozenset[str]
+) -> bool:
+    text = " ".join(str(raw[field]) for field in ("summary", "why", "question"))
+    mentioned = {match.lower() for match in _UCI_PATTERN.findall(text)}
+    return bool(mentioned - {move.lower() for move in verified_uci})
+
+
 def validate_explanation(
     raw: Any, request: CoachRequest, facts: AnalysisFacts
 ) -> GroundingResult:
@@ -118,6 +130,8 @@ def validate_explanation(
         return _fallback(request, "PROVIDER_FALLBACK_NOT_VERIFIED")
     if not set(raw["referenced_uci"]).issubset(facts.verified_uci):
         return _fallback(request, "UNVERIFIED_MOVE")
+    if _contains_unverified_move_text(raw, facts.verified_uci):
+        return _fallback(request, "UNVERIFIED_TEXT_MOVE")
     if not set(raw["highlight_squares"]).issubset(facts.verified_highlights):
         return _fallback(request, "UNVERIFIED_HIGHLIGHT")
     if not set(raw["claim_refs"]).issubset(facts.claim_refs):
