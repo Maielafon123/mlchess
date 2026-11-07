@@ -13,6 +13,8 @@ from starlette.exceptions import HTTPException
 
 from backend.app.auth.router import router as auth_router
 from backend.app.auth.service import AuthService, InMemorySessionStore
+from backend.app.coach.router import router as coach_router
+from backend.app.learning.router import router as learning_router
 from backend.app.infra.generated.contracts import HealthV1
 from backend.app.infra.http import SafeHTTPMiddleware, default_request_logger
 from backend.app.infra.problems import PublicProblem, problem_response
@@ -55,6 +57,8 @@ def create_app(
         InMemorySessionStore(), session_ttl_seconds=settings.session_ttl_seconds
     )
     app.include_router(auth_router)
+    app.include_router(coach_router)
+    app.include_router(learning_router)
     app.add_middleware(
         SafeHTTPMiddleware,
         settings=settings,
