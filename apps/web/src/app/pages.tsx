@@ -3,6 +3,7 @@ import { SectionCard } from "../components/SectionCard";
 import { GameSessionScreen } from "../features/game/GameSessionScreen";
 import { AiGameScreen } from "../features/ai/AiGameScreen";
 import { CoachGameScreen } from "../features/coach/CoachGameScreen";
+import { PostGameReport } from "../components/PostGameReport";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -53,6 +54,11 @@ export function AiPage() {
 export function CoachPage() {
   const { t } = useI18n();
   return <div className="page"><section className="page-heading"><div className="eyebrow">Coach mode</div><h1>{t.home.coachTitle}</h1><p>{t.home.coachDescription}</p></section><CoachGameScreen /></div>;
+}
+
+export function ReportPage() {
+  const { t } = useI18n();
+  return <div className="page"><section className="page-heading"><div className="eyebrow">Post-game review</div><h1>{t.home.title}</h1><p>Review only verified engine decisions from a finished game.</p></section><PostGameReport report={{ game_id: "pending", status: "pending", result: "unknown", analyzed_plies: 0, total_plies: 0, decisions: [] }} /></div>;
 }
 
 export function LearnPage() {
