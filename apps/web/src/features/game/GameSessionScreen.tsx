@@ -1,9 +1,9 @@
 import { GameBoard } from "../../components/GameBoard";
-import { type GameApi } from "../../api/gameApi";
+import { type GameApi, type GameSnapshot } from "../../api/gameApi";
 import { useGameSession } from "./useGameSession";
 
-export function GameSessionScreen({ api }: { api?: GameApi }) {
-  const session = useGameSession(api);
+export function GameSessionScreen({ api, onAcceptedMove }: { api?: GameApi; onAcceptedMove?: (snapshot: GameSnapshot) => void }) {
+  const session = useGameSession(api, onAcceptedMove);
   const snapshot = session.snapshot;
 
   if (!snapshot) {
