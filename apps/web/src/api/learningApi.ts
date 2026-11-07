@@ -29,4 +29,3 @@ export const demoLessons: Lesson[] = [
   { id: "king-safety", title: "Безопасность короля", summary: "Рокировка и открытые линии.", body: "Сравнивайте безопасность короля с активностью фигур перед решением.", language: "ru", status: "not-started", source_name: "MLChess original", source_url: "https://mlchess.dev/lessons/king-safety", license: "CC BY 4.0", tags: ["opening", "strategy"] },
 ];
 import { ApiClient } from "./client";
-
