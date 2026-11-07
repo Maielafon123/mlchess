@@ -1,0 +1,206 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://mlchess.local/contracts/common/v1.yaml
+title: "MLChess common v1 \u2014 A-001 review candidate"
+$defs:
+  UUIDv4:
+    type: string
+    format: uuid
+    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+  UTCDateTime:
+    type: string
+    format: date-time
+    pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$
+  ProblemDetailsV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - type
+    - title
+    - status
+    - code
+    - detail
+    - request_id
+    properties:
+      schema_version: &id001
+        type: integer
+        const: 1
+      type:
+        type: string
+        format: uri
+      title:
+        type: string
+        minLength: 1
+        maxLength: 120
+      status:
+        type: integer
+        enum:
+        - 400
+        - 401
+        - 403
+        - 404
+        - 409
+        - 422
+        - 429
+        - 500
+        - 503
+      code:
+        type: string
+        enum:
+        - BAD_REQUEST
+        - UNAUTHENTICATED
+        - FORBIDDEN
+        - NOT_FOUND
+        - STALE_GAME_VERSION
+        - IDEMPOTENCY_CONFLICT
+        - NOT_YOUR_TURN
+        - GAME_NOT_ACTIVE
+        - DRAW_NOT_CLAIMABLE
+        - ILLEGAL_MOVE
+        - VALIDATION_ERROR
+        - RATE_LIMITED
+        - INTERNAL_ERROR
+        - SERVICE_UNAVAILABLE
+      detail:
+        type: string
+        maxLength: 1000
+      request_id:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    allOf:
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - BAD_REQUEST
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 400
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - UNAUTHENTICATED
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 401
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - FORBIDDEN
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 403
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - NOT_FOUND
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 404
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - STALE_GAME_VERSION
+            - IDEMPOTENCY_CONFLICT
+            - NOT_YOUR_TURN
+            - GAME_NOT_ACTIVE
+            - DRAW_NOT_CLAIMABLE
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 409
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - ILLEGAL_MOVE
+            - VALIDATION_ERROR
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 422
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - RATE_LIMITED
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 429
+    - if:
+        properties:
+          code:
+            type: string
+            enum:
+            - SERVICE_UNAVAILABLE
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 503
+    - if:
+        properties:
+          code:
+            const: INTERNAL_ERROR
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 500
+  CurrentUserV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - id
+    - kind
+    - display_name
+    - expires_at
+    properties:
+      schema_version: *id001
+      id:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      kind:
+        type: string
+        enum:
+        - account
+        - guest
+      display_name:
+        oneOf:
+        - type: string
+          minLength: 1
+          maxLength: 80
+        - type: 'null'
+      expires_at:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime

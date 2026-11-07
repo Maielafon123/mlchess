@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "type": "urn:mlchess:problem:illegal-move",
+  "title": "Illegal move",
+  "status": 422,
+  "code": "ILLEGAL_MOVE",
+  "detail": "The move is not legal in the current position.",
+  "request_id": "fa4509f2-bc32-44c8-bad7-a09a2bf06914"
+}

@@ -1,0 +1,7 @@
+{
+  "mode": "friend",
+  "time_control": {
+    "initial_ms": 600000,
+    "increment_ms": 0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "id": "00000000-0000-4000-8000-000000000005",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 0,
+  "ply": 1,
+  "position_key": "2020a069010f330ac60091b8cca61d8f137c20e93a1e9b836fd57d6f82ad98ae",
+  "status": "running",
+  "analysis_id": null,
+  "error": null,
+  "created_at": "2026-11-07T14:00:00Z",
+  "updated_at": "2026-11-07T14:00:00Z"
+}

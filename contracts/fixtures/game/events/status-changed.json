@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "event_id": "00000000-0000-4000-8000-000000000017",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "seq": 6,
+  "type": "game.status_changed",
+  "occurred_at": "2026-11-07T14:00:00Z",
+  "payload": {
+    "version": 3,
+    "revision": 1,
+    "status": "aborted",
+    "result": null,
+    "termination": "aborted",
+    "clock": {
+      "white_remaining_ms": 600000,
+      "black_remaining_ms": 600000,
+      "running_side": null,
+      "server_now": "2026-11-07T14:00:00Z"
+    }
+  }
+}

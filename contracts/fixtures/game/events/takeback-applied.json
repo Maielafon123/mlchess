@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "event_id": "00000000-0000-4000-8000-000000000016",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "seq": 5,
+  "type": "game.takeback_applied",
+  "occurred_at": "2026-11-07T14:00:00Z",
+  "payload": {
+    "version": 2,
+    "from_ply": 1,
+    "to_ply": 0,
+    "new_revision": 1,
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "side_to_move": "white",
+    "clock": {
+      "white_remaining_ms": 600000,
+      "black_remaining_ms": 600000,
+      "running_side": "white",
+      "server_now": "2026-11-07T14:00:00Z"
+    }
+  }
+}

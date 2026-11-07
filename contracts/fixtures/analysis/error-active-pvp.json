@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "type": "urn:mlchess:problem:forbidden",
+  "title": "Analysis is unavailable",
+  "status": 403,
+  "code": "FORBIDDEN",
+  "detail": "Analysis is unavailable for an active friend or rated game.",
+  "request_id": "fa4509f2-bc32-44c8-bad7-a09a2bf06914"
+}

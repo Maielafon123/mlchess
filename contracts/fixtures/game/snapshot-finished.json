@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "mode": "rated",
+  "status": "finished",
+  "version": 2,
+  "revision": 0,
+  "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+  "ply": 1,
+  "side_to_move": "black",
+  "players": [
+    {
+      "side": "white",
+      "kind": "human",
+      "user_id": "deafed4a-ab07-41e1-b2f0-d40f2785e8a8"
+    },
+    {
+      "side": "black",
+      "kind": "human",
+      "user_id": "32a0b81c-a16b-42d7-a4af-86ec5f463f2f"
+    }
+  ],
+  "moves": [
+    {
+      "ply": 1,
+      "uci": "e2e4",
+      "san": "e4"
+    }
+  ],
+  "time_control": {
+    "initial_ms": 600000,
+    "increment_ms": 0
+  },
+  "clock": {
+    "white_remaining_ms": 600000,
+    "black_remaining_ms": 600000,
+    "running_side": null,
+    "server_now": "2026-11-07T14:00:00Z"
+  },
+  "capabilities": {
+    "can_move": false,
+    "can_takeback": false,
+    "can_analyze_now": true
+  },
+  "result": "white",
+  "termination": "resignation"
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "event_id": "00000000-0000-4000-8000-000000000013",
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "seq": 2,
+  "type": "analysis.ready",
+  "occurred_at": "2026-11-07T14:00:00Z",
+  "payload": {
+    "analysis_id": "0f65025d-7b3d-40f1-8958-5c236483c8b7",
+    "revision": 0,
+    "ply": 1
+  }
+}

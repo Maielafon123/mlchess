@@ -1,0 +1,2779 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.local/contracts/generated/validation.schema.json",
+  "$defs": {
+    "AnalysisFactsV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checks",
+        "captures",
+        "material_delta",
+        "motifs_verified",
+        "verified_claims"
+      ],
+      "properties": {
+        "checks": {
+          "type": "boolean"
+        },
+        "captures": {
+          "type": "boolean"
+        },
+        "material_delta": {
+          "type": "integer"
+        },
+        "motifs_verified": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "checkmate",
+              "promotion",
+              "en_passant",
+              "castling"
+            ]
+          }
+        },
+        "verified_claims": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/VerifiedClaimV1"
+          }
+        }
+      },
+      "description": "checks/captures describe the played move. material_delta is material gained by the mover on this move using pawn=100, knight=320, bishop=330, rook=500, queen=900; it is not an engine evaluation. Motifs are limited to facts the v1 verifier can prove."
+    },
+    "AnalysisJobV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "id",
+        "game_id",
+        "revision",
+        "ply",
+        "position_key",
+        "status",
+        "analysis_id",
+        "error",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ply": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "position_key": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "running",
+            "done",
+            "failed"
+          ]
+        },
+        "analysis_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ProblemDetailsV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "running"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "analysis_id": {
+                "type": "null"
+              },
+              "error": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "done"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "analysis_id": {
+                "$ref": "#/$defs/UUIDv4"
+              },
+              "error": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "analysis_id": {
+                "type": "null"
+              },
+              "error": {
+                "$ref": "#/$defs/ProblemDetailsV1"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Postgres durable job snapshot; Redis enqueue is not completion. Every worker/result read repeats participant, phase, revision and position_key checks. A stale result cannot become current."
+    },
+    "AnalysisReadyEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "analysis.ready"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "analysis_id",
+            "revision",
+            "ply"
+          ],
+          "properties": {
+            "analysis_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "ply": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        }
+      },
+      "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "AnalysisRequestV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ply",
+        "analysis_level"
+      ],
+      "properties": {
+        "ply": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "analysis_level": {
+          "type": "string",
+          "enum": [
+            "quick",
+            "deep"
+          ]
+        }
+      },
+      "description": "Participant-scoped analysis of a server-reconstructed move. Idempotency-Key UUIDv4 header required; no client FEN, scores, engine paths or free resource budgets. Server captures revision/position_key when accepting the request."
+    },
+    "AnalysisResultV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "analysis_id",
+        "game_id",
+        "revision",
+        "ply",
+        "position_key",
+        "before_fen",
+        "after_fen",
+        "played_move_uci",
+        "best_move_uci",
+        "top_moves",
+        "score_before",
+        "score_after",
+        "quality",
+        "quality_method",
+        "cp_loss",
+        "engine",
+        "facts",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "analysis_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ply": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "position_key": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "before_fen": {
+          "$ref": "#/$defs/FenV1"
+        },
+        "after_fen": {
+          "$ref": "#/$defs/FenV1"
+        },
+        "played_move_uci": {
+          "$ref": "#/$defs/UciMoveV1"
+        },
+        "best_move_uci": {
+          "$ref": "#/$defs/UciMoveV1"
+        },
+        "top_moves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/TopMoveV1"
+          }
+        },
+        "score_before": {
+          "$ref": "#/$defs/ScoreV1"
+        },
+        "score_after": {
+          "$ref": "#/$defs/ScoreV1"
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "best",
+            "good",
+            "inaccuracy",
+            "mistake",
+            "blunder",
+            "unclassified"
+          ]
+        },
+        "quality_method": {
+          "type": "string",
+          "enum": [
+            "cp-loss-v1",
+            "mate-score-v1"
+          ]
+        },
+        "cp_loss": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "engine": {
+          "$ref": "#/$defs/EngineMetadataV1"
+        },
+        "facts": {
+          "$ref": "#/$defs/AnalysisFactsV1"
+        },
+        "created_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "score_before": {
+                    "properties": {
+                      "kind": {
+                        "const": "mate"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "score_after": {
+                    "properties": {
+                      "kind": {
+                        "const": "mate"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "cp_loss": {
+                "type": "null"
+              },
+              "quality_method": {
+                "const": "mate-score-v1"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "cp_loss": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "quality_method": {
+                "const": "cp-loss-v1"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Engine facts only; no coach prose. position_key = sha256(before_fen + \"|\" + played_move_uci). Replay the played move to after_fen and each candidate PV from before_fen. cp_loss = max(0, (score_before.value - score_after.value) * (1 for a white mover, -1 for black)), only when both scores are cp. No public arbitrary-FEN endpoint."
+    },
+    "CapabilitiesV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_move",
+        "can_takeback",
+        "can_analyze_now"
+      ],
+      "properties": {
+        "can_move": {
+          "type": "boolean"
+        },
+        "can_takeback": {
+          "type": "boolean"
+        },
+        "can_analyze_now": {
+          "type": "boolean"
+        }
+      },
+      "description": "Server-computed, viewer-specific permissions; not an authorization credential."
+    },
+    "ClockV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "white_remaining_ms",
+        "black_remaining_ms",
+        "running_side",
+        "server_now"
+      ],
+      "properties": {
+        "white_remaining_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "black_remaining_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "running_side": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SideV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "server_now": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "CoachReadyEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "coach.ready"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "explanation_id",
+            "analysis_id",
+            "revision",
+            "ply"
+          ],
+          "properties": {
+            "explanation_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "analysis_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "ply": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        }
+      },
+      "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "CreateGameV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "time_control"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "friend",
+            "ai",
+            "coach"
+          ]
+        },
+        "time_control": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TimeControlV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "human_color": {
+          "$ref": "#/$defs/SideV1"
+        },
+        "ai_profile": {
+          "type": "string",
+          "enum": [
+            "beginner",
+            "casual",
+            "club",
+            "strong"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "ai",
+                  "coach"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "human_color",
+              "ai_profile"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "friend"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "human_color"
+                  ]
+                },
+                {
+                  "required": [
+                    "ai_profile"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Public create command. rated is created only by matchmaking. Idempotency-Key: UUIDv4 header is mandatory; no client FEN, clock state, result, engine budget or binary path."
+    },
+    "CurrentUserV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "id",
+        "kind",
+        "display_name",
+        "expires_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "account",
+            "guest"
+          ]
+        },
+        "display_name": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "EngineLimitsV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_ms",
+        "nodes",
+        "depth"
+      ],
+      "properties": {
+        "time_ms": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "nodes": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "depth": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "time_ms": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "properties": {
+            "nodes": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "properties": {
+            "depth": {
+              "type": "integer"
+            }
+          }
+        }
+      ],
+      "description": "Effective server-selected worker limits. At least one non-null bound. These fields are metadata, never accepted from a public analysis request."
+    },
+    "EngineMetadataV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "model_hash",
+        "binary_sha256",
+        "limits",
+        "multipv",
+        "threads",
+        "hash_mb"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "const": "stockfish"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "model_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "binary_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "limits": {
+          "$ref": "#/$defs/EngineLimitsV1"
+        },
+        "multipv": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "threads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "hash_mb": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 512
+        }
+      }
+    },
+    "FenV1": {
+      "type": "string",
+      "format": "chess-fen",
+      "minLength": 15,
+      "maxLength": 100,
+      "description": "Standard chess FEN; six fields, legal board, canonical python-chess Board.fen(). History is carried by moves, not by FEN."
+    },
+    "GameClockSyncEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "game.clock_sync"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "revision",
+            "ply",
+            "clock"
+          ],
+          "properties": {
+            "version": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "ply": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "clock": {
+              "$ref": "#/$defs/ClockV1"
+            }
+          }
+        }
+      },
+      "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "GameEventV1": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/GameSnapshotEventV1"
+        },
+        {
+          "$ref": "#/$defs/GameMoveCommittedEventV1"
+        },
+        {
+          "$ref": "#/$defs/GameClockSyncEventV1"
+        },
+        {
+          "$ref": "#/$defs/GameTakebackAppliedEventV1"
+        },
+        {
+          "$ref": "#/$defs/AnalysisReadyEventV1"
+        },
+        {
+          "$ref": "#/$defs/CoachReadyEventV1"
+        },
+        {
+          "$ref": "#/$defs/ResyncRequiredEventV1"
+        },
+        {
+          "$ref": "#/$defs/GameStatusChangedEventV1"
+        }
+      ],
+      "description": "Read-only server-to-client stream. Discriminate by type before consuming payload; unknown event types fail validation. Snapshot/resync control frames carry a cursor but are handled separately from durable event dedup. Matchmaking has REST polling, not a game stream event."
+    },
+    "GameModeV1": {
+      "type": "string",
+      "enum": [
+        "friend",
+        "rated",
+        "ai",
+        "coach"
+      ]
+    },
+    "GameMoveCommittedEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "game.move_committed"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "revision",
+            "move",
+            "fen",
+            "side_to_move",
+            "clock"
+          ],
+          "properties": {
+            "version": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "move": {
+              "$ref": "#/$defs/MoveV1"
+            },
+            "fen": {
+              "$ref": "#/$defs/FenV1"
+            },
+            "side_to_move": {
+              "$ref": "#/$defs/SideV1"
+            },
+            "clock": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ClockV1"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "GameSnapshotEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "game.snapshot"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "$ref": "#/$defs/GameSnapshotV1"
+        }
+      },
+      "description": "Control frame: seq is the current committed game cursor; does not allocate a durable event sequence."
+    },
+    "GameSnapshotV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "id",
+        "mode",
+        "status",
+        "version",
+        "revision",
+        "fen",
+        "ply",
+        "side_to_move",
+        "players",
+        "moves",
+        "time_control",
+        "clock",
+        "capabilities",
+        "result",
+        "termination"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "mode": {
+          "$ref": "#/$defs/GameModeV1"
+        },
+        "status": {
+          "$ref": "#/$defs/GameStatusV1"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "fen": {
+          "$ref": "#/$defs/FenV1"
+        },
+        "ply": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "side_to_move": {
+          "$ref": "#/$defs/SideV1"
+        },
+        "players": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/PlayerV1"
+          },
+          "allOf": [
+            {
+              "contains": {
+                "properties": {
+                  "side": {
+                    "const": "white"
+                  }
+                },
+                "required": [
+                  "side"
+                ]
+              },
+              "minContains": 0,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "properties": {
+                  "side": {
+                    "const": "black"
+                  }
+                },
+                "required": [
+                  "side"
+                ]
+              },
+              "minContains": 0,
+              "maxContains": 1
+            }
+          ]
+        },
+        "moves": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MoveV1"
+          }
+        },
+        "time_control": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TimeControlV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "clock": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ClockV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "capabilities": {
+          "$ref": "#/$defs/CapabilitiesV1"
+        },
+        "result": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "white",
+                "black",
+                "draw"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "termination": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "checkmate",
+                "stalemate",
+                "insufficient_material",
+                "fivefold_repetition",
+                "seventyfive_moves",
+                "threefold_claim",
+                "fifty_moves_claim",
+                "draw_agreement",
+                "resignation",
+                "timeout",
+                "aborted"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "waiting",
+                  "active",
+                  "aborted"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "waiting",
+                  "active"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "termination": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "finished"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "type": "string",
+                "enum": [
+                  "white",
+                  "black",
+                  "draw"
+                ]
+              },
+              "termination": {
+                "type": "string",
+                "enum": [
+                  "checkmate",
+                  "stalemate",
+                  "insufficient_material",
+                  "fivefold_repetition",
+                  "seventyfive_moves",
+                  "threefold_claim",
+                  "fifty_moves_claim",
+                  "draw_agreement",
+                  "resignation",
+                  "timeout"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "aborted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "termination": {
+                "const": "aborted"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "waiting",
+                  "finished",
+                  "aborted"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "capabilities": {
+                "properties": {
+                  "can_move": {
+                    "const": false
+                  }
+                }
+              },
+              "clock": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "running_side": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "active"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "players": {
+                "minItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "rated"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "time_control": {
+                "$ref": "#/$defs/TimeControlV1"
+              },
+              "clock": {
+                "$ref": "#/$defs/ClockV1"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "friend",
+                  "rated"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "capabilities": {
+                "properties": {
+                  "can_takeback": {
+                    "const": false
+                  }
+                }
+              },
+              "players": {
+                "items": {
+                  "properties": {
+                    "kind": {
+                      "const": "human"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "friend",
+                  "rated"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "waiting",
+                  "active"
+                ]
+              }
+            },
+            "required": [
+              "mode",
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "capabilities": {
+                "properties": {
+                  "can_analyze_now": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "time_control": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "time_control"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clock": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "time_control": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "time_control"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clock": {
+                "$ref": "#/$defs/ClockV1"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "ai",
+                  "coach"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "players": {
+                "minItems": 2,
+                "allOf": [
+                  {
+                    "contains": {
+                      "properties": {
+                        "kind": {
+                          "const": "human"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    },
+                    "minContains": 1,
+                    "maxContains": 1
+                  },
+                  {
+                    "contains": {
+                      "properties": {
+                        "kind": {
+                          "const": "engine"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    },
+                    "minContains": 1,
+                    "maxContains": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "active"
+              },
+              "side_to_move": {
+                "const": "white"
+              }
+            },
+            "required": [
+              "status",
+              "side_to_move"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clock": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "running_side": {
+                        "const": "white"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "active"
+              },
+              "side_to_move": {
+                "const": "black"
+              }
+            },
+            "required": [
+              "status",
+              "side_to_move"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clock": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "running_side": {
+                        "const": "black"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "description": "Full current branch, from the standard initial position. version changes per accepted command; revision changes on takeback. moves are contiguous and replay to fen/ply/side_to_move. Old branches remain in server audit storage. Permissions depend on requesting actor."
+    },
+    "GameStatusChangedEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "game.status_changed"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "revision",
+            "status",
+            "result",
+            "termination",
+            "clock"
+          ],
+          "properties": {
+            "version": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "status": {
+              "$ref": "#/$defs/GameStatusV1"
+            },
+            "result": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black",
+                    "draw"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "termination": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "checkmate",
+                    "stalemate",
+                    "insufficient_material",
+                    "fivefold_repetition",
+                    "seventyfive_moves",
+                    "threefold_claim",
+                    "fifty_moves_claim",
+                    "draw_agreement",
+                    "resignation",
+                    "timeout",
+                    "aborted"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "clock": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ClockV1"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "waiting",
+                      "active"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "result": {
+                    "type": "null"
+                  },
+                  "termination": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "finished"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "result": {
+                    "type": "string",
+                    "enum": [
+                      "white",
+                      "black",
+                      "draw"
+                    ]
+                  },
+                  "termination": {
+                    "type": "string",
+                    "not": {
+                      "const": "aborted"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "aborted"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "result": {
+                    "type": "null"
+                  },
+                  "termination": {
+                    "const": "aborted"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "waiting",
+                      "finished",
+                      "aborted"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "clock": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "running_side": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "GameStatusV1": {
+      "type": "string",
+      "enum": [
+        "waiting",
+        "active",
+        "finished",
+        "aborted"
+      ]
+    },
+    "GameTakebackAppliedEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "game.takeback_applied"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "from_ply",
+            "to_ply",
+            "new_revision",
+            "fen",
+            "side_to_move",
+            "clock"
+          ],
+          "properties": {
+            "version": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "from_ply": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "to_ply": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "new_revision": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "fen": {
+              "$ref": "#/$defs/FenV1"
+            },
+            "side_to_move": {
+              "$ref": "#/$defs/SideV1"
+            },
+            "clock": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ClockV1"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "MoveAcceptedV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "client_move_id",
+        "move",
+        "snapshot"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "client_move_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "move": {
+          "$ref": "#/$defs/MoveV1"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/GameSnapshotV1"
+        }
+      },
+      "description": "Persisted response returned identically on retry with the same actor/client_move_id and payload. snapshot.version = expected_version + 1. The move equals the last snapshot.moves item. Reuse with another payload gives 409 IDEMPOTENCY_CONFLICT."
+    },
+    "MoveV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ply",
+        "uci",
+        "san"
+      ],
+      "properties": {
+        "ply": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "uci": {
+          "$ref": "#/$defs/UciMoveV1"
+        },
+        "san": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        }
+      }
+    },
+    "PlayerV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "side",
+        "kind",
+        "user_id"
+      ],
+      "properties": {
+        "side": {
+          "$ref": "#/$defs/SideV1"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "human",
+            "engine"
+          ]
+        },
+        "user_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "human"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "user_id": {
+                "$ref": "#/$defs/UUIDv4"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "engine"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "user_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ProblemDetailsV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "type",
+        "title",
+        "status",
+        "code",
+        "detail",
+        "request_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "status": {
+          "type": "integer",
+          "enum": [
+            400,
+            401,
+            403,
+            404,
+            409,
+            422,
+            429,
+            500,
+            503
+          ]
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "BAD_REQUEST",
+            "UNAUTHENTICATED",
+            "FORBIDDEN",
+            "NOT_FOUND",
+            "STALE_GAME_VERSION",
+            "IDEMPOTENCY_CONFLICT",
+            "NOT_YOUR_TURN",
+            "GAME_NOT_ACTIVE",
+            "DRAW_NOT_CLAIMABLE",
+            "ILLEGAL_MOVE",
+            "VALIDATION_ERROR",
+            "RATE_LIMITED",
+            "INTERNAL_ERROR",
+            "SERVICE_UNAVAILABLE"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "request_id": {
+          "$ref": "#/$defs/UUIDv4"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "BAD_REQUEST"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 400
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "UNAUTHENTICATED"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 401
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "FORBIDDEN"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 403
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "NOT_FOUND"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 404
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "STALE_GAME_VERSION",
+                  "IDEMPOTENCY_CONFLICT",
+                  "NOT_YOUR_TURN",
+                  "GAME_NOT_ACTIVE",
+                  "DRAW_NOT_CLAIMABLE"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 409
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "ILLEGAL_MOVE",
+                  "VALIDATION_ERROR"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 422
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "RATE_LIMITED"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 429
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "SERVICE_UNAVAILABLE"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 503
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "const": "INTERNAL_ERROR"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 500
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ResyncRequiredEventV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "game_id",
+        "seq",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "event_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "server.resync_required"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "after_seq",
+            "latest_seq",
+            "reason"
+          ],
+          "properties": {
+            "after_seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "latest_seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "cursor_ahead",
+                "replay_unavailable",
+                "sequence_gap"
+              ]
+            }
+          }
+        }
+      },
+      "description": "Control frame: seq is the current committed game cursor; does not allocate a durable event sequence."
+    },
+    "ScoreV1": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value",
+            "pov"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "cp"
+            },
+            "value": {
+              "type": "integer"
+            },
+            "pov": {
+              "type": "string",
+              "const": "white"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value",
+            "pov"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "mate"
+            },
+            "value": {
+              "type": "integer"
+            },
+            "pov": {
+              "type": "string",
+              "const": "white"
+            }
+          }
+        }
+      ],
+      "description": "White POV always. cp is centipawns; mate is signed UCI mate distance in moves. Mate zero is a terminal position: the board identifies the mated side. Never convert a mate score to centipawns."
+    },
+    "SideV1": {
+      "type": "string",
+      "enum": [
+        "white",
+        "black"
+      ]
+    },
+    "SubmitMoveV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "client_move_id",
+        "expected_version",
+        "uci"
+      ],
+      "properties": {
+        "client_move_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "uci": {
+          "$ref": "#/$defs/UciMoveV1"
+        }
+      }
+    },
+    "TakebackV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_version",
+        "plies",
+        "client_action_id"
+      ],
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "plies": {
+          "type": "integer",
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "client_action_id": {
+          "$ref": "#/$defs/UUIDv4"
+        }
+      },
+      "description": "Solo only. plies is explicit: UI sends 2 for a complete human/engine cycle, or 1 while engine reply is pending. Never valid for friend/rated."
+    },
+    "TimeControlV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial_ms",
+        "increment_ms"
+      ],
+      "properties": {
+        "initial_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 86400000
+        },
+        "increment_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000
+        }
+      }
+    },
+    "TopMoveV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uci",
+        "san",
+        "pv_uci",
+        "score"
+      ],
+      "properties": {
+        "uci": {
+          "$ref": "#/$defs/UciMoveV1"
+        },
+        "san": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "pv_uci": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/UciMoveV1"
+          }
+        },
+        "score": {
+          "$ref": "#/$defs/ScoreV1"
+        }
+      },
+      "description": "Ranked at before_fen from the mover POV; uci is the first PV move and san is its SAN at before_fen. Replay every PV for legality."
+    },
+    "UTCDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?Z$"
+    },
+    "UUIDv4": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "UciMoveV1": {
+      "type": "string",
+      "pattern": "^[a-h][1-8][a-h][1-8][qrbn]?$"
+    },
+    "VerifiedClaimV1": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fact_id",
+            "kind",
+            "evidence"
+          ],
+          "properties": {
+            "fact_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "kind": {
+              "type": "string",
+              "const": "check"
+            },
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uci",
+                "after_fen"
+              ],
+              "properties": {
+                "uci": {
+                  "$ref": "#/$defs/UciMoveV1"
+                },
+                "after_fen": {
+                  "$ref": "#/$defs/FenV1"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fact_id",
+            "kind",
+            "evidence"
+          ],
+          "properties": {
+            "fact_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "kind": {
+              "type": "string",
+              "const": "capture"
+            },
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uci",
+                "captured_piece",
+                "square"
+              ],
+              "properties": {
+                "uci": {
+                  "$ref": "#/$defs/UciMoveV1"
+                },
+                "captured_piece": {
+                  "type": "string",
+                  "enum": [
+                    "pawn",
+                    "knight",
+                    "bishop",
+                    "rook",
+                    "queen"
+                  ]
+                },
+                "square": {
+                  "type": "string",
+                  "pattern": "^[a-h][1-8]$"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fact_id",
+            "kind",
+            "evidence"
+          ],
+          "properties": {
+            "fact_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "kind": {
+              "type": "string",
+              "const": "promotion"
+            },
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uci",
+                "promoted_piece"
+              ],
+              "properties": {
+                "uci": {
+                  "$ref": "#/$defs/UciMoveV1"
+                },
+                "promoted_piece": {
+                  "type": "string",
+                  "enum": [
+                    "knight",
+                    "bishop",
+                    "rook",
+                    "queen"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fact_id",
+            "kind",
+            "evidence"
+          ],
+          "properties": {
+            "fact_id": {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            "kind": {
+              "type": "string",
+              "const": "checkmate"
+            },
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uci",
+                "after_fen",
+                "winner"
+              ],
+              "properties": {
+                "uci": {
+                  "$ref": "#/$defs/UciMoveV1"
+                },
+                "after_fen": {
+                  "$ref": "#/$defs/FenV1"
+                },
+                "winner": {
+                  "$ref": "#/$defs/SideV1"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Only mechanically verifiable claims about the played move. Free text, engine-generated motives and unverified threats are outside this v1 vocabulary."
+    }
+  }
+}
