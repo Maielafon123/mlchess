@@ -30,6 +30,7 @@ from backend.app.infra.models import (
     GameState,
     OutboxEvent,
     User,
+    WorkerJob,
 )
 from backend.app.infra.problems import PublicProblem
 
@@ -189,6 +190,14 @@ class DurableGameService:
         if state is None:
             # Legacy baseline rows need an audited import, never infer lost history from FEN.
             raise PublicProblem(503)
+        domain = decode_domain(state.domain)
+        if (domain.mode.value, domain.version, domain.revision, domain.fen) != (
+            game.mode,
+            game.version,
+            game.revision,
+            game.fen,
+        ):
+            raise PublicProblem(503)
         return game, state, players
 
     @staticmethod
@@ -323,24 +332,36 @@ class DurableGameService:
         )
 
     @staticmethod
-    def enqueue_engine(session, game, players, now):
+    async def enqueue_engine(session, game, players, now):
         side = game.side_to_move
         if (
             game.status == "active"
             and game.mode in {"ai", "coach"}
             and any(p.side == side and p.kind == "engine" for p in players)
         ):
+            event = OutboxEvent(
+                id=uuid4(),
+                aggregate_type="game",
+                aggregate_id=game.id,
+                event_type="gameplay.move_requested",
+                created_at=now,
+                payload={
+                    "game_id": str(game.id),
+                    "version": game.version,
+                    "revision": game.revision,
+                },
+            )
+            session.add(event)
+            await session.flush([event])
             session.add(
-                OutboxEvent(
-                    aggregate_type="game",
-                    aggregate_id=game.id,
-                    event_type="gameplay.move_requested",
+                WorkerJob(
+                    id=event.id,
+                    game_id=game.id,
+                    queue="gameplay",
+                    expected_version=game.version,
+                    revision=game.revision,
+                    available_at=now,
                     created_at=now,
-                    payload={
-                        "game_id": str(game.id),
-                        "version": game.version,
-                        "revision": game.revision,
-                    },
                 )
             )
 
@@ -409,7 +430,7 @@ class DurableGameService:
             await session.flush()
             session.add_all([state, *players])
             self.status_event(session, game, state, clock, now)
-            self.enqueue_engine(session, game, players, now)
+            await self.enqueue_engine(session, game, players, now)
             response = self.snapshot(game, state, players, actor_id, now)
             await session.flush()
             self.remember(session, actor_id, key, request_hash, game.id, response)
@@ -564,7 +585,7 @@ class DurableGameService:
                     )
                 if operation not in {"move", "takeback"} or updated.result is not None:
                     self.status_event(session, game, state, clock, now)
-                self.enqueue_engine(session, game, players, now)
+                await self.enqueue_engine(session, game, players, now)
                 response = self.snapshot(game, state, players, actor_id, now)
                 if operation == "move":
                     response = {

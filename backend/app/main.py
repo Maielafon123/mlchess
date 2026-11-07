@@ -22,7 +22,7 @@ from backend.app.auth.service import (
 from backend.app.games.durable import DurableGameService
 from backend.app.games.router import router as games_router
 from backend.app.infra.db import create_engine, create_schema, session_factory
-from backend.app.infra.models import GameState
+from backend.app.infra.models import GameState, GameMove, WorkerJob
 from backend.app.coach.router import router as coach_router
 from backend.app.learning.router import router as learning_router
 from backend.app.infra.generated.contracts import HealthV1
@@ -51,6 +51,8 @@ def create_app(
     async def database_ready():
         async with factory() as session:
             await session.execute(select(GameState.game_id).limit(1))
+            await session.execute(select(GameMove.worker_job_id).limit(1))
+            await session.execute(select(WorkerJob).limit(1))
 
     async def persistence_required():
         raise RuntimeError("Deployed API persistence is not configured")

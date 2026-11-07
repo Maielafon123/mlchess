@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     JSON,
     BigInteger,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
@@ -104,13 +105,27 @@ class GameMove(Base):
         UniqueConstraint(
             "game_id", "actor_id", "client_move_id", name="uq_game_move_idempotency"
         ),
+        UniqueConstraint("worker_job_id", name="uq_game_move_worker_job"),
+        CheckConstraint(
+            "actor_id IS NOT NULL OR worker_job_id IS NOT NULL",
+            name="ck_game_move_actor",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
     game_id: Mapped[UUID] = mapped_column(
         ForeignKey("games.id", ondelete="CASCADE"), nullable=False
     )
-    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    actor_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    worker_job_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "worker_jobs.id",
+            name="fk_game_move_worker",
+            ondelete="NO ACTION",
+            deferrable=True,
+            initially="DEFERRED",
+        )
+    )
     client_move_id: Mapped[UUID] = mapped_column(UUIDType, nullable=False)
     expected_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -249,3 +264,43 @@ class CommandReceipt(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow
     )
+
+
+class WorkerJob(Base):
+    """Durable execution/lease state, separate from broker publication ACKs."""
+
+    __tablename__ = "worker_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending','running','done','failed','stale')",
+            name="ck_worker_job_status",
+        ),
+        CheckConstraint("attempts >= 0", name="ck_worker_job_attempts"),
+        CheckConstraint(
+            "(status = 'running' AND lease_token IS NOT NULL AND lease_until IS NOT NULL) OR (status <> 'running' AND lease_token IS NULL AND lease_until IS NULL)",
+            name="ck_worker_job_lease",
+        ),
+        Index("ix_worker_jobs_ready", "queue", "status", "available_at"),
+    )
+    id: Mapped[UUID] = mapped_column(
+        ForeignKey("outbox_events.id", ondelete="CASCADE"), primary_key=True
+    )
+    game_id: Mapped[UUID] = mapped_column(
+        ForeignKey("games.id", ondelete="CASCADE"), nullable=False
+    )
+    queue: Mapped[str] = mapped_column(String(16), nullable=False)
+    expected_version: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    lease_token: Mapped[UUID | None] = mapped_column(UUIDType)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    available_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+    failure_code: Mapped[str | None] = mapped_column(String(40))
+    output: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
