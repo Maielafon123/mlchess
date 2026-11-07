@@ -17,5 +17,5 @@ dependencies = [
 dev = ["pytest==9.0.2", "httpx==0.28.1", "ruff==0.15.0"]
 
 [tool.setuptools]
-packages = ["backend.app", "backend.app.auth", "backend.app.infra", "backend.app.infra.generated", "backend.app.games", "backend.app.engine", "backend.app.workers", "backend.app.analysis", "backend.app.coach", "backend.app.learning", "backend.app.realtime"]
+packages = ["backend.app", "backend.app.auth", "backend.app.infra", "backend.app.infra.generated", "backend.app.games", "backend.app.engine", "backend.app.workers", "backend.app.analysis", "backend.app.coach", "backend.app.learning", "backend.app.realtime", "backend.app.matchmaking"]
 package-dir = {"backend.app" = "app"}
