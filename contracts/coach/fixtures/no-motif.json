@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 1,
+  "ply": 8,
+  "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+  "language": "ru",
+  "level": "observation",
+  "summary": "Позиция остаётся сбалансированной.",
+  "why": "Проверенный анализ не содержит тактического мотива для объяснения.",
+  "question": "Что изменилось в расстановке фигур после хода?",
+  "referenced_uci": ["g1f3"],
+  "highlight_squares": ["f3"],
+  "claim_refs": [],
+  "template_id": "coach.quiet.v1",
+  "confidence": "grounded",
+  "model_id": "fake/coach-v1",
+  "prompt_version": "coach-v1",
+  "fallback_used": false
+}
