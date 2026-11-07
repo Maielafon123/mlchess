@@ -39,7 +39,7 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
       setStatus("error");
     });
     return () => { active = false; };
-  }, [client]);
+  }, [client, config.mode]);
 
   const value = useMemo<AuthContextValue>(() => ({
     status,
