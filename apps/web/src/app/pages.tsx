@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
+import { GameBoard } from "../components/GameBoard";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -35,7 +36,7 @@ export function PlayPage() {
       <section className="page-heading"><div className="eyebrow">{t.play.eyebrow}</div><h1>{t.play.title}</h1><p>{t.play.description}</p></section>
       <div className="status-banner" role="status">{t.play.status}</div>
       <div className="play-layout">
-        <section className="board-panel" aria-label={t.play.boardLabel}><div className="board-placeholder"><span aria-hidden="true">♞</span><p>{t.play.boardPlaceholder}</p></div></section>
+        <section className="board-panel" aria-label={t.play.boardLabel}><GameBoard fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" moves={[]} disabled onMoveAttempt={() => undefined} /></section>
         <SectionCard title={t.play.capabilities}><p>{t.play.capabilitiesDescription}</p></SectionCard>
       </div>
     </div>
