@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from backend.app.infra.generated.contracts import CurrentUserV1
 from backend.app.infra.problems import PublicProblem
+from backend.app.infra.security import RateLimitExceeded
 
 from .service import AuthService, AuthenticatedUser
 
@@ -42,6 +43,11 @@ async def current_session(request: Request):
 async def dev_login(payload: DevLoginRequest, response: Response, request: Request):
     if not request.app.state.settings.dev_auth_enabled:
         raise PublicProblem(404)
+    client = request.client.host if request.client is not None else "unknown"
+    try:
+        request.app.state.dev_login_limiter.check(client)
+    except RateLimitExceeded:
+        raise PublicProblem(429) from None
     token, csrf, user = await auth_service(request).issue_dev_session(
         display_name=payload.display_name
     )

@@ -18,6 +18,7 @@ from backend.app.learning.router import router as learning_router
 from backend.app.infra.generated.contracts import HealthV1
 from backend.app.infra.http import SafeHTTPMiddleware, default_request_logger
 from backend.app.infra.metrics import MetricsRegistry
+from backend.app.infra.security import SlidingWindowLimiter
 from backend.app.infra.problems import PublicProblem, problem_response
 from backend.app.infra.settings import Settings
 
@@ -55,6 +56,7 @@ def create_app(
     app.state.started = False
     app.state.settings = settings
     app.state.metrics = MetricsRegistry()
+    app.state.dev_login_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
     app.state.auth_service = AuthService(
         InMemorySessionStore(), session_ttl_seconds=settings.session_ttl_seconds
     )
