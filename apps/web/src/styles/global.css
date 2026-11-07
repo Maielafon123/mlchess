@@ -143,4 +143,7 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .progress-card h3 { font-size: 0.95rem; }
 .progress-card strong { font-size: 1.4rem; }
 .progress-card span, .progress-card small { color: var(--color-muted); }
+.privacy-notice { padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); color: var(--color-muted); }
+.privacy-notice strong { color: var(--color-ink); }
+.privacy-notice p { margin: 6px 0 0; line-height: 1.45; }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .report-content, .catalog-grid, .puzzle-layout, .progress-grid { grid-template-columns: 1fr; } .page { gap: 38px; } }
