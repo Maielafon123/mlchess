@@ -68,4 +68,18 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .ai-game-toolbar { display: flex; flex-wrap: wrap; gap: 12px; }
 .ai-game-toolbar label { display: grid; gap: 6px; color: var(--color-muted); font-size: 0.82rem; }
 .ai-game-toolbar select { min-width: 170px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
+.analysis-panel { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.analysis-header, .score-row, .analysis-lines, .pv-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.analysis-header h2, .analysis-header h3 { margin: 0; font-size: 1rem; }
+.analysis-status, .analysis-alternatives p { margin: 0; color: var(--color-muted); }
+.quality-badge { padding: 4px 8px; border-radius: 999px; background: var(--color-accent-soft); color: var(--color-accent-strong); font-size: 0.76rem; font-weight: 650; }
+.score-bar { flex: 1; height: 10px; overflow: hidden; border-radius: 999px; background: linear-gradient(90deg, #303b52 0 50%, #e7d8bd 50%); }
+.score-bar span { display: block; height: 100%; background: var(--color-accent); transition: width 180ms ease; }
+.score-row strong { min-width: 130px; text-align: right; font-size: 0.85rem; }
+.analysis-lines > div { display: grid; gap: 4px; }
+.analysis-lines span, .analysis-alternatives h3, .pv-replay h3 { color: var(--color-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.analysis-alternatives ol { display: grid; gap: 8px; margin: 8px 0 0; padding-left: 22px; }
+.analysis-alternatives li { display: flex; justify-content: space-between; gap: 12px; color: var(--color-muted); }
+.pv-replay { display: grid; gap: 10px; padding-top: 10px; border-top: 1px solid var(--color-border); }
+.pv-controls button { padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout { grid-template-columns: 1fr; } .page { gap: 38px; } }
