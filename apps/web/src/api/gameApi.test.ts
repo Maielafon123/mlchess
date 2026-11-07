@@ -27,7 +27,7 @@ describe("GameApi move flow", () => {
       http.post("http://localhost/api/v1/games", () => HttpResponse.json(snapshot)),
       http.post("http://localhost/api/v1/games/game-1/moves", async ({ request }) => {
         received = await request.json();
-        return HttpResponse.json({ ...snapshot, version: 2, moves: [{ ply: 1, san: "e4", uci: "e2e4" }] });
+        return HttpResponse.json({ schema_version: 1, client_move_id: "client-1", move: { ply: 1, san: "e4", uci: "e2e4" }, snapshot: { ...snapshot, version: 2, moves: [{ ply: 1, san: "e4", uci: "e2e4" }] } });
       }),
     );
     const game = api();

@@ -17,7 +17,8 @@ export class AiGameApi extends GameApi {
   constructor(client?: ApiClient) { super(client); }
 
   createAi(options: AiGameOptions) {
-    return this.clientPost<AiGameSnapshot>("/api/v1/games", { mode: "ai", ...options });
+    const humanColor = options.side === "random" ? (globalThis.crypto?.getRandomValues ? (globalThis.crypto.getRandomValues(new Uint8Array(1))[0] % 2 === 0 ? "white" : "black") : "white") : options.side;
+    return this.clientPost<AiGameSnapshot>("/api/v1/games", { mode: "ai", time_control: null, human_color: humanColor, ai_profile: options.profile_id });
   }
 
   takeback(gameId: string, expectedVersion: number) {
