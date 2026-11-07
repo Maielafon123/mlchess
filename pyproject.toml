@@ -19,6 +19,7 @@ dev = ["pytest>=8"]
 dashboard = ["Flask>=3.0"]
 
 [tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
 testpaths = ["tests"]
 pythonpath = ["."]
 
