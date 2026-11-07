@@ -7,6 +7,7 @@ import { PostGameReport } from "../components/PostGameReport";
 import { FriendInviteScreen } from "../features/friend/FriendInviteScreen";
 import { MatchmakingScreen } from "../features/matchmaking/MatchmakingScreen";
 import { LessonCatalog } from "../features/learning/LessonCatalog";
+import { PuzzleScreen } from "../features/learning/PuzzleScreen";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function HomePage() {
@@ -70,6 +71,10 @@ export function FriendPage() {
 
 export function MatchmakingPage() {
   return <div className="page"><section className="page-heading"><div className="eyebrow">Rated play</div><h1>Find an opponent</h1><p>Matchmaking, clocks and results are controlled by the server.</p></section><MatchmakingScreen /></div>;
+}
+
+export function PuzzlePage() {
+  return <div className="page"><section className="page-heading"><div className="eyebrow">Puzzles</div><h1>Solve a chess puzzle</h1><p>Moves are graded by the server; hints are progressive.</p></section><PuzzleScreen /></div>;
 }
 
 export function LearnPage() {
