@@ -25,7 +25,20 @@ class CoachJob:
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def payload(self) -> dict[str, Any]:
-        return {"job_id": self.id, "status": self.status, "created_at": self.created_at, "explanation": self.explanation, "failure_code": self.failure_code}
+        payload: dict[str, Any] = {
+            "schema_version": 1,
+            "job_id": self.id,
+            "status": self.status,
+            "game_id": self.request.game_id,
+            "analysis_id": self.request.analysis_id,
+            "revision": self.request.revision,
+            "ply": self.request.ply,
+        }
+        if self.status == "ready":
+            payload["explanation"] = self.explanation
+        elif self.status == "failed":
+            payload["error_code"] = self.failure_code or "COACH_FAILED"
+        return payload
 
 
 class CoachService:
@@ -37,7 +50,8 @@ class CoachService:
 
     def cache_key(self, request: CoachRequest) -> str:
         model = getattr(self.provider, "model_id", "unknown")
-        return ":".join((request.analysis_id, model, PROMPT_VERSION, request.language, request.level))
+        context = request.student_context_version or "default"
+        return ":".join((request.game_id, request.analysis_id, str(request.revision), str(request.ply), context, model, PROMPT_VERSION, request.language, request.level))
 
     def submit(self, request: CoachRequest) -> CoachJob:
         key = self.cache_key(request)
@@ -63,6 +77,9 @@ class CoachService:
         except CoachProviderError as error:
             raw = None
             job.failure_code = error.code
+        except Exception:
+            raw = None
+            job.failure_code = "PROVIDER_INVALID_RESPONSE"
         result = validate_explanation(raw, job.request, facts)
         job.explanation = result.explanation
         job.failure_code = job.failure_code or result.failure_code

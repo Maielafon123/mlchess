@@ -38,6 +38,12 @@ export class ApiClient {
   }
 
   post<T>(path: string, body: unknown, init?: RequestInit) {
-    return this.request<T>(path, { ...init, method: "POST", body: JSON.stringify(body) });
+    const headers = new Headers(init?.headers);
+    if (!headers.has("Idempotency-Key")) headers.set("Idempotency-Key", globalThis.crypto?.randomUUID?.() ?? `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    return this.request<T>(path, { ...init, method: "POST", headers, body: JSON.stringify(body) });
+  }
+
+  delete<T>(path: string, init?: RequestInit) {
+    return this.request<T>(path, { ...init, method: "DELETE" });
   }
 }

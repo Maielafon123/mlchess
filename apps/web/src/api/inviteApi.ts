@@ -6,7 +6,7 @@ export type InviteSnapshot = { invite_id: string; game_id: string | null; state:
 
 export class InviteApi {
   constructor(private readonly client: ApiClient = new ApiClient()) {}
-  create() { return this.client.post<InviteSnapshot>("/api/v1/invites", { mode: "friend" }); }
-  get(inviteId: string) { return this.client.get<InviteSnapshot>(`/api/v1/invites/${encodeURIComponent(inviteId)}`); }
-  accept(inviteId: string) { return this.client.post<InviteSnapshot>(`/api/v1/invites/${encodeURIComponent(inviteId)}/accept`, {}); }
+  create() { return this.client.post<InviteSnapshot>("/api/v1/invitations", { mode: "friend" }); }
+  get(inviteId: string) { return this.client.get<InviteSnapshot>(`/api/v1/invitations/${encodeURIComponent(inviteId)}`); }
+  accept(inviteId: string) { return this.client.post<InviteSnapshot>(`/api/v1/invitations/${encodeURIComponent(inviteId)}/accept`, {}); }
 }

@@ -9,6 +9,8 @@ export type GameSnapshot = {
   moves: Array<{ ply: number; san: string; uci: string }>;
   version: number;
   revision: number;
+  mode?: "ai" | "coach" | "friend" | "rated";
+  analysis_id?: string | null;
   capabilities: { can_move: boolean; can_resign: boolean };
 };
 
@@ -21,8 +23,8 @@ export type MoveCommand = {
 export class GameApi {
   constructor(protected readonly client: ApiClient = new ApiClient()) {}
 
-  create() {
-    return this.client.post<GameSnapshot>("/api/v1/games", { mode: "local" });
+  create(mode: "ai" | "coach" = "ai") {
+    return this.client.post<GameSnapshot>("/api/v1/games", { mode });
   }
 
   get(gameId: string) {

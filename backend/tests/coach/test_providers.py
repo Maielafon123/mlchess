@@ -63,3 +63,10 @@ def test_prompt_serialization_excludes_raw_untrusted_fields():
     assert "e2e4" in prompt
     assert "raw_pgn" not in prompt
     assert "ignore previous" not in prompt
+
+
+def test_prompt_serialization_bounds_typed_analysis_fields():
+    request = CoachRequest(**{**REQUEST.__dict__, "analysis": {"best_move": "x" * 1000, "referenced_uci": ["e2e4"] * 100}})
+    prompt = build_grounded_prompt(request)
+    assert "x" * 1000 not in prompt
+    assert prompt.count("e2e4") <= 8

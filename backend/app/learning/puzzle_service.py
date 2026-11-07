@@ -42,6 +42,10 @@ class PuzzleGrader:
         session = self.start(user_id, puzzle_id)
         if attempt_id in session.attempts:
             return session.attempts[attempt_id]
+        if session.solution_index >= len(session.puzzle.solution_uci):
+            response = {"schema_version": 1, "attempt_id": attempt_id, "result": "completed", "completed": True, "next_ply": session.solution_index, "difficulty": session.puzzle.difficulty, "tags": list(session.puzzle.tags)}
+            session.attempts[attempt_id] = response
+            return response
         result: Literal["correct", "incorrect", "illegal"]
         if not self._is_legal(session.board, uci):
             result = "illegal"
@@ -51,7 +55,7 @@ class PuzzleGrader:
             result = "correct"
             session.board.push_uci(uci)
             session.solution_index += 1
-        response = {"attempt_id": attempt_id, "result": result, "completed": session.solution_index == len(session.puzzle.solution_uci), "next_ply": session.solution_index, "difficulty": session.puzzle.difficulty, "tags": list(session.puzzle.tags)}
+        response = {"schema_version": 1, "attempt_id": attempt_id, "result": result, "completed": session.solution_index == len(session.puzzle.solution_uci), "next_ply": session.solution_index, "difficulty": session.puzzle.difficulty, "tags": list(session.puzzle.tags)}
         session.attempts[attempt_id] = response
         return response
 

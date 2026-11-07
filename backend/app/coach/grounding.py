@@ -87,6 +87,12 @@ def validate_explanation(raw: Any, request: CoachRequest, facts: AnalysisFacts) 
     expected = (facts.game_id, facts.analysis_id, facts.revision, facts.ply)
     if identity != expected:
         return _fallback(request, "IDENTITY_MISMATCH")
+    if raw["language"] != request.language or raw["level"] != request.level:
+        return _fallback(request, "REQUEST_METADATA_MISMATCH")
+    if raw["prompt_version"] != PROMPT_VERSION:
+        return _fallback(request, "PROMPT_VERSION_MISMATCH")
+    if raw["fallback_used"]:
+        return _fallback(request, "PROVIDER_FALLBACK_NOT_VERIFIED")
     if not set(raw["referenced_uci"]).issubset(facts.verified_uci):
         return _fallback(request, "UNVERIFIED_MOVE")
     if not set(raw["highlight_squares"]).issubset(facts.verified_highlights):

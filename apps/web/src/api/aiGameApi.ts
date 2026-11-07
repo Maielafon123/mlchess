@@ -17,7 +17,7 @@ export class AiGameApi extends GameApi {
   constructor(client?: ApiClient) { super(client); }
 
   createAi(options: AiGameOptions) {
-    return this.clientPost<AiGameSnapshot>("/api/v1/games/ai", options);
+    return this.clientPost<AiGameSnapshot>("/api/v1/games", { mode: "ai", ...options });
   }
 
   takeback(gameId: string, expectedVersion: number) {

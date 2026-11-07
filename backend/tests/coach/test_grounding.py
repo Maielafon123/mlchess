@@ -34,6 +34,9 @@ def test_valid_grounded_explanation_is_accepted():
     (lambda value: value.update(game_id="00000000-0000-0000-0000-000000000099"), "IDENTITY_MISMATCH"),
     (lambda value: value.update(summary="forced mate", why="mate", question="mate?"), "INVENTED_MATE"),
     (lambda value: value.update(summary=""), "SCHEMA_INVALID"),
+    (lambda value: value.update(language="en"), "REQUEST_METADATA_MISMATCH"),
+    (lambda value: value.update(prompt_version="coach-v0"), "PROMPT_VERSION_MISMATCH"),
+    (lambda value: value.update(fallback_used=True), "PROVIDER_FALLBACK_NOT_VERIFIED"),
 ])
 def test_every_unsafe_case_returns_deterministic_fallback(mutation, code):
     candidate = dict(VALID)
