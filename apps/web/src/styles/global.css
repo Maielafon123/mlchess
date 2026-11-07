@@ -119,4 +119,14 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .pool-grid span, .opponent-row span { color: var(--color-muted); font-size: 0.8rem; }
 .rated-game { display: grid; gap: 14px; }
 .opponent-row { display: flex; justify-content: space-between; gap: 12px; }
-@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .report-content { grid-template-columns: 1fr; } .page { gap: 38px; } }
+.lesson-catalog { display: grid; gap: 16px; }
+.catalog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.lesson-card, .lesson-detail { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.lesson-card h2, .lesson-card p, .lesson-detail h2, .lesson-detail p { margin: 0; }
+.lesson-card h2, .lesson-detail h2 { font-size: 1.2rem; }
+.lesson-card p, .lesson-detail p { color: var(--color-muted); line-height: 1.5; }
+.lesson-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.lesson-tags span { padding: 3px 7px; border-radius: 999px; background: var(--color-surface-soft); color: var(--color-muted); font-size: 0.75rem; }
+.catalog-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.catalog-pagination button { padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
+@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .report-content, .catalog-grid { grid-template-columns: 1fr; } .page { gap: 38px; } }
