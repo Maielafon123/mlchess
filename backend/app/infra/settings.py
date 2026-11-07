@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     dev_auth_enabled: bool = False
     session_ttl_seconds: int = Field(default=3600, ge=60, le=86400)
     readiness_timeout_ms: int = Field(default=500, ge=10, le=5000)
+    database_url: str | None = Field(default=None, repr=False)
+    database_auto_create: bool = False
 
     @field_validator("public_origin")
     @classmethod
@@ -62,7 +64,17 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def production_guards(self):
+        if self.database_url is not None and not self.database_url.startswith(
+            ("postgresql+asyncpg://", "sqlite+aiosqlite://")
+        ):
+            raise ValueError("Unsupported asynchronous database driver")
         if self.environment in {"staging", "production"}:
+            if self.database_auto_create:
+                raise ValueError("Deploy schema changes using Alembic")
+            if self.database_url and not self.database_url.startswith(
+                "postgresql+asyncpg://"
+            ):
+                raise ValueError("Deployed persistence requires PostgreSQL")
             if not self.public_origin.startswith("https://"):
                 raise ValueError("Staging/production requires HTTPS")
             if self.dev_auth_enabled:

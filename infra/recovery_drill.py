@@ -13,11 +13,21 @@ import json
 import re
 import subprocess
 import time
-from uuid import uuid4
+from datetime import datetime, timezone
+from dataclasses import asdict
+from uuid import UUID, uuid4
 
 import chess
 from alembic import command
 from alembic.config import Config
+from backend.app.games.domain import GameDomain, Mode
+from backend.app.games.durable import (
+    DurableGameService,
+    encode_domain,
+    fingerprint,
+    iso,
+)
+from backend.app.infra.models import Game, GameState, GamePlayer
 
 
 def migration_sql() -> str:
@@ -36,15 +46,18 @@ def seed_sql() -> str:
     ]
     board = chess.Board()
     moves = []
+    commands = []
     for ply, uci in enumerate(("f2f3", "e7e5", "g2g4", "d8h4"), 1):
         move = chess.Move.from_uci(uci)
         san = board.san(move)
         actor = white if board.turn else black
         board.push(move)
+        command_key = str(uuid4())
+        commands.append(command_key)
         moves.append(
             "INSERT INTO game_moves(id,game_id,actor_id,client_move_id,"
             "expected_version,version,ply,revision,uci,san,fen_after,created_at) "
-            f"VALUES ('{uuid4()}','{game_id}','{actor}','{uuid4()}',"
+            f"VALUES ('{uuid4()}','{game_id}','{actor}','{command_key}',"
             f"{ply - 1},{ply},{ply},0,'{uci}','{san}','{board.fen()}',now());"
         )
     assert board.is_checkmate() and board.outcome().winner == chess.BLACK
@@ -60,11 +73,77 @@ def seed_sql() -> str:
             f"VALUES ('{game_id}','{side}','human','{actor}',now());"
         )
     rows.extend(moves)
+    domain = GameDomain.from_history(Mode.FRIEND, ("f2f3", "e7e5", "g2g4", "d8h4"))
+    state = GameState(
+        game_id=UUID(game_id),
+        domain=encode_domain(domain),
+        config={"time_control": None, "clock_history": [None] * 4},
+        clock=None,
+        event_seq=1,
+    )
+    snapshot = DurableGameService.snapshot(
+        Game(id=UUID(game_id), mode="friend", status="finished"),
+        state,
+        [
+            GamePlayer(side=side, kind="human", user_id=UUID(actor))
+            for side, actor in (("white", white), ("black", black))
+        ],
+        UUID(black),
+        datetime.now(timezone.utc),
+    )
+    response = {
+        "schema_version": 1,
+        "client_move_id": commands[-1],
+        "move": asdict(domain.moves[-1]),
+        "snapshot": snapshot,
+    }
+    request_hash = fingerprint(
+        "move",
+        {
+            "game_id": game_id,
+            "client_move_id": commands[-1],
+            "uci": "d8h4",
+            "expected_version": 3,
+        },
+    )
+
+    def sql_json(value):
+        return json.dumps(value).replace("'", "''")
+
+    rows.append(
+        "INSERT INTO game_states(game_id,domain,config,clock,event_seq) "
+        f"VALUES ('{game_id}','{sql_json(state.domain)}','{sql_json(state.config)}',NULL,1);"
+    )
+    rows.append(
+        "INSERT INTO command_receipts(actor_id,scope,command_key,request_hash,game_id,response,created_at) "
+        f"VALUES ('{black}','{game_id}','{commands[-1]}','{request_hash}','{game_id}','{sql_json(response)}',now());"
+    )
+    event_id = str(uuid4())
+    envelope = {
+        "schema_version": 1,
+        "event_id": event_id,
+        "game_id": game_id,
+        "seq": 1,
+        "type": "game.status_changed",
+        "occurred_at": iso(datetime.now(timezone.utc)),
+        "payload": {
+            "version": 4,
+            "revision": 0,
+            "status": "finished",
+            "result": "black",
+            "termination": "checkmate",
+            "clock": None,
+        },
+    }
+    rows.append(
+        "INSERT INTO game_events(id,game_id,seq,event_type,payload,created_at) "
+        f"VALUES ('{event_id}','{game_id}',1,'game.status_changed','{sql_json(envelope)}',now());"
+    )
     rows.append(
         "INSERT INTO outbox_events(id,aggregate_type,aggregate_id,event_type,"
         "payload,attempts,created_at) "
-        f"VALUES ('{uuid4()}','game','{game_id}','game.status_changed',"
-        '\'{"result":"black"}\',0,now());'
+        f"VALUES ('{event_id}','game','{game_id}','game.status_changed',"
+        f"'{sql_json(envelope)}',0,now());"
     )
     return "BEGIN;\n" + "\n".join(rows) + "\nCOMMIT;"
 
@@ -77,6 +156,9 @@ SELECT json_build_object(
   'fen', (SELECT fen FROM games),
   'result', (SELECT result FROM games),
   'moves', (SELECT string_agg(uci, ',' ORDER BY ply) FROM game_moves),
+  'domain', (SELECT domain FROM game_states),
+  'receipt', (SELECT response FROM command_receipts),
+  'event', (SELECT payload FROM game_events),
   'pending_outbox', (SELECT count(*) FROM outbox_events WHERE published_at IS NULL)
 );
 """

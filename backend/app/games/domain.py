@@ -34,6 +34,7 @@ class EndReason(StrEnum):
     FIFTY_MOVES_CLAIM = "fifty_moves_claim"
     DRAW_AGREEMENT = "draw_agreement"
     RESIGNATION = "resignation"
+    TIMEOUT = "timeout"
 
 
 class GameError(ValueError):
@@ -193,6 +194,8 @@ class GameDomain:
             reason = self.termination
             if reason == EndReason.RESIGNATION:
                 valid = self.result in {Result.WHITE, Result.BLACK}
+            elif reason == EndReason.TIMEOUT:
+                valid = self.result in {Result.WHITE, Result.BLACK, Result.DRAW}
             elif reason == EndReason.DRAW_AGREEMENT:
                 valid = self.result == Result.DRAW and self.mode in {
                     Mode.FRIEND,
@@ -341,6 +344,23 @@ class GameDomain:
             version=self.version + 1,
             result=Result.DRAW,
             termination=reason,
+            draw_offer=None,
+        )
+
+    def timeout(self, *, loser: chess.Color) -> GameDomain:
+        """Internal server-clock command, never based on a client time value."""
+        self._command(loser, self.version)
+        winner = not loser
+        result = (
+            Result.DRAW
+            if self.board.has_insufficient_material(winner)
+            else (Result.WHITE if winner else Result.BLACK)
+        )
+        return replace(
+            self,
+            version=self.version + 1,
+            result=result,
+            termination=EndReason.TIMEOUT,
             draw_offer=None,
         )
 

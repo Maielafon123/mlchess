@@ -1133,8 +1133,13 @@ export const fixture34 = {
   "status": "ok"
 } satisfies components["schemas"]["HealthV1"];
 
-// common/error-method-not-allowed.json
+// game/resign.json
 export const fixture35 = {
+  "expected_version": 1
+} satisfies components["schemas"]["GameActionV1"];
+
+// common/error-method-not-allowed.json
+export const fixture36 = {
   "schema_version": 1,
   "type": "urn:mlchess:problem:method-not-allowed",
   "title": "Method not allowed",

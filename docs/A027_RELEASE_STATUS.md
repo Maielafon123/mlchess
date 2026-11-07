@@ -5,6 +5,17 @@ Status: **release blocked**. This integration combines the A foundation with B's
 `d664104` (PR #29). Passing library and UI demo tests is not
 evidence that a deployed game can be played end to end.
 
+## Durable game follow-up
+
+The A-008 follow-up implements eight HTTP operations over database-backed game
+state and sessions: create/get/move/takeback, resign, offer/accept draw and claim
+draw. PostgreSQL concurrency, exact receipt replay, transaction rollback on event
+failure, timeout commit, full-history draw claims and API restart persistence are
+covered. See `infra/game-api-runbook.md`. The route preflight now reports **10**
+missing HTTP operations plus the game WebSocket. The historical results and
+dependency table below describe the preceding integration baseline; the full
+release remains blocked by the remaining dependencies.
+
 ## Verified locally on Windows / Python 3.12 / Node 24
 
 - Combined backend: 432 passed, 2 skipped. Two additional release-preflight

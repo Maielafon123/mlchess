@@ -29,7 +29,9 @@ def validate(name, payload, domain="game"):
 
 
 def test_all_golden_fixtures_and_local_references():
-    assert validate_fixtures() == 36
+    assert validate_fixtures() == len(
+        json.loads((ROOT / "fixtures/manifest.json").read_text())
+    )
 
 
 @pytest.mark.parametrize(
