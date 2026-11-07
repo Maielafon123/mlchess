@@ -1,1 +1,1 @@
-"""B-owned learning router boundary."""
+"""Learning domain services owned by the B workstream."""

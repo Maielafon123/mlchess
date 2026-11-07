@@ -1,1 +1,1 @@
-"""B-owned coach router boundary."""
+"""Coach domain boundary owned by Developer B."""

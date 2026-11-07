@@ -1,0 +1,13 @@
+import { useEffect, useMemo, useState } from "react";
+import { LearningApi, type Lesson, type LessonStatus } from "../../api/learningApi";
+
+const progressKey = "mlchess.lesson-status";
+function readProgress(): Record<string, LessonStatus> { try { return JSON.parse(localStorage.getItem(progressKey) ?? "{}"); } catch { return {}; } }
+
+export function LessonCatalog({ api }: { api?: LearningApi }) {
+  const learningApi = useMemo(() => api ?? LearningApi.demo(), [api]);
+  const [items, setItems] = useState<Lesson[]>([]); const [selected, setSelected] = useState<Lesson | null>(null); const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(1); const [progress, setProgress] = useState(readProgress);
+  useEffect(() => { void learningApi.list(page).then((result) => { setItems(result.items.map((item) => ({ ...item, status: progress[item.id] ?? item.status }))); setTotalPages(result.total_pages); }); }, [learningApi, page, progress]);
+  const updateStatus = (lesson: Lesson, status: LessonStatus) => { const next = { ...progress, [lesson.id]: status }; localStorage.setItem(progressKey, JSON.stringify(next)); setProgress(next); setSelected({ ...lesson, status }); };
+  return <section className="lesson-catalog" aria-label="Lesson catalog"><div className="catalog-grid">{items.map((lesson) => <article className="lesson-card" key={lesson.id}><span className="status-chip">{lesson.status}</span><h2>{lesson.title}</h2><p>{lesson.summary}</p><div className="lesson-tags">{lesson.tags.map((tag) => <span key={tag}>{tag}</span>)}</div><button className="button button-secondary" type="button" onClick={() => { setSelected(lesson); updateStatus(lesson, lesson.status === "not-started" ? "started" : lesson.status); }}>Open lesson</button></article>)}</div><div className="catalog-pagination"><button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1}>Previous</button><span>Page {page} / {totalPages}</span><button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page === totalPages}>Next</button></div>{selected && <article className="lesson-detail" aria-label="Lesson detail"><div className="analysis-header"><h2>{selected.title}</h2><span className="status-chip">{selected.status}</span></div><p>{selected.body}</p><p className="coach-status">Source: <a href={selected.source_url} target="_blank" rel="noreferrer">{selected.source_name}</a> · {selected.license}</p><button className="button button-primary" type="button" onClick={() => updateStatus(selected, "completed")}>Mark completed</button></article>}</section>;
+}

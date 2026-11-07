@@ -1,0 +1,13 @@
+import { useMemo, useState } from "react";
+import { GameBoard, type MoveRecord } from "./GameBoard";
+import { selectCriticalDecisions, type DecisionQuality, type PostGameReport as Report } from "../api/postGameReport";
+
+export function PostGameReport({ report }: { report: Report }) {
+  const [quality, setQuality] = useState<DecisionQuality | "all">("all");
+  const [phase, setPhase] = useState<Report["decisions"][number]["phase"] | "all">("all");
+  const [selected, setSelected] = useState(0);
+  const decisions = useMemo(() => selectCriticalDecisions(report, quality, phase), [phase, quality, report]);
+  const current = decisions[selected];
+  const moves: MoveRecord[] = current?.pv.map((move, index) => ({ ply: index + 1, san: move.san, uci: move.uci })) ?? [];
+  return <section className="post-game-report" aria-label="Post-game report"><div className="analysis-header"><h2>Game report</h2><span className="status-chip">{report.result}</span></div>{report.status !== "ready" && <div className="pending-overlay" role="status">Analysis {report.status} · {report.analyzed_plies}/{report.total_plies} plies</div>}<div className="report-filters"><label>Quality<select value={quality} onChange={(event) => { setQuality(event.target.value as typeof quality); setSelected(0); }}><option value="all">All</option><option value="mistake">Mistakes</option><option value="blunder">Blunders</option><option value="inaccuracy">Inaccuracies</option><option value="good">Good</option></select></label><label>Phase<select value={phase} onChange={(event) => { setPhase(event.target.value as typeof phase); setSelected(0); }}><option value="all">All</option><option value="opening">Opening</option><option value="middlegame">Middlegame</option><option value="endgame">Endgame</option></select></label></div>{decisions.length === 0 ? <p className="coach-status">No verified critical decisions in this filter.</p> : <div className="report-content"><ol className="decision-list">{decisions.map((decision, index) => <li key={decision.ply}><button type="button" className={index === selected ? "active" : ""} onClick={() => setSelected(index)}><span>#{decision.ply} · {decision.phase}</span><strong>{decision.quality}</strong><span>{decision.played_san} → {decision.best_san}</span></button></li>)}</ol>{current && <div className="decision-detail"><p><strong>Played:</strong> {current.played_san} · <strong>Best:</strong> {current.best_san}</p>{current.exercise_intent && <p className="coach-status">Follow-up: {current.exercise_intent}</p>}<GameBoard fen={current.fen} moves={moves} disabled onMoveAttempt={() => undefined} /></div>}</div>}</section>;
+}
