@@ -1983,6 +1983,24 @@
       },
       "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
     },
+    "HealthV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "status"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "status": {
+          "type": "string",
+          "const": "ok"
+        }
+      }
+    },
     "MoveAcceptedV1": {
       "type": "object",
       "additionalProperties": false,
@@ -2141,7 +2159,8 @@
             422,
             429,
             500,
-            503
+            503,
+            405
           ]
         },
         "code": {
@@ -2160,7 +2179,8 @@
             "VALIDATION_ERROR",
             "RATE_LIMITED",
             "INTERNAL_ERROR",
-            "SERVICE_UNAVAILABLE"
+            "SERVICE_UNAVAILABLE",
+            "METHOD_NOT_ALLOWED"
           ]
         },
         "detail": {
@@ -2368,6 +2388,25 @@
             "properties": {
               "status": {
                 "const": 500
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "const": "METHOD_NOT_ALLOWED"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": 405
               }
             }
           }

@@ -1126,3 +1126,20 @@ export const fixture33 = {
   },
   "created_at": "2026-11-07T14:00:00Z"
 } satisfies components["schemas"]["AnalysisResultV1"];
+
+// common/health-ok.json
+export const fixture34 = {
+  "schema_version": 1,
+  "status": "ok"
+} satisfies components["schemas"]["HealthV1"];
+
+// common/error-method-not-allowed.json
+export const fixture35 = {
+  "schema_version": 1,
+  "type": "urn:mlchess:problem:method-not-allowed",
+  "title": "Method not allowed",
+  "status": 405,
+  "code": "METHOD_NOT_ALLOWED",
+  "detail": "This HTTP method is not available for this resource.",
+  "request_id": "fa4509f2-bc32-44c8-bad7-a09a2bf06914"
+} satisfies components["schemas"]["ProblemDetailsV1"];

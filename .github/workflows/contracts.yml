@@ -19,13 +19,16 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: contracts/requirements.lock
+          cache-dependency-path: |
+            contracts/requirements.lock
+            backend/requirements.lock
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: contracts/package-lock.json
       - run: python -m pip install -r contracts/requirements.txt
+      - run: python -m pip install -c backend/requirements.lock -e "./backend[dev]"
       - run: npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
       - run: python contracts/validate.py
       - run: python -m contracts.tooling.generate --check

@@ -3,7 +3,8 @@ openapi: 3.1.0
 info:
   title: MLChess API contract review candidate
   version: 1.0.0
-  description: Proposed schema-first interface; routes are not implemented by this specification.
+  description: Schema-first review candidate. Only routes marked implemented-scaffold have runtime handlers;
+    proposed routes are documentation.
 servers:
 - url: /
 security:
@@ -527,6 +528,42 @@ paths:
                 $ref: '#/components/schemas/ProblemDetailsV1'
         '503':
           description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /health/live:
+    get:
+      operationId: healthLive
+      security: []
+      x-implementation-status: implemented-scaffold
+      responses:
+        '200':
+          description: Service check passed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthV1'
+        '503':
+          description: Service is not ready
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /health/ready:
+    get:
+      operationId: healthReady
+      security: []
+      x-implementation-status: implemented-scaffold
+      responses:
+        '200':
+          description: Service check passed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthV1'
+        '503':
+          description: Service is not ready
           content:
             application/problem+json:
               schema:
@@ -1842,6 +1879,19 @@ components:
               - type: 'null'
       description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
         commit.'
+    HealthV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - status
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        status:
+          type: string
+          const: ok
     MoveAcceptedV1:
       type: object
       additionalProperties: false
@@ -1955,6 +2005,7 @@ components:
           - 429
           - 500
           - 503
+          - 405
         code:
           type: string
           enum:
@@ -1972,6 +2023,7 @@ components:
           - RATE_LIMITED
           - INTERNAL_ERROR
           - SERVICE_UNAVAILABLE
+          - METHOD_NOT_ALLOWED
         detail:
           type: string
           maxLength: 1000
@@ -2089,6 +2141,16 @@ components:
           properties:
             status:
               const: 500
+      - if:
+          properties:
+            code:
+              const: METHOD_NOT_ALLOWED
+          required:
+          - code
+        then:
+          properties:
+            status:
+              const: 405
     ResyncRequiredEventV1:
       type: object
       additionalProperties: false
@@ -2406,6 +2468,7 @@ x-source-schemas:
   GameStatusChangedEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameStatusChangedEventV1
   GameStatusV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameStatusV1
   GameTakebackAppliedEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameTakebackAppliedEventV1
+  HealthV1: https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1
   MoveAcceptedV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveAcceptedV1
   MoveV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveV1
   PlayerV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/PlayerV1

@@ -1,0 +1,1 @@
+"""Authenticated rated matchmaking boundary."""

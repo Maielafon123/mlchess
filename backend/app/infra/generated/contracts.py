@@ -84,6 +84,14 @@ class GameStatusV1(RootModel[Literal["waiting", "active", "finished", "aborted"]
     root: Literal["waiting", "active", "finished", "aborted"]
 
 
+class HealthV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    status: Literal["ok"]
+
+
 class Payload6(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -429,7 +437,7 @@ class ProblemDetailsV1(BaseModel):
     schema_version: Literal[1]
     type: str
     title: str = Field(..., max_length=120, min_length=1)
-    status: Literal[400, 401, 403, 404, 409, 422, 429, 500, 503]
+    status: Literal[400, 401, 403, 404, 409, 422, 429, 500, 503, 405]
     code: Literal[
         "BAD_REQUEST",
         "UNAUTHENTICATED",
@@ -445,6 +453,7 @@ class ProblemDetailsV1(BaseModel):
         "RATE_LIMITED",
         "INTERNAL_ERROR",
         "SERVICE_UNAVAILABLE",
+        "METHOD_NOT_ALLOWED",
     ]
     detail: str = Field(..., max_length=1000)
     request_id: UUIDv4

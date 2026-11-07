@@ -44,6 +44,7 @@ $defs:
         - 429
         - 500
         - 503
+        - 405
       code:
         type: string
         enum:
@@ -61,6 +62,7 @@ $defs:
         - RATE_LIMITED
         - INTERNAL_ERROR
         - SERVICE_UNAVAILABLE
+        - METHOD_NOT_ALLOWED
       detail:
         type: string
         maxLength: 1000
@@ -178,6 +180,16 @@ $defs:
         properties:
           status:
             const: 500
+    - if:
+        properties:
+          code:
+            const: METHOD_NOT_ALLOWED
+        required:
+        - code
+      then:
+        properties:
+          status:
+            const: 405
   CurrentUserV1:
     type: object
     additionalProperties: false
@@ -204,3 +216,16 @@ $defs:
         - type: 'null'
       expires_at:
         $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime
+  HealthV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - status
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      status:
+        type: string
+        const: ok

@@ -307,7 +307,10 @@ def validate_fixtures(root: Path = ROOT) -> int:
     fixtures = root / "fixtures"
     manifest = json.loads((fixtures / "manifest.json").read_text(encoding="utf-8"))
     paths = [entry["path"] for entry in manifest]
-    actual = {str(path.relative_to(fixtures)) for path in fixtures.rglob("*.json")}
+    # Manifest paths use stable POSIX separators on every platform.
+    actual = {
+        path.relative_to(fixtures).as_posix() for path in fixtures.rglob("*.json")
+    }
     actual.discard("manifest.json")
     if len(paths) != len(set(paths)) or set(paths) != actual:
         raise ValueError("Fixture manifest must list every fixture exactly once")

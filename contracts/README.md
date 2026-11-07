@@ -13,6 +13,7 @@ From a clean checkout, with Python 3.12+:
 python -m venv .venv-contracts
 . .venv-contracts/bin/activate
 python -m pip install -r contracts/requirements.txt
+python -m pip install -c backend/requirements.lock -e "./backend[dev]"
 npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
 python contracts/validate.py
 python -m pytest backend/tests -q
@@ -28,7 +29,7 @@ exclude `.venv-contracts`. On Windows activate with
 `.venv-contracts\Scripts\Activate.ps1`. The schemas use stable identifiers under
 `https://mlchess.local/contracts/`; these are identifiers, not network endpoints.
 The validator resolves every reference offline from this checkout, checks schema
-syntax, rejects duplicate YAML keys and validates all 34 golden examples. It also
+syntax, rejects duplicate YAML keys and validates all 36 golden examples. It also
 replays example histories with python-chess to verify FEN, SAN, ply and turn.
 The fixture manifest maps each JSON payload to its schema; payload files contain
 only the actual request or response, so frontend mocks can consume them directly.
@@ -97,3 +98,7 @@ before accepting v1. It adds no runtime handlers, database migrations or changes
 to B-owned code or legacy MLChess. Full backend tests and lint are applicable;
 Alembic upgrade is not applicable until A-005 creates migrations. The small
 contracts CI job checks this first deliverable; it is not the full A-024 pipeline.
+
+A-004 adds only health handlers and the METHOD_NOT_ALLOWED/405 correction to
+the unaccepted common draft. See [backend runbook](../infra/backend-runbook.md)
+for installation, settings, security boundaries and review requirements.

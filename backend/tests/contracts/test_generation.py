@@ -134,7 +134,13 @@ def test_check_detects_manual_generated_edit_without_modifying_it(tmp_path):
     shutil.copytree(
         ROOT, root, ignore=shutil.ignore_patterns("node_modules", "__pycache__")
     )
-    (root / "node_modules").symlink_to(ROOT / "node_modules", target_is_directory=True)
+    node_modules = root / "node_modules"
+    try:
+        node_modules.symlink_to(ROOT / "node_modules", target_is_directory=True)
+    except OSError:
+        # Windows may deny symlink creation to non-elevated users.  A copy keeps
+        # the test hermetic without requiring SeCreateSymbolicLinkPrivilege.
+        shutil.copytree(ROOT / "node_modules", node_modules)
     generated = Path("backend/app/infra/generated/contracts.py")
     destination = tmp_path / generated
     destination.parent.mkdir(parents=True)

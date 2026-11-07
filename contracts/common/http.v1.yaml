@@ -58,3 +58,39 @@ paths:
             application/problem+json:
               schema:
                 $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+  /health/live:
+    get:
+      operationId: healthLive
+      security: []
+      x-implementation-status: implemented-scaffold
+      responses:
+        '200':
+          description: Service check passed
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1
+        '503':
+          description: Service is not ready
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+  /health/ready:
+    get:
+      operationId: healthReady
+      security: []
+      x-implementation-status: implemented-scaffold
+      responses:
+        '200':
+          description: Service check passed
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1
+        '503':
+          description: Service is not ready
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
