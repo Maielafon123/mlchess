@@ -9,5 +9,9 @@ export default defineConfig({
   fullyParallel: false,
   reporter: "list",
   use: { baseURL, trace: "retain-on-failure", ...devices["Desktop Chrome"] },
-  projects: [{ name: "live-chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "live-chromium", testIgnore: "**/mobile.spec.ts", use: { ...devices["Desktop Chrome"] } },
+    { name: "android-chromium", testMatch: "**/mobile.spec.ts", use: { ...devices["Pixel 7"], browserName: "chromium" } },
+    { name: "iphone-webkit", testMatch: "**/mobile.spec.ts", use: { ...devices["iPhone 13"], browserName: "webkit" } },
+  ],
 });

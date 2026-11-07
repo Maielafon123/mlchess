@@ -101,7 +101,7 @@ jobs:
       - run: python -m infra.recovery_drill --container "$POSTGRES_CONTAINER" --user mlchess
         env:
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-      - run: python -m pytest backend/tests/games/test_postgres_commands.py backend/tests/games/test_postgres_worker.py -q
+      - run: python -m pytest backend/tests/games/test_postgres_commands.py backend/tests/games/test_postgres_worker.py backend/tests/games/test_postgres_invitations.py -q
         env:
           MLCHESS_TEST_DATABASE_URL: postgresql+asyncpg://mlchess:disposable_ci_only@127.0.0.1:5432/mlchess
 
@@ -124,10 +124,11 @@ jobs:
       - run: pnpm --dir apps/web install --frozen-lockfile
       - run: pnpm --dir apps/web exec playwright install --with-deps chromium
       - run: python -m infra.init_compose_env
-      - run: docker compose --env-file .env.dev.local -f infra/compose.app.yml config --quiet
-      - run: docker compose --env-file .env.dev.local -f infra/compose.app.yml up -d --build --wait
+      - run: pnpm --dir apps/web exec playwright install --with-deps webkit
+      - run: docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml config --quiet
+      - run: docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml up -d --build --wait
       - run: pnpm --dir apps/web test:e2e:live
         env:
           MLCHESS_LIVE_BASE_URL: http://localhost:8080
       - if: always()
-        run: docker compose --env-file .env.dev.local -f infra/compose.app.yml down
+        run: docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml down

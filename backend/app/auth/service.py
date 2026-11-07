@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -163,6 +163,18 @@ class AuthService:
             display_name=display_name or "Developer",
             expires_at=expires_at,
         )
+        return await self.issue_session(user)
+
+    async def issue_guest_session(self) -> tuple[str, str, AuthenticatedUser]:
+        user = AuthenticatedUser(
+            uuid4(), "guest", "Guest", now_utc() + timedelta(days=7)
+        )
+        return await self.issue_session(user)
+
+    async def issue_session(
+        self, user: AuthenticatedUser
+    ) -> tuple[str, str, AuthenticatedUser]:
+        expires_at = user.expires_at
         token = secrets.token_urlsafe(32)
         csrf = secrets.token_urlsafe(24)
         await self.store.put(

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { Suspense } from "react";
 import { useI18n } from "../i18n/I18nProvider";
 import { LanguageToggle } from "./LanguageToggle";
 import { AuthStatus } from "../auth/AuthStatus";
@@ -25,7 +26,7 @@ export function AppShell() {
         </div>
       </header>
       <ConnectionStatus />
-      <main className="page-content"><Outlet /></main>
+      <main className="page-content"><Suspense fallback={<p role="status">Загружаем…</p>}><Outlet /></Suspense></main>
     </div>
   );
 }

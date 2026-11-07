@@ -2,6 +2,19 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mlchess.local/contracts/generated/validation.schema.json",
   "$defs": {
+    "AcceptInvitationV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
+      }
+    },
     "AnalysisFactsV1": {
       "type": "object",
       "additionalProperties": false,
@@ -670,6 +683,18 @@
         }
       ],
       "description": "Public create command. rated is created only by matchmaking. Idempotency-Key: UUIDv4 header is mandatory; no client FEN, clock state, result, engine budget or binary path."
+    },
+    "CreateInvitationV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "game_id"
+      ],
+      "properties": {
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        }
+      }
     },
     "CurrentUserV1": {
       "type": "object",
@@ -1998,6 +2023,11 @@
       },
       "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
     },
+    "GuestSessionRequestV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
     "HealthV1": {
       "type": "object",
       "additionalProperties": false,
@@ -2013,6 +2043,58 @@
         "status": {
           "type": "string",
           "const": "ok"
+        }
+      }
+    },
+    "InviteSnapshotV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "invite_id",
+        "game_id",
+        "state",
+        "expires_at",
+        "created_by_current_user",
+        "invite_url"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "invite_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "waiting",
+            "active",
+            "expired",
+            "full"
+          ]
+        },
+        "expires_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "created_by_current_user": {
+          "type": "boolean"
+        },
+        "invite_url": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },

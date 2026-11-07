@@ -8,6 +8,7 @@ export function AuthStatus() {
   if (status === "loading") return <span className="auth-state" role="status">{t.auth.loading}</span>;
   if (status === "error") return <span className="auth-state auth-error" role="alert">{t.auth.error}</span>;
   if (status === "forbidden") return <span className="auth-state auth-error" role="alert">{t.auth.forbidden}</span>;
+  if (status === "authenticated" && user?.kind === "guest") return <span className="auth-state">Игра без регистрации</span>;
   if (status === "guest") {
     return (
       <div className="auth-actions">

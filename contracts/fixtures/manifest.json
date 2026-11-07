@@ -146,5 +146,21 @@
   {
     "path": "common/error-method-not-allowed.json",
     "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+  },
+  {
+    "path": "invitations/guest-session.json",
+    "schema": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/GuestSessionRequestV1"
+  },
+  {
+    "path": "invitations/create.json",
+    "schema": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/CreateInvitationV1"
+  },
+  {
+    "path": "invitations/accept.json",
+    "schema": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/AcceptInvitationV1"
+  },
+  {
+    "path": "invitations/waiting.json",
+    "schema": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1"
   }
 ]

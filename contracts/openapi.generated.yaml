@@ -10,6 +10,79 @@ servers:
 security:
 - SessionCookie: []
 paths:
+  /api/v1/auth/guest:
+    post:
+      operationId: guestSession
+      x-implementation-status: implemented-durable
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestSessionRequestV1'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserV1'
+        '400':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
   /api/v1/games:
     post:
       operationId: createGame
@@ -761,6 +834,251 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TakebackV1'
+  /api/v1/invitations:
+    post:
+      operationId: createInvitation
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationV1'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteSnapshotV1'
+        '400':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/invitations/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUIDv4'
+    get:
+      operationId: getInvitation
+      x-implementation-status: implemented-durable
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteSnapshotV1'
+        '400':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/invitations/{id}/accept:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUIDv4'
+    post:
+      operationId: acceptInvitation
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInvitationV1'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteSnapshotV1'
+        '400':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
   /api/v1/me:
     get:
       operationId: getCurrentUser
@@ -865,6 +1183,15 @@ components:
       description: Opaque server-side account or limited guest session. Cookie naming is subject to auth
         configuration review.
   schemas:
+    AcceptInvitationV1:
+      type: object
+      additionalProperties: false
+      required:
+      - token
+      properties:
+        token:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{43}$
     AnalysisFactsV1:
       type: object
       additionalProperties: false
@@ -1327,6 +1654,14 @@ components:
               - ai_profile
       description: 'Public create command. rated is created only by matchmaking. Idempotency-Key: UUIDv4
         header is mandatory; no client FEN, clock state, result, engine budget or binary path.'
+    CreateInvitationV1:
+      type: object
+      additionalProperties: false
+      required:
+      - game_id
+      properties:
+        game_id:
+          $ref: '#/components/schemas/UUIDv4'
     CurrentUserV1:
       type: object
       additionalProperties: false
@@ -2178,6 +2513,10 @@ components:
               - type: 'null'
       description: 'Durable event: seq is allocated atomically with game state/outbox. Publish only after
         commit.'
+    GuestSessionRequestV1:
+      type: object
+      additionalProperties: false
+      properties: {}
     HealthV1:
       type: object
       additionalProperties: false
@@ -2191,6 +2530,42 @@ components:
         status:
           type: string
           const: ok
+    InviteSnapshotV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - invite_id
+      - game_id
+      - state
+      - expires_at
+      - created_by_current_user
+      - invite_url
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        invite_id:
+          $ref: '#/components/schemas/UUIDv4'
+        game_id:
+          $ref: '#/components/schemas/UUIDv4'
+        state:
+          type: string
+          enum:
+          - waiting
+          - active
+          - expired
+          - full
+        expires_at:
+          $ref: '#/components/schemas/UTCDateTime'
+        created_by_current_user:
+          type: boolean
+        invite_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 2048
+          - type: 'null'
     MoveAcceptedV1:
       type: object
       additionalProperties: false
@@ -2745,6 +3120,7 @@ components:
       description: Only mechanically verifiable claims about the played move. Free text, engine-generated
         motives and unverified threats are outside this v1 vocabulary.
 x-source-schemas:
+  AcceptInvitationV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/AcceptInvitationV1
   AnalysisFactsV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisFactsV1
   AnalysisJobV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1
   AnalysisReadyEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/AnalysisReadyEventV1
@@ -2754,6 +3130,7 @@ x-source-schemas:
   ClockV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
   CoachReadyEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/CoachReadyEventV1
   CreateGameV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/CreateGameV1
+  CreateInvitationV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/CreateInvitationV1
   CurrentUserV1: https://mlchess.local/contracts/common/v1.yaml#/$defs/CurrentUserV1
   EngineLimitsV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineLimitsV1
   EngineMetadataV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineMetadataV1
@@ -2768,7 +3145,9 @@ x-source-schemas:
   GameStatusChangedEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameStatusChangedEventV1
   GameStatusV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameStatusV1
   GameTakebackAppliedEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameTakebackAppliedEventV1
+  GuestSessionRequestV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/GuestSessionRequestV1
   HealthV1: https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1
+  InviteSnapshotV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1
   MoveAcceptedV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveAcceptedV1
   MoveV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveV1
   PlayerV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/PlayerV1

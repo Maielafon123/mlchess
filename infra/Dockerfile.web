@@ -9,6 +9,9 @@ USER node
 CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "5173"]
 
 FROM dev AS build
+USER root
+ARG VITE_AUTH_MODE=guest
+ENV VITE_AUTH_MODE=${VITE_AUTH_MODE}
 RUN pnpm build
 
 FROM caddy:2-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9 AS static

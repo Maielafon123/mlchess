@@ -4,6 +4,7 @@ import type { AuthConfig } from "./config";
 
 export type AuthUser = {
   id: string;
+  kind?: "account" | "guest";
   display_name: string;
 };
 

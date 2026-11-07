@@ -1,0 +1,13 @@
+# Local/CI static-asset acceptance overlay, never the public deployment config.
+services:
+  web:
+    image: mlchess-web:${MLCHESS_IMAGE_TAG:-local}
+    build: {target: static}
+    tmpfs: !override
+      - /tmp:size=64m,mode=1777
+      - /config:uid=10001,gid=10001,size=8m
+      - /data:uid=10001,gid=10001,size=8m
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:8080/]
+  gateway:
+    volumes: [./Caddyfile.preview:/etc/caddy/Caddyfile:ro]
