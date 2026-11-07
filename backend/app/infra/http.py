@@ -11,6 +11,7 @@ from uuid import uuid4
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from backend.app.infra.problems import problem_response
+from backend.app.infra.metrics import MetricsRegistry
 from backend.app.infra.settings import Settings, canonical_origin
 
 request_id_context: ContextVar[str | None] = ContextVar(
@@ -42,8 +43,20 @@ def default_request_logger() -> logging.Logger:
 
 
 class SafeHTTPMiddleware:
-    def __init__(self, app: ASGIApp, *, settings: Settings, logger: logging.Logger):
-        self.app, self.settings, self.logger = app, settings, logger
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        settings: Settings,
+        logger: logging.Logger,
+        metrics: MetricsRegistry | None = None,
+    ):
+        self.app, self.settings, self.logger, self.metrics = (
+            app,
+            settings,
+            logger,
+            metrics,
+        )
 
     def rejection(self, scope: Scope) -> int | None:
         headers = scope.get("headers", [])
@@ -156,5 +169,9 @@ class SafeHTTPMiddleware:
                         "duration_ms": max(0, int((time.monotonic() - start) * 1000)),
                     },
                 )
+                if self.metrics is not None:
+                    self.metrics.increment(
+                        "http_requests", method=method, status=str(status)
+                    )
             finally:
                 request_id_context.reset(token)
