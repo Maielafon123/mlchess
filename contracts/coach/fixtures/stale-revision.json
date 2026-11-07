@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "revision": 0,
+  "ply": 4,
+  "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+  "language": "ru",
+  "level": "short",
+  "summary": "Старый результат не должен показываться как текущий.",
+  "why": "После takeback revision изменилась; consumer обязан отбросить этот результат.",
+  "question": "Почему этот результат больше не относится к текущей линии?",
+  "referenced_uci": ["d2d4"],
+  "highlight_squares": ["d4"],
+  "claim_refs": ["fact.revision_guard.v1"],
+  "template_id": "coach.stale.v1",
+  "confidence": "uncertain",
+  "model_id": "fake/coach-v1",
+  "prompt_version": "coach-v1",
+  "fallback_used": true
+}

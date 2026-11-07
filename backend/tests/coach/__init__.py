@@ -1,0 +1,1 @@
+"""Coach contract tests."""

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mlchess.dev/contracts/coach/coach-explanation-v1.schema.json",
+  "title": "CoachExplanationV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "game_id", "revision", "ply", "analysis_id", "language",
+    "level", "summary", "why", "question", "referenced_uci", "highlight_squares",
+    "claim_refs", "template_id", "confidence", "model_id", "prompt_version", "fallback_used"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "game_id": { "$ref": "#/$defs/uuid" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "ply": { "type": "integer", "minimum": 1 },
+    "analysis_id": { "$ref": "#/$defs/uuid" },
+    "language": { "type": "string", "enum": ["ru", "en"] },
+    "level": {
+      "type": "string",
+      "enum": ["short", "detailed", "observation", "direction", "idea", "candidates", "solution"]
+    },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "why": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "question": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "referenced_uci": { "type": "array", "items": { "$ref": "#/$defs/uci" }, "maxItems": 8, "uniqueItems": true },
+    "highlight_squares": { "type": "array", "items": { "$ref": "#/$defs/square" }, "maxItems": 16, "uniqueItems": true },
+    "claim_refs": { "type": "array", "items": { "type": "string", "pattern": "^[a-zA-Z0-9._:-]+$" }, "maxItems": 16, "uniqueItems": true },
+    "template_id": { "type": "string", "pattern": "^[a-zA-Z0-9._:-]+$", "maxLength": 120 },
+    "confidence": { "type": "string", "enum": ["grounded", "uncertain", "fallback"] },
+    "model_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "prompt_version": { "type": "string", "pattern": "^[a-zA-Z0-9._:-]+$", "maxLength": 80 },
+    "fallback_used": { "type": "boolean" }
+  },
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "uci": { "type": "string", "pattern": "^[a-h][1-8][a-h][1-8][qrbn]?$" },
+    "square": { "type": "string", "pattern": "^[a-h][1-8]$" }
+  }
+}
