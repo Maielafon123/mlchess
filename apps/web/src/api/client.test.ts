@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { setupServer } from "msw/node";
 import { ApiClient } from "./client";
@@ -29,5 +30,20 @@ describe("ApiClient", () => {
     const client = new ApiClient({ fetchImpl: (async (_input, init) => { key = new Headers(init?.headers).get("Idempotency-Key") ?? ""; return new Response("{}", { status: 200, headers: { "content-type": "application/json" } }); }) as typeof fetch });
     await client.post("/api/v1/test", {});
     expect(key).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("sends CSRF only for mutations and preserves a caller key", async () => {
+    const seen: Array<{ csrf: string | null; key: string | null }> = [];
+    const client = new ApiClient({
+      csrfTokenProvider: () => "csrf-test-token",
+      fetchImpl: (async (_input, init) => {
+        const headers = new Headers(init?.headers);
+        seen.push({ csrf: headers.get("X-CSRF-Token"), key: headers.get("Idempotency-Key") });
+        return new Response("{}", { status: 200, headers: { "content-type": "application/json" } });
+      }) as typeof fetch,
+    });
+    await client.get("/api/v1/test");
+    await client.post("/api/v1/test", {}, { idempotencyKey: "caller-key" });
+    expect(seen).toEqual([{ csrf: null, key: null }, { csrf: "csrf-test-token", key: "caller-key" }]);
   });
 });

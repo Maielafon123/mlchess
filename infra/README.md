@@ -1,5 +1,9 @@
 # Local infrastructure
 
+For the complete private application (web, proxy, API, independent engine worker,
+migrations, PostgreSQL and Redis), use [the Compose runbook](compose-runbook.md).
+The infrastructure-only legacy setup below is retained for compatibility.
+
 The development stack is intentionally small and reproducible:
 
 ```powershell

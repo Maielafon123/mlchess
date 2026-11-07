@@ -1,0 +1,135 @@
+name: mlchess
+x-backend-env: &backend-env
+  MLCHESS_ENVIRONMENT: development
+  MLCHESS_PUBLIC_ORIGIN: ${MLCHESS_PUBLIC_ORIGIN:?Run infra.init_compose_env first}
+  MLCHESS_DEV_AUTH_ENABLED: "true"
+  MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@postgres:5432/mlchess
+x-runtime: &runtime
+  init: true
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:size=64m,mode=1777"]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: "3"}
+services:
+  postgres:
+    image: postgres:16@sha256:f9a7b9ebf6f56201f949db745e47bc423c0f0f8294bafe991cc10bf74b029657
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: 0.5
+    environment:
+      POSTGRES_USER: mlchess
+      POSTGRES_DB: mlchess
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    networks: [data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U mlchess -d mlchess"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    <<: *runtime
+    image: redis:7-alpine@sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b
+    user: "999:999"
+    mem_limit: 96m
+    cpus: 0.1
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Required}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?Required}
+    command: [sh, -ec, 'exec redis-server --appendonly yes --maxmemory 48mb --maxmemory-policy noeviction --requirepass "$$REDIS_PASSWORD"']
+    volumes: [redis_data:/data]
+    networks: [data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *runtime
+    restart: "no"
+    image: mlchess-api:${MLCHESS_IMAGE_TAG:-local}
+    build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
+    mem_limit: 256m
+    cpus: 0.5
+    environment: *backend-env
+    command: [alembic, -c, backend/alembic.ini, upgrade, head]
+    networks: [data]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *runtime
+    image: mlchess-api:${MLCHESS_IMAGE_TAG:-local}
+    build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
+    mem_limit: 256m
+    cpus: 0.5
+    environment: *backend-env
+    networks: [edge, data]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -m, infra.container_probe]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  worker:
+    <<: *runtime
+    image: mlchess-worker:${MLCHESS_IMAGE_TAG:-local}
+    build: {context: .., dockerfile: infra/Dockerfile.backend, target: worker}
+    mem_limit: 512m
+    cpus: 0.6
+    environment: *backend-env
+    networks: [data]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -m, infra.container_probe, worker]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+  web:
+    <<: *runtime
+    image: mlchess-web-dev:${MLCHESS_IMAGE_TAG:-local}
+    build: {context: .., dockerfile: infra/Dockerfile.web, target: dev}
+    mem_limit: 512m
+    cpus: 0.4
+    environment: {VITE_AUTH_MODE: development}
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /workspace/apps/web/node_modules/.vite:uid=1000,gid=1000,size=64m
+      - /workspace/apps/web/node_modules/.vite-temp:uid=1000,gid=1000,size=8m
+    networks: [edge]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  gateway:
+    <<: *runtime
+    image: caddy:2-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9
+    user: "10001:10001"
+    mem_limit: 64m
+    cpus: 0.1
+    ports: ["127.0.0.1:${MLCHESS_HTTP_PORT:-8080}:8080"]
+    volumes: [./Caddyfile.dev:/etc/caddy/Caddyfile:ro]
+    tmpfs:
+      - /config:uid=10001,gid=10001,size=8m
+      - /data:uid=10001,gid=10001,size=8m
+    networks: [edge]
+    depends_on:
+      api: {condition: service_healthy}
+      web: {condition: service_healthy}
+networks:
+  edge:
+    ipam:
+      config: [{subnet: "${MLCHESS_EDGE_SUBNET:-172.30.240.0/24}"}]
+  data:
+    internal: true
+    ipam:
+      config: [{subnet: "${MLCHESS_DATA_SUBNET:-172.30.241.0/24}"}]
+volumes:
+  postgres_data:
+  redis_data:

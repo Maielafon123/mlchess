@@ -1,30 +1,17 @@
 import { ApiClient } from "./client";
+import type { CreateGameV1, GameSnapshotV1, MoveAcceptedV1, SubmitMoveV1 } from "./contracts";
 
 /** Temporary B-008 boundary. Replace with generated A-008 GameSnapshotV1 types. */
-export type GameSnapshot = {
-  schema_version: number;
-  id: string;
-  status: "active" | "finished" | "resigned";
-  fen: string;
-  moves: Array<{ ply: number; san: string; uci: string }>;
-  version: number;
-  revision: number;
-  mode?: "ai" | "coach" | "friend" | "rated";
-  analysis_id?: string | null;
-  capabilities: { can_move: boolean; can_resign: boolean };
-};
+export type GameSnapshot = GameSnapshotV1;
 
-export type MoveCommand = {
-  uci: string;
-  client_move_id: string;
-  expected_version: number;
-};
+export type MoveCommand = SubmitMoveV1;
+export type GameCreateOptions = CreateGameV1;
 
 export class GameApi {
   constructor(protected readonly client: ApiClient = new ApiClient()) {}
 
-  create(mode: "ai" | "coach" = "ai") {
-    return this.client.post<GameSnapshot>("/api/v1/games", { mode });
+  create(mode: "ai" | "coach" = "ai", options: Omit<GameCreateOptions, "mode"> = { time_control: null, human_color: "white", ai_profile: "casual" }, idempotencyKey?: string) {
+    return this.client.post<GameSnapshot>("/api/v1/games", { mode, ...options }, { idempotencyKey });
   }
 
   get(gameId: string) {
@@ -32,7 +19,7 @@ export class GameApi {
   }
 
   move(gameId: string, command: MoveCommand) {
-    return this.client.post<GameSnapshot>(`/api/v1/games/${encodeURIComponent(gameId)}/moves`, command);
+    return this.client.post<MoveAcceptedV1>(`/api/v1/games/${encodeURIComponent(gameId)}/moves`, command, { idempotencyKey: command.client_move_id }).then((response) => response.snapshot);
   }
 
   resign(gameId: string, expectedVersion: number) {

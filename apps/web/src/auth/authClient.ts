@@ -1,4 +1,5 @@
 import { ApiClient, ApiError } from "../api";
+import { createIdempotencyKey } from "../api/client";
 import type { AuthConfig } from "./config";
 
 export type AuthUser = {
@@ -21,6 +22,11 @@ export class AuthClient {
   beginSignIn() {
     if (this.config.mode === "fake") return;
     window.location.assign(this.config.loginPath);
+  }
+
+  developmentSignIn() {
+    if (this.config.mode !== "development" || !import.meta.env.DEV) throw new Error("Development login disabled");
+    return this.api.post<AuthUser>("/api/v1/auth/dev-login", { display_name: `Dev ${createIdempotencyKey().slice(0, 8)}` });
   }
 
   async logout() {

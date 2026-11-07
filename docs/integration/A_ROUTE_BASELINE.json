@@ -1,0 +1,26 @@
+{
+  "status": "blocked",
+  "missing_http": [
+    "GET /api/v1/games/{game_id}/coach-requests/{job_id}",
+    "GET /api/v1/learning/lessons",
+    "GET /api/v1/learning/progress",
+    "GET /api/v1/matchmaking/tickets/{ticket_id}",
+    "POST /api/v1/games/{game_id}/analysis-requests",
+    "POST /api/v1/games/{game_id}/coach-requests",
+    "POST /api/v1/invitations",
+    "POST /api/v1/invitations/{code}/accept",
+    "POST /api/v1/learning/puzzles/{puzzle_id}/attempts",
+    "POST /api/v1/matchmaking/tickets"
+  ],
+  "missing_websockets": [
+    "/ws/v1/games/{game_id}"
+  ],
+  "scope": "local route preflight, not production sign-off",
+  "remaining_evidence": [
+    "PostgreSQL transactional command races and restart durability",
+    "A+B staging E2E: four modes, learning, two-browser PvP",
+    "Real queue/worker recovery and pinned Stockfish integration",
+    "Backup restore rehearsal and measured RPO/RTO",
+    "Supply-chain/license inventory and deployment configuration checks"
+  ]
+}

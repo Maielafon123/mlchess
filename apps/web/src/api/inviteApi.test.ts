@@ -17,3 +17,4 @@ describe("InviteApi", () => {
     expect(path).toBe("/api/v1/invitations");
   });
 });
+// @vitest-environment node

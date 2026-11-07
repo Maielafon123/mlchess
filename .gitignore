@@ -4,6 +4,9 @@ __pycache__/
 .pytest-tmp*/
 runs/
 artifacts/
+.env.local
+.env.*.local
+*.log
 chess_data/train/
 chess_data/test/
 chess_data/.cache/

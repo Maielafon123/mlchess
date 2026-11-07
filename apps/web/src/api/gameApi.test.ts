@@ -7,12 +7,12 @@ import { mockSnapshot } from "./mock/fixtures";
 import { handlers } from "./mock/server";
 
 const server = setupServer(...handlers);
-const snapshot: GameSnapshot = {
+const snapshot = {
   ...mockSnapshot,
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   moves: [],
-  capabilities: { can_move: true, can_resign: true },
-};
+  capabilities: { can_move: true, can_takeback: true, can_analyze_now: true },
+} as unknown as GameSnapshot;
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => server.resetHandlers());
@@ -49,3 +49,4 @@ describe("GameApi move flow", () => {
     await expect(api().move("game-1", { uci: "e2e4", client_move_id: "client-2", expected_version: 1 })).rejects.toMatchObject({ problem: { code: "STALE_VERSION", snapshot } });
   });
 });
+// @vitest-environment node
