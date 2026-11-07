@@ -9,8 +9,9 @@ python -m infra.recovery_drill --container mlchess-postgres --user mlchess
 The command creates two databases with fresh generated names, applies all
 Alembic upgrade SQL, inserts a legal four-ply checkmate, backs it up using
 `pg_dump -Fc`, restores using `pg_restore --exit-on-error`, and compares the
-game result, FEN, complete move history, users, migration head and pending
-outbox. It removes only its generated databases, including after a failure.
+game result, FEN, complete move history, full domain state, exact command receipt,
+game event, users, migration head and pending outbox. It removes only its
+generated databases, including after a failure.
 It does not connect to the application database or start workers.
 
 The archive exists in process memory for this synthetic drill. It is not an

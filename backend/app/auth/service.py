@@ -3,12 +3,15 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 from uuid import UUID
 
 from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from backend.app.infra.models import Session as DbSession
@@ -75,16 +78,21 @@ class SqlAlchemySessionStore:
 
     async def put(self, record: SessionRecord) -> None:
         async with self.factory() as session:
-            user = await session.get(User, record.user.id)
-            if user is None:
-                session.add(
-                    User(
-                        id=record.user.id,
-                        kind=record.user.kind,
-                        display_name=record.user.display_name,
-                        expires_at=record.user.expires_at,
-                    )
+            insert = (
+                pg_insert
+                if session.bind.dialect.name == "postgresql"
+                else sqlite_insert
+            )
+            await session.execute(
+                insert(User)
+                .values(
+                    id=record.user.id,
+                    kind=record.user.kind,
+                    display_name=record.user.display_name,
+                    expires_at=record.user.expires_at,
                 )
+                .on_conflict_do_nothing(index_elements=[User.id])
+            )
             session.add(
                 DbSession(
                     user_id=record.user.id,
@@ -101,6 +109,7 @@ class SqlAlchemySessionStore:
                 select(DbSession, User)
                 .join(User, User.id == DbSession.user_id)
                 .where(DbSession.token_hash == token_hash)
+                .where(User.deleted_at.is_(None))
             )
             row = result.one_or_none()
             if row is None:
@@ -110,10 +119,12 @@ class SqlAlchemySessionStore:
                 token_hash=db_session.token_hash,
                 csrf_token="",
                 user=AuthenticatedUser(
-                    user.id, user.kind, user.display_name, db_session.expires_at
+                    user.id, user.kind, user.display_name, _aware(db_session.expires_at)
                 ),
-                expires_at=db_session.expires_at,
-                revoked_at=db_session.revoked_at,
+                expires_at=_aware(db_session.expires_at),
+                revoked_at=_aware(db_session.revoked_at)
+                if db_session.revoked_at
+                else None,
                 csrf_token_hash=db_session.csrf_token_hash,
             )
 
@@ -138,7 +149,16 @@ class AuthService:
         now = now_utc()
         expires_at = now + timedelta(seconds=self.session_ttl_seconds)
         user = AuthenticatedUser(
-            id=UUID("00000000-0000-4000-8000-000000000001"),
+            id=(
+                UUID(
+                    bytes=hashlib.sha256(("dev:" + display_name).encode()).digest()[
+                        :16
+                    ],
+                    version=4,
+                )
+                if display_name
+                else UUID("00000000-0000-4000-8000-000000000001")
+            ),
             kind="account",
             display_name=display_name or "Developer",
             expires_at=expires_at,
@@ -153,7 +173,7 @@ class AuthService:
         return token, csrf, user
 
     async def authenticate(self, token: str | None) -> SessionRecord | None:
-        if not token:
+        if not token or re.fullmatch(r"[A-Za-z0-9_-]{43}", token) is None:
             return None
         record = await self.store.get(digest(token))
         if record is None or record.revoked_at is not None:
@@ -167,7 +187,11 @@ class AuthService:
 
     @staticmethod
     def valid_csrf(record: SessionRecord, supplied: str | None) -> bool:
-        if supplied is None:
+        if supplied is None or re.fullmatch(r"[A-Za-z0-9_-]{1,256}", supplied) is None:
             return False
         expected = record.csrf_token_hash or digest(record.csrf_token)
         return hmac.compare_digest(expected, digest(supplied))
+
+
+def _aware(value: datetime) -> datetime:
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value

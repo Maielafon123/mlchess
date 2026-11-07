@@ -75,6 +75,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/games/{id}/claim-draw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["claimDraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/{id}/draw-offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["offerDraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/{id}/draw-offers/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["acceptDraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games/{id}/moves": {
         parameters: {
             query?: never;
@@ -87,6 +141,24 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["submitMove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/{id}/resign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resignGame"];
         delete?: never;
         options?: never;
         head?: never;
@@ -309,6 +381,10 @@ export interface components {
          * @description Standard chess FEN; six fields, legal board, canonical python-chess Board.fen(). History is carried by moves, not by FEN.
          */
         FenV1: string;
+        /** @description Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required. */
+        GameActionV1: {
+            expected_version: number;
+        };
         /** @description Durable event: seq is allocated atomically with game state/outbox. Publish only after commit. */
         GameClockSyncEventV1: {
             /** @constant */
@@ -966,6 +1042,255 @@ export interface operations {
             };
         };
     };
+    claimDraw: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+            };
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameActionV1"];
+            };
+        };
+        responses: {
+            /** @description Updated game snapshot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameSnapshotV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    offerDraw: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+            };
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameActionV1"];
+            };
+        };
+        responses: {
+            /** @description Updated game snapshot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameSnapshotV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    acceptDraw: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+            };
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameActionV1"];
+            };
+        };
+        responses: {
+            /** @description Updated game snapshot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameSnapshotV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
     submitMove: {
         parameters: {
             query?: never;
@@ -1056,6 +1381,89 @@ export interface operations {
                 };
             };
             /** @description Sanitized problem response */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    resignGame: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+            };
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameActionV1"];
+            };
+        };
+        responses: {
+            /** @description Updated game snapshot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameSnapshotV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
             503: {
                 headers: {
                     [name: string]: unknown;

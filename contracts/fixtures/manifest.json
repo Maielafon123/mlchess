@@ -140,6 +140,10 @@
     "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1"
   },
   {
+    "path": "game/resign.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1"
+  },
+  {
     "path": "common/error-method-not-allowed.json",
     "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
   }

@@ -76,6 +76,13 @@ class FenV1(RootModel[str]):
     )
 
 
+class GameActionV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    expected_version: int = Field(..., ge=0, le=9007199254740991)
+
+
 class GameModeV1(RootModel[Literal["friend", "rated", "ai", "coach"]]):
     root: Literal["friend", "rated", "ai", "coach"]
 

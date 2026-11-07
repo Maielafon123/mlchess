@@ -1,4 +1,4 @@
-"""A-004 composition root; game/auth/engine handlers are added in later tickets."""
+"""Application composition for guarded HTTP, durable sessions and game commands."""
 
 from __future__ import annotations
 
@@ -9,10 +9,20 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncEngine
 from starlette.exceptions import HTTPException
 
 from backend.app.auth.router import router as auth_router
-from backend.app.auth.service import AuthService, InMemorySessionStore
+from backend.app.auth.service import (
+    AuthService,
+    InMemorySessionStore,
+    SqlAlchemySessionStore,
+)
+from backend.app.games.durable import DurableGameService
+from backend.app.games.router import router as games_router
+from backend.app.infra.db import create_engine, create_schema, session_factory
+from backend.app.infra.models import GameState
 from backend.app.coach.router import router as coach_router
 from backend.app.learning.router import router as learning_router
 from backend.app.infra.generated.contracts import HealthV1
@@ -30,22 +40,41 @@ def create_app(
     *,
     readiness_checks: Sequence[ReadinessCheck] = (),
     logger: logging.Logger | None = None,
+    database_engine: AsyncEngine | None = None,
 ) -> FastAPI:
     settings = settings if settings is not None else Settings()
-    checks = tuple(readiness_checks)
+    engine = database_engine
+    if engine is None and settings.database_url:
+        engine = create_engine(settings.database_url)
+    factory = session_factory(engine) if engine is not None else None
+
+    async def database_ready():
+        async with factory() as session:
+            await session.execute(select(GameState.game_id).limit(1))
+
+    async def persistence_required():
+        raise RuntimeError("Deployed API persistence is not configured")
+
+    checks = tuple(readiness_checks) + ((database_ready,) if factory else ())
+    if not factory and settings.environment in {"staging", "production"}:
+        checks += (persistence_required,)
     if len(checks) > 8:
         raise ValueError("Readiness checks must be bounded")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        app.state.started = True
         try:
+            if engine is not None and settings.database_auto_create:
+                await create_schema(engine)
+            app.state.started = True
             yield
         finally:
             app.state.started = False
+            if engine is not None and database_engine is None:
+                await engine.dispose()
 
     app = FastAPI(
-        title="MLChess backend scaffold",
+        title="MLChess API",
         version="0.1.0",
         debug=False,
         docs_url=None,
@@ -58,9 +87,13 @@ def create_app(
     app.state.metrics = MetricsRegistry()
     app.state.dev_login_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
     app.state.auth_service = AuthService(
-        InMemorySessionStore(), session_ttl_seconds=settings.session_ttl_seconds
+        SqlAlchemySessionStore(factory) if factory else InMemorySessionStore(),
+        session_ttl_seconds=settings.session_ttl_seconds,
     )
+    app.state.game_service = DurableGameService(factory) if factory else None
+    app.state.database_factory = factory
     app.include_router(auth_router)
+    app.include_router(games_router)
     app.include_router(coach_router)
     app.include_router(learning_router)
     app.add_middleware(

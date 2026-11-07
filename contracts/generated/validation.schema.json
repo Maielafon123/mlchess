@@ -842,6 +842,21 @@
       "maxLength": 100,
       "description": "Standard chess FEN; six fields, legal board, canonical python-chess Board.fen(). History is carried by moves, not by FEN."
     },
+    "GameActionV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_version"
+      ],
+      "properties": {
+        "expected_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "description": "Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required."
+    },
     "GameClockSyncEventV1": {
       "type": "object",
       "additionalProperties": false,

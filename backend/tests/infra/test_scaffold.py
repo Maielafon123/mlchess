@@ -117,7 +117,7 @@ def test_readiness_cannot_mistake_false_for_success(settings, logs, registry):
 
 
 @pytest.mark.parametrize(
-    "url", ["/missing", "/docs", "/redoc", "/openapi.json", "/api/v1/games"]
+    "url", ["/missing", "/docs", "/redoc", "/openapi.json", "/api/v9/unimplemented"]
 )
 def test_missing_and_unimplemented_routes_return_problem(settings, logs, registry, url):
     with TestClient(create_app(settings, logger=logs[0])) as client:

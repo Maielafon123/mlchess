@@ -2,7 +2,7 @@ paths:
   /api/v1/games:
     post:
       operationId: createGame
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '201':
           description: Success
@@ -86,7 +86,7 @@ paths:
       schema: *id001
     get:
       operationId: getGame
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '200':
           description: Success
@@ -147,7 +147,7 @@ paths:
     - *id002
     post:
       operationId: submitMove
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '200':
           description: Success
@@ -222,7 +222,7 @@ paths:
     - *id002
     post:
       operationId: takebackGame
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '200':
           description: Success
@@ -292,3 +292,279 @@ paths:
           application/json:
             schema:
               $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/TakebackV1
+  /api/v1/games/{id}/resign:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    post:
+      operationId: resignGame
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema: {type: string, minLength: 1, maxLength: 256}
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+  /api/v1/games/{id}/draw-offers:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    post:
+      operationId: offerDraw
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema: {type: string, minLength: 1, maxLength: 256}
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+  /api/v1/games/{id}/draw-offers/accept:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    post:
+      operationId: acceptDraw
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema: {type: string, minLength: 1, maxLength: 256}
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+  /api/v1/games/{id}/claim-draw:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    post:
+      operationId: claimDraw
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema: {type: string, minLength: 1, maxLength: 256}
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1

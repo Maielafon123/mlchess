@@ -12,6 +12,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Index,
     String,
     Uuid,
     UniqueConstraint,
@@ -210,6 +211,41 @@ class OutboxEvent(Base):
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )
+
+
+class GameState(Base):
+    """Complete replayable line and server configuration, locked with its game."""
+
+    __tablename__ = "game_states"
+
+    game_id: Mapped[UUID] = mapped_column(
+        ForeignKey("games.id", ondelete="CASCADE"), primary_key=True
+    )
+    domain: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    config: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    clock: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    event_seq: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+
+class CommandReceipt(Base):
+    """Exact response per actor/resource/key; move IDs are scoped to a game."""
+
+    __tablename__ = "command_receipts"
+    __table_args__ = (Index("ix_command_receipts_game", "game_id"),)
+
+    actor_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    scope: Mapped[str] = mapped_column(String(36), primary_key=True)
+    command_key: Mapped[UUID] = mapped_column(UUIDType, primary_key=True)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    game_id: Mapped[UUID] = mapped_column(
+        ForeignKey("games.id", ondelete="CASCADE"), nullable=False
+    )
+    response: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow
     )

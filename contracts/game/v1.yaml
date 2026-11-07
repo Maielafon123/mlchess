@@ -581,3 +581,13 @@ $defs:
     description: Persisted response returned identically on retry with the same actor/client_move_id and
       payload. snapshot.version = expected_version + 1. The move equals the last snapshot.moves item.
       Reuse with another payload gives 409 IDEMPOTENCY_CONFLICT.
+  GameActionV1:
+    type: object
+    additionalProperties: false
+    required: [expected_version]
+    properties:
+      expected_version:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+    description: Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required.

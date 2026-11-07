@@ -13,7 +13,7 @@ paths:
   /api/v1/games:
     post:
       operationId: createGame
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '201':
           description: Success
@@ -97,7 +97,7 @@ paths:
         $ref: '#/components/schemas/UUIDv4'
     get:
       operationId: getGame
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '200':
           description: Success
@@ -315,6 +315,222 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AnalysisJobV1'
+  /api/v1/games/{id}/claim-draw:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUIDv4'
+    post:
+      operationId: claimDraw
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameActionV1'
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSnapshotV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/games/{id}/draw-offers:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUIDv4'
+    post:
+      operationId: offerDraw
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameActionV1'
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSnapshotV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/games/{id}/draw-offers/accept:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUIDv4'
+    post:
+      operationId: acceptDraw
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameActionV1'
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSnapshotV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
   /api/v1/games/{id}/moves:
     parameters:
     - name: id
@@ -324,7 +540,7 @@ paths:
         $ref: '#/components/schemas/UUIDv4'
     post:
       operationId: submitMove
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '200':
           description: Success
@@ -394,6 +610,78 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SubmitMoveV1'
+  /api/v1/games/{id}/resign:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUIDv4'
+    post:
+      operationId: resignGame
+      x-implementation-status: implemented-durable
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameActionV1'
+      responses:
+        '200':
+          description: Updated game snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameSnapshotV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
   /api/v1/games/{id}/takeback:
     parameters:
     - name: id
@@ -403,7 +691,7 @@ paths:
         $ref: '#/components/schemas/UUIDv4'
     post:
       operationId: takebackGame
-      x-implementation-status: proposed
+      x-implementation-status: implemented-durable
       responses:
         '200':
           description: Success
@@ -1152,6 +1440,17 @@ components:
       maxLength: 100
       description: Standard chess FEN; six fields, legal board, canonical python-chess Board.fen(). History
         is carried by moves, not by FEN.
+    GameActionV1:
+      type: object
+      additionalProperties: false
+      required:
+      - expected_version
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      description: Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required.
     GameClockSyncEventV1:
       type: object
       additionalProperties: false
@@ -2459,6 +2758,7 @@ x-source-schemas:
   EngineLimitsV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineLimitsV1
   EngineMetadataV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineMetadataV1
   FenV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/FenV1
+  GameActionV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1
   GameClockSyncEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameClockSyncEventV1
   GameEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1
   GameModeV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameModeV1
