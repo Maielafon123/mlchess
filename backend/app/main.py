@@ -11,6 +11,8 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
+from backend.app.auth.router import router as auth_router
+from backend.app.auth.service import AuthService, InMemorySessionStore
 from backend.app.infra.generated.contracts import HealthV1
 from backend.app.infra.http import SafeHTTPMiddleware, default_request_logger
 from backend.app.infra.problems import PublicProblem, problem_response
@@ -49,6 +51,10 @@ def create_app(
     )
     app.state.started = False
     app.state.settings = settings
+    app.state.auth_service = AuthService(
+        InMemorySessionStore(), session_ttl_seconds=settings.session_ttl_seconds
+    )
+    app.include_router(auth_router)
     app.add_middleware(
         SafeHTTPMiddleware,
         settings=settings,

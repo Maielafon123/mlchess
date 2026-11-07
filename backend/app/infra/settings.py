@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "staging", "production"] = "development"
     public_origin: str = "http://127.0.0.1:8000"
     dev_auth_enabled: bool = False
+    session_ttl_seconds: int = Field(default=3600, ge=60, le=86400)
     readiness_timeout_ms: int = Field(default=500, ge=10, le=5000)
 
     @field_validator("public_origin")
