@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "mode": "friend",
+  "status": "waiting",
+  "version": 0,
+  "revision": 0,
+  "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  "ply": 0,
+  "side_to_move": "white",
+  "players": [
+    {
+      "side": "white",
+      "kind": "human",
+      "user_id": "deafed4a-ab07-41e1-b2f0-d40f2785e8a8"
+    }
+  ],
+  "moves": [],
+  "time_control": {
+    "initial_ms": 600000,
+    "increment_ms": 0
+  },
+  "clock": {
+    "white_remaining_ms": 600000,
+    "black_remaining_ms": 600000,
+    "running_side": null,
+    "server_now": "2026-11-07T14:00:00Z"
+  },
+  "capabilities": {
+    "can_move": false,
+    "can_takeback": false,
+    "can_analyze_now": false
+  },
+  "result": null,
+  "termination": null
+}

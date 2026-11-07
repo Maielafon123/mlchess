@@ -1,0 +1,50 @@
+[
+  {
+    "path": "common/current-account.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/CurrentUserV1"
+  },
+  {
+    "path": "common/current-guest.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/CurrentUserV1"
+  },
+  {
+    "path": "game/create-coach.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/CreateGameV1"
+  },
+  {
+    "path": "game/create-friend.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/CreateGameV1"
+  },
+  {
+    "path": "game/snapshot-coach.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1"
+  },
+  {
+    "path": "game/snapshot-waiting.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1"
+  },
+  {
+    "path": "game/snapshot-finished.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1"
+  },
+  {
+    "path": "game/submit-move.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/SubmitMoveV1"
+  },
+  {
+    "path": "game/move-accepted.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveAcceptedV1"
+  },
+  {
+    "path": "game/takeback.json",
+    "schema": "https://mlchess.local/contracts/game/v1.yaml#/$defs/TakebackV1"
+  },
+  {
+    "path": "common/error-stale-version.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+  },
+  {
+    "path": "common/error-illegal-move.json",
+    "schema": "https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1"
+  }
+]

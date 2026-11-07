@@ -1,0 +1,583 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://mlchess.local/contracts/game/v1.yaml
+title: "MLChess game v1 \u2014 A-001 review candidate"
+$defs:
+  SideV1:
+    type: string
+    enum:
+    - white
+    - black
+  GameModeV1:
+    type: string
+    enum:
+    - friend
+    - rated
+    - ai
+    - coach
+  GameStatusV1:
+    type: string
+    enum:
+    - waiting
+    - active
+    - finished
+    - aborted
+  UciMoveV1:
+    type: string
+    pattern: ^[a-h][1-8][a-h][1-8][qrbn]?$
+  FenV1:
+    type: string
+    format: chess-fen
+    minLength: 15
+    maxLength: 100
+    description: Standard chess FEN; six fields, legal board, canonical python-chess Board.fen(). History
+      is carried by moves, not by FEN.
+  TimeControlV1:
+    type: object
+    additionalProperties: false
+    required:
+    - initial_ms
+    - increment_ms
+    properties:
+      initial_ms:
+        type: integer
+        minimum: 1000
+        maximum: 86400000
+      increment_ms:
+        type: integer
+        minimum: 0
+        maximum: 60000
+  CreateGameV1:
+    type: object
+    additionalProperties: false
+    required:
+    - mode
+    - time_control
+    properties:
+      mode:
+        type: string
+        enum:
+        - friend
+        - ai
+        - coach
+      time_control:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/TimeControlV1
+        - type: 'null'
+      human_color:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+      ai_profile:
+        type: string
+        enum:
+        - beginner
+        - casual
+        - club
+        - strong
+    allOf:
+    - if:
+        properties:
+          mode:
+            type: string
+            enum:
+            - ai
+            - coach
+        required:
+        - mode
+      then:
+        required:
+        - human_color
+        - ai_profile
+    - if:
+        properties:
+          mode:
+            const: friend
+        required:
+        - mode
+      then:
+        not:
+          anyOf:
+          - required:
+            - human_color
+          - required:
+            - ai_profile
+    description: 'Public create command. rated is created only by matchmaking. Idempotency-Key: UUIDv4
+      header is mandatory; no client FEN, clock state, result, engine budget or binary path.'
+  SubmitMoveV1:
+    type: object
+    additionalProperties: false
+    required:
+    - client_move_id
+    - expected_version
+    - uci
+    properties:
+      client_move_id:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      expected_version: &id001
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      uci:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/UciMoveV1
+  TakebackV1:
+    type: object
+    additionalProperties: false
+    required:
+    - expected_version
+    - plies
+    - client_action_id
+    properties:
+      expected_version: *id001
+      plies:
+        type: integer
+        enum:
+        - 1
+        - 2
+      client_action_id:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    description: 'Solo only. plies is explicit: UI sends 2 for a complete human/engine cycle, or 1 while
+      engine reply is pending. Never valid for friend/rated.'
+  ClockV1:
+    type: object
+    additionalProperties: false
+    required:
+    - white_remaining_ms
+    - black_remaining_ms
+    - running_side
+    - server_now
+    properties:
+      white_remaining_ms: *id001
+      black_remaining_ms: *id001
+      running_side:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+        - type: 'null'
+      server_now:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime
+  CapabilitiesV1:
+    type: object
+    additionalProperties: false
+    required:
+    - can_move
+    - can_takeback
+    - can_analyze_now
+    properties:
+      can_move:
+        type: boolean
+      can_takeback:
+        type: boolean
+      can_analyze_now:
+        type: boolean
+    description: Server-computed, viewer-specific permissions; not an authorization credential.
+  PlayerV1:
+    type: object
+    additionalProperties: false
+    required:
+    - side
+    - kind
+    - user_id
+    properties:
+      side:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+      kind:
+        type: string
+        enum:
+        - human
+        - engine
+      user_id:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+        - type: 'null'
+    allOf:
+    - if:
+        properties:
+          kind:
+            const: human
+        required:
+        - kind
+      then:
+        properties:
+          user_id:
+            $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    - if:
+        properties:
+          kind:
+            const: engine
+        required:
+        - kind
+      then:
+        properties:
+          user_id:
+            type: 'null'
+  MoveV1:
+    type: object
+    additionalProperties: false
+    required:
+    - ply
+    - uci
+    - san
+    properties:
+      ply:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      uci:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/UciMoveV1
+      san:
+        type: string
+        minLength: 1
+        maxLength: 16
+  GameSnapshotV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - id
+    - mode
+    - status
+    - version
+    - revision
+    - fen
+    - ply
+    - side_to_move
+    - players
+    - moves
+    - time_control
+    - clock
+    - capabilities
+    - result
+    - termination
+    properties:
+      schema_version: &id002
+        type: integer
+        const: 1
+      id:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      mode:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameModeV1
+      status:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameStatusV1
+      version: *id001
+      revision: *id001
+      fen:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/FenV1
+      ply: *id001
+      side_to_move:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+      players:
+        type: array
+        minItems: 1
+        maxItems: 2
+        items:
+          $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/PlayerV1
+        allOf:
+        - contains:
+            properties:
+              side:
+                const: white
+            required:
+            - side
+          minContains: 0
+          maxContains: 1
+        - contains:
+            properties:
+              side:
+                const: black
+            required:
+            - side
+          minContains: 0
+          maxContains: 1
+      moves:
+        type: array
+        items:
+          $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveV1
+      time_control:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/TimeControlV1
+        - type: 'null'
+      clock:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+        - type: 'null'
+      capabilities:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/CapabilitiesV1
+      result:
+        oneOf:
+        - type: string
+          enum:
+          - white
+          - black
+          - draw
+        - type: 'null'
+      termination:
+        oneOf:
+        - type: string
+          enum:
+          - checkmate
+          - stalemate
+          - insufficient_material
+          - fivefold_repetition
+          - seventyfive_moves
+          - threefold_claim
+          - fifty_moves_claim
+          - draw_agreement
+          - resignation
+          - timeout
+          - aborted
+        - type: 'null'
+    allOf:
+    - if:
+        properties:
+          status:
+            type: string
+            enum:
+            - waiting
+            - active
+            - aborted
+        required:
+        - status
+      then:
+        properties:
+          result:
+            type: 'null'
+    - if:
+        properties:
+          status:
+            type: string
+            enum:
+            - waiting
+            - active
+        required:
+        - status
+      then:
+        properties:
+          termination:
+            type: 'null'
+    - if:
+        properties:
+          status:
+            const: finished
+        required:
+        - status
+      then:
+        properties:
+          result:
+            type: string
+            enum:
+            - white
+            - black
+            - draw
+          termination:
+            type: string
+            enum:
+            - checkmate
+            - stalemate
+            - insufficient_material
+            - fivefold_repetition
+            - seventyfive_moves
+            - threefold_claim
+            - fifty_moves_claim
+            - draw_agreement
+            - resignation
+            - timeout
+    - if:
+        properties:
+          status:
+            const: aborted
+        required:
+        - status
+      then:
+        properties:
+          termination:
+            const: aborted
+    - if:
+        properties:
+          status:
+            type: string
+            enum:
+            - waiting
+            - finished
+            - aborted
+        required:
+        - status
+      then:
+        properties:
+          capabilities:
+            properties:
+              can_move:
+                const: false
+          clock:
+            oneOf:
+            - type: 'null'
+            - type: object
+              properties:
+                running_side:
+                  type: 'null'
+    - if:
+        properties:
+          status:
+            const: active
+        required:
+        - status
+      then:
+        properties:
+          players:
+            minItems: 2
+    - if:
+        properties:
+          mode:
+            const: rated
+        required:
+        - mode
+      then:
+        properties:
+          time_control:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/TimeControlV1
+          clock:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+    - if:
+        properties:
+          mode:
+            type: string
+            enum:
+            - friend
+            - rated
+        required:
+        - mode
+      then:
+        properties:
+          capabilities:
+            properties:
+              can_takeback:
+                const: false
+          players:
+            items:
+              properties:
+                kind:
+                  const: human
+    - if:
+        properties:
+          mode:
+            type: string
+            enum:
+            - friend
+            - rated
+          status:
+            type: string
+            enum:
+            - waiting
+            - active
+        required:
+        - mode
+        - status
+      then:
+        properties:
+          capabilities:
+            properties:
+              can_analyze_now:
+                const: false
+    - if:
+        properties:
+          time_control:
+            type: 'null'
+        required:
+        - time_control
+      then:
+        properties:
+          clock:
+            type: 'null'
+    - if:
+        properties:
+          time_control:
+            type: object
+        required:
+        - time_control
+      then:
+        properties:
+          clock:
+            $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
+    - if:
+        properties:
+          mode:
+            enum:
+            - ai
+            - coach
+        required:
+        - mode
+      then:
+        properties:
+          players:
+            minItems: 2
+            allOf:
+            - contains:
+                properties:
+                  kind:
+                    const: human
+                required:
+                - kind
+              minContains: 1
+              maxContains: 1
+            - contains:
+                properties:
+                  kind:
+                    const: engine
+                required:
+                - kind
+              minContains: 1
+              maxContains: 1
+    - if:
+        properties:
+          status:
+            const: active
+          side_to_move:
+            const: white
+        required:
+        - status
+        - side_to_move
+      then:
+        properties:
+          clock:
+            oneOf:
+            - type: 'null'
+            - type: object
+              properties:
+                running_side:
+                  const: white
+    - if:
+        properties:
+          status:
+            const: active
+          side_to_move:
+            const: black
+        required:
+        - status
+        - side_to_move
+      then:
+        properties:
+          clock:
+            oneOf:
+            - type: 'null'
+            - type: object
+              properties:
+                running_side:
+                  const: black
+    description: Full current branch, from the standard initial position. version changes per accepted
+      command; revision changes on takeback. moves are contiguous and replay to fen/ply/side_to_move.
+      Old branches remain in server audit storage. Permissions depend on requesting actor.
+  MoveAcceptedV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - client_move_id
+    - move
+    - snapshot
+    properties:
+      schema_version: *id002
+      client_move_id:
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      move:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveV1
+      snapshot:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
+    description: Persisted response returned identically on retry with the same actor/client_move_id and
+      payload. snapshot.version = expected_version + 1. The move equals the last snapshot.moves item.
+      Reuse with another payload gives 409 IDEMPOTENCY_CONFLICT.
