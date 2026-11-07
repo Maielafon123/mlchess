@@ -1,0 +1,60 @@
+paths:
+  /api/v1/me:
+    get:
+      operationId: getCurrentUser
+      x-implementation-status: proposed
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/CurrentUserV1
+        '401':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '429':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '500':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1

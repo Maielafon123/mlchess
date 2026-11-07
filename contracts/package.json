@@ -1,0 +1,21 @@
+{
+  "name": "@mlchess/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "generate:types": "openapi-typescript openapi.generated.yaml -o generated/api.d.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types tests/client.test.mjs"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.15.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.10.1",
+    "typescript": "5.9.3"
+  }
+}

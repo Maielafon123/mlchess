@@ -4,8 +4,8 @@ These are JSON Schema 2020-12 YAML sources, not implemented HTTP endpoints.
 A owns `common/`, `game/`, this validator and the matching fixtures. The first
 contract gate remains pending B review and green CI. Once accepted, v1 changes
 must follow compatibility review. Analysis/WS are specified in A-002; OpenAPI assembly,
-generated Pydantic/TypeScript and compatibility/drift checks arrive in A-003.
-No generated API file is hand-authored in this PR.
+generated Pydantic/TypeScript and compatibility/drift checks are supplied by A-003.
+Generated API/model/type artifacts are never edited by hand. See [tooling/README.md](tooling/README.md) for the complete pipeline and its limits.
 
 From a clean checkout, with Python 3.12+:
 
@@ -13,10 +13,14 @@ From a clean checkout, with Python 3.12+:
 python -m venv .venv-contracts
 . .venv-contracts/bin/activate
 python -m pip install -r contracts/requirements.txt
+npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
 python contracts/validate.py
 python -m pytest backend/tests -q
-ruff check backend contracts/validate.py
-ruff format --check backend contracts/validate.py
+python -m contracts.tooling.generate --check
+npm --prefix contracts run typecheck
+npm --prefix contracts test
+ruff check backend contracts
+ruff format --check backend contracts
 ```
 
 Use a virtual environment outside the checkout if local ignore rules do not

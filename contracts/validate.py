@@ -47,13 +47,21 @@ UniqueKeyLoader.add_constructor(
 
 def load_registry(root: Path = ROOT) -> tuple[Registry, dict[str, dict]]:
     schemas = {}
-    for relative_path in (
-        "common/v1.yaml",
-        "game/v1.yaml",
-        "game/events.v1.yaml",
-        "analysis/v1.yaml",
-    ):
-        path = root / relative_path
+    required = [
+        root / name
+        for name in (
+            "common/v1.yaml",
+            "game/v1.yaml",
+            "game/events.v1.yaml",
+            "analysis/v1.yaml",
+        )
+    ]
+    for path in required:
+        if not path.is_file():
+            raise ValueError(f"Required schema missing: {path}")
+    for path in sorted(root.glob("*/*.yaml")):
+        if path.name == "http.v1.yaml":
+            continue
         schema = yaml.load(path.read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
         Draft202012Validator.check_schema(schema)
         if schema["$id"] in schemas:

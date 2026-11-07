@@ -1,0 +1,159 @@
+paths:
+  /api/v1/games/{id}/analysis-requests:
+    parameters:
+    - &id002
+      name: id
+      in: path
+      required: true
+      schema: &id001
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+    post:
+      operationId: requestAnalysis
+      x-implementation-status: proposed
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1
+        '401':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '429':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '500':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisRequestV1
+  /api/v1/games/{id}/analysis/{ply}:
+    parameters:
+    - *id002
+    - name: ply
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+    get:
+      operationId: getAnalysis
+      x-implementation-status: proposed
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisResultV1
+        '401':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '403':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '404':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '409':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '422':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '429':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '500':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '503':
+          description: Sanitized problem response
+          content:
+            application/problem+json:
+              schema:
+                $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/ProblemDetailsV1
+        '202':
+          description: Analysis pending
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/AnalysisJobV1

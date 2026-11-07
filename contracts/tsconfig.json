@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
+    "strict": true, "noEmit": true, "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true, "skipLibCheck": false,
+    "lib": ["ES2022", "DOM"], "verbatimModuleSyntax": true
+  },
+  "include": ["client.ts", "generated/**/*.ts", "tests/**/*.ts"]
+}

@@ -1,6 +1,10 @@
+-c requirements.lock
 # Isolated contract tooling; no backend runtime or legacy dependency changes.
 chess==1.11.2
 jsonschema[format-nongpl]==4.25.1
 PyYAML==6.0.3
 pytest==9.0.2
 ruff==0.15.0
+datamodel-code-generator==0.36.0
+pydantic==2.12.5
+openapi-spec-validator==0.7.2
