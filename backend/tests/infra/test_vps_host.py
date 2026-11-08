@@ -53,6 +53,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
         "api",
         "worker",
         "analysis-worker",
+        "coach-worker",
         "web",
         "gateway",
         "postgres",
@@ -82,7 +83,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
     api_command = services["api"]["command"]
     assert api_command[api_command.index("--host") + 1] == "127.0.0.1"
     assert api_command[api_command.index("--port") + 1] == "58000"
-    for name in ("api", "worker", "analysis-worker", "migrate"):
+    for name in ("api", "worker", "analysis-worker", "coach-worker", "migrate"):
         assert (
             "@127.0.0.1:55432/" in services[name]["environment"]["MLCHESS_DATABASE_URL"]
         )

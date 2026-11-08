@@ -26,8 +26,9 @@ from backend.app.games.router import router as games_router
 from backend.app.games.invitation_router import router as invitation_router
 from backend.app.games.invitation_service import InvitationService
 from backend.app.infra.db import create_engine, create_schema, session_factory
-from backend.app.infra.models import GameState, GameMove, WorkerJob
-from backend.app.coach.router import router as coach_router
+from backend.app.infra.models import GameState, GameMove, WorkerJob, CoachExplanation
+from backend.app.coach.router import create_durable_router
+from backend.app.coach.durable import DurableCoachService
 from backend.app.learning.router import router as learning_router
 from backend.app.infra.generated.contracts import HealthV1
 from backend.app.infra.http import SafeHTTPMiddleware, default_request_logger
@@ -57,6 +58,7 @@ def create_app(
             await session.execute(select(GameState.game_id).limit(1))
             await session.execute(select(GameMove.worker_job_id).limit(1))
             await session.execute(select(WorkerJob).limit(1))
+            await session.execute(select(CoachExplanation.id).limit(1))
 
     async def persistence_required():
         raise RuntimeError("Deployed API persistence is not configured")
@@ -100,6 +102,7 @@ def create_app(
     )
     app.state.game_service = DurableGameService(factory) if factory else None
     app.state.analysis_service = DurableAnalysisService(factory) if factory else None
+    app.state.coach_service = DurableCoachService(factory) if factory else None
     app.state.invitation_service = (
         InvitationService(
             factory,
@@ -114,7 +117,7 @@ def create_app(
     app.include_router(games_router)
     app.include_router(analysis_router)
     app.include_router(invitation_router)
-    app.include_router(coach_router)
+    app.include_router(create_durable_router())
     app.include_router(learning_router)
     app.add_middleware(
         SafeHTTPMiddleware,

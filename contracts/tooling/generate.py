@@ -167,10 +167,16 @@ def generate(root: Path = ROOT, *, check: bool = False) -> None:
         (temp / OUTPUTS[4]).write_text(fixture_consumer(root), encoding="utf-8")
         stale = []
         for relative in OUTPUTS:
-            expected = (temp / relative).read_bytes()
+            # Git autocrlf and Python/Node writers differ on Windows. Wire/schema
+            # content is authoritative; write LF consistently and accept CRLF
+            # checkouts without rewriting them in --check mode.
+            expected = (temp / relative).read_bytes().replace(b"\r\n", b"\n")
             target = repo / relative
             if check:
-                if not target.is_file() or target.read_bytes() != expected:
+                if (
+                    not target.is_file()
+                    or target.read_bytes().replace(b"\r\n", b"\n") != expected
+                ):
                     stale.append(relative)
             else:
                 target.parent.mkdir(parents=True, exist_ok=True)

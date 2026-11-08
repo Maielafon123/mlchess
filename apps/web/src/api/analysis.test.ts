@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { acceptsAnalysisResult, formatScore, type EngineAnalysis } from "./analysis";
+import { Chess } from "chess.js";
+import { formatScore, replayPv } from "./analysis";
 
-const base: EngineAnalysis = { request_id: "r1", game_id: "g1", revision: 2, sequence: 4, perspective: "white", score: { kind: "cp", value: 134 }, quality: "good", best_move: { uci: "e2e4", san: "e4" }, alternatives: [], pv: [], status: "ready" };
-
-describe("engine analysis contract helpers", () => {
-  it("formats cp, mate and missing evaluations with perspective", () => {
-    expect(formatScore({ kind: "cp", value: 134 }, "white")).toBe("+1.34 (white)");
-    expect(formatScore({ kind: "mate", value: -3 }, "black")).toBe("-M3 (black)");
-    expect(formatScore(null, "white")).toBe("Evaluation unavailable");
+describe("generated analysis consumer", () => {
+  it("keeps White POV and keeps mate distances distinct from centipawns", () => {
+    expect(formatScore({ kind: "cp", value: 134, pov: "white" })).toBe("+1.34 (white)");
+    expect(formatScore({ kind: "mate", value: -3, pov: "white" })).toBe("-M3 (white)");
+    expect(formatScore({ kind: "mate", value: 0, pov: "white" })).toBe("M0 (white)");
+    expect(formatScore(null)).toBe("Evaluation unavailable");
   });
-
-  it("rejects duplicate, stale and cross-game results", () => {
-    expect(acceptsAnalysisResult(base, { ...base, sequence: 5 })).toBe(true);
-    expect(acceptsAnalysisResult(base, { ...base, sequence: 4 })).toBe(false);
-    expect(acceptsAnalysisResult(base, { ...base, game_id: "g2", sequence: 5 })).toBe(false);
-    expect(acceptsAnalysisResult(base, { ...base, revision: 1, sequence: 5 })).toBe(false);
+  it("reconstructs a legal PV and rejects an illegal continuation", () => {
+    const replay = replayPv(new Chess().fen(), ["e2e4", "e7e5"]);
+    expect(replay.map((move) => move.san)).toEqual(["e4", "e5"]);
+    expect(new Chess(replay[1].fen).turn()).toBe("w");
+    expect(() => replayPv(new Chess().fen(), ["e2e4", "a1a8"])).toThrow();
   });
 });

@@ -1,10 +1,12 @@
 import { GameBoard } from "../../components/GameBoard";
 import { type GameApi, type GameSnapshot } from "../../api/gameApi";
 import { useGameSession } from "./useGameSession";
+import { useEffect } from "react";
 
-export function GameSessionScreen({ api, onAcceptedMove, mode = "ai" }: { api?: GameApi; onAcceptedMove?: (snapshot: GameSnapshot) => void; mode?: "ai" | "coach" }) {
+export function GameSessionScreen({ api, onAcceptedMove, onSnapshot, mode = "ai" }: { api?: GameApi; onAcceptedMove?: (snapshot: GameSnapshot) => void; onSnapshot?: (snapshot: GameSnapshot) => void; mode?: "ai" | "coach" }) {
   const session = useGameSession(api, onAcceptedMove, mode);
   const snapshot = session.snapshot;
+  useEffect(() => { if (snapshot) onSnapshot?.(snapshot); }, [onSnapshot, snapshot]);
 
   if (!snapshot) {
     return <div className="status-banner" role="status">{session.error ?? "Creating game…"}</div>;

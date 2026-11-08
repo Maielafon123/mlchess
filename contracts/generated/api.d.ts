@@ -109,6 +109,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/games/{id}/coach-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["requestCoach"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/{id}/coach-requests/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+                job_id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        get: operations["getCoach"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games/{id}/draw-offers": {
         parameters: {
             query?: never;
@@ -389,6 +426,48 @@ export interface components {
             running_side: components["schemas"]["SideV1"] | null;
             server_now: components["schemas"]["UTCDateTime"];
         };
+        CoachExplanationV1: {
+            /** @constant */
+            schema_version: 1;
+            /** Format: uuid */
+            game_id: string;
+            revision: number;
+            ply: number;
+            /** Format: uuid */
+            analysis_id: string;
+            /** @enum {string} */
+            language: "ru" | "en";
+            /** @enum {string} */
+            level: "short" | "detailed" | "observation" | "direction" | "idea" | "candidates" | "solution";
+            summary: string;
+            why: string;
+            question: string;
+            referenced_uci: string[];
+            highlight_squares: string[];
+            claim_refs: string[];
+            template_id: string;
+            /** @enum {string} */
+            confidence: "grounded" | "uncertain" | "fallback";
+            model_id: string;
+            prompt_version: string;
+            fallback_used: boolean;
+        };
+        CoachJobV1: {
+            /** @constant */
+            schema_version: 1;
+            /** Format: uuid */
+            job_id: string;
+            /** @enum {string} */
+            status: "pending" | "ready" | "failed";
+            /** Format: uuid */
+            game_id: string;
+            /** Format: uuid */
+            analysis_id: string;
+            revision: number;
+            ply: number;
+            explanation?: components["schemas"]["CoachExplanationV1"];
+            error_code?: string;
+        } & (unknown & unknown);
         /** @description Durable event: seq is allocated atomically with game state/outbox. Publish only after commit. */
         CoachReadyEventV1: {
             /** @constant */
@@ -405,6 +484,21 @@ export interface components {
                 revision: number;
                 ply: number;
             };
+        };
+        CoachRequestV1: {
+            /** @constant */
+            schema_version: 1;
+            /** Format: uuid */
+            game_id: string;
+            /** Format: uuid */
+            analysis_id: string;
+            revision: number;
+            ply: number;
+            /** @enum {string} */
+            language: "ru" | "en";
+            /** @enum {string} */
+            level: "short" | "detailed" | "observation" | "direction" | "idea" | "candidates" | "solution";
+            student_context_version?: string;
         };
         /** @description Public create command. rated is created only by matchmaking. Idempotency-Key: UUIDv4 header is mandatory; no client FEN, clock state, result, engine budget or binary path. */
         CreateGameV1: {
@@ -1306,6 +1400,202 @@ export interface operations {
                 };
             };
             /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    requestCoach: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+            };
+            path: {
+                id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoachRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoachJobV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    getCoach: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["schemas"]["UUIDv4"];
+                job_id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoachJobV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem response */
             503: {
                 headers: {
                     [name: string]: unknown;

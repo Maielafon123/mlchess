@@ -162,5 +162,17 @@
   {
     "path": "invitations/waiting.json",
     "schema": "https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1"
+  },
+  {
+    "path": "coach/request.json",
+    "schema": "https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachRequestV1"
+  },
+  {
+    "path": "coach/job-pending.json",
+    "schema": "https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachJobV1"
+  },
+  {
+    "path": "coach/job-ready.json",
+    "schema": "https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachJobV1"
   }
 ]

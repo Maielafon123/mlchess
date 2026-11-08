@@ -1172,3 +1172,62 @@ export const fixture40 = {
   "created_by_current_user": true,
   "invite_url": "https://example.test/play/friend?invite=10000000-0000-4000-8000-000000000001#token=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 } satisfies components["schemas"]["InviteSnapshotV1"];
+
+// coach/request.json
+export const fixture41 = {
+  "schema_version": 1,
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+  "revision": 0,
+  "ply": 1,
+  "language": "ru",
+  "level": "short"
+} satisfies components["schemas"]["CoachRequestV1"];
+
+// coach/job-pending.json
+export const fixture42 = {
+  "schema_version": 1,
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+  "revision": 0,
+  "ply": 1,
+  "job_id": "f808c365-5cc3-44a0-9de1-f2b7579ba2d7",
+  "status": "pending"
+} satisfies components["schemas"]["CoachJobV1"];
+
+// coach/job-ready.json
+export const fixture43 = {
+  "schema_version": 1,
+  "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+  "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+  "revision": 0,
+  "ply": 1,
+  "job_id": "f808c365-5cc3-44a0-9de1-f2b7579ba2d7",
+  "status": "ready",
+  "explanation": {
+    "schema_version": 1,
+    "game_id": "2de40e7e-5241-423e-8fce-2ef1645595dc",
+    "revision": 0,
+    "ply": 1,
+    "analysis_id": "0f650483-7b3d-40f1-8958-5c236483c8b7",
+    "language": "ru",
+    "level": "short",
+    "summary": "РҐРѕРґ СЂР°Р·РІРёРІР°РµС‚ С„РёРіСѓСЂСѓ Рё Р±РѕСЂРµС‚СЃСЏ Р·Р° С†РµРЅС‚СЂ.",
+    "why": "РЎР»РѕРЅ РїРѕР»СѓС‡Р°РµС‚ Р°РєС‚РёРІРЅСѓСЋ РґРёР°РіРѕРЅР°Р»СЊ, Р° РїРѕР·РёС†РёСЏ СЃРѕС…СЂР°РЅСЏРµС‚ РїСЂРѕРІРµСЂРµРЅРЅСѓСЋ РѕС†РµРЅРєСѓ Р°РЅР°Р»РёР·Р°.",
+    "question": "РљР°РєР°СЏ С„РёРіСѓСЂР° С‚РµРїРµСЂСЊ Р±С‹СЃС‚СЂРµРµ РІС‹Р№РґРµС‚ РІ РёРіСЂСѓ?",
+    "referenced_uci": [
+      "e2e4"
+    ],
+    "highlight_squares": [
+      "e4"
+    ],
+    "claim_refs": [
+      "fact.center_control.v1"
+    ],
+    "template_id": "coach.generic.v1",
+    "confidence": "grounded",
+    "model_id": "fake/coach-v1",
+    "prompt_version": "coach-v1",
+    "fallback_used": false
+  }
+} satisfies components["schemas"]["CoachJobV1"];

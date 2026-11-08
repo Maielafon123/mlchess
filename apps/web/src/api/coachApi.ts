@@ -1,9 +1,10 @@
 import { ApiClient } from "./client";
+import type { components } from "../../../../contracts/generated/api";
 
-export type CoachLevel = "observation" | "direction" | "idea" | "candidates" | "solution";
-export type CoachRequest = { schema_version: 1; game_id: string; analysis_id: string; revision: number; ply: number; language: "ru" | "en"; level: CoachLevel };
-export type CoachExplanation = { schema_version: 1; game_id: string; revision: number; ply: number; analysis_id: string; language: "ru" | "en"; level: CoachLevel; summary: string; why: string; question: string; referenced_uci: string[]; highlight_squares: string[]; claim_refs: string[]; template_id: string; confidence: "grounded" | "uncertain" | "fallback"; model_id: string; prompt_version: string; fallback_used: boolean };
-export type CoachJob = { schema_version: 1; job_id: string; status: "pending" | "ready" | "failed"; game_id: string; analysis_id: string; revision: number; ply: number; explanation?: CoachExplanation | null; error_code?: string };
+export type CoachRequest = components["schemas"]["CoachRequestV1"];
+export type CoachLevel = CoachRequest["level"];
+export type CoachExplanation = components["schemas"]["CoachExplanationV1"];
+export type CoachJob = components["schemas"]["CoachJobV1"];
 
 export class CoachApi {
   constructor(private readonly client: ApiClient = new ApiClient()) {}

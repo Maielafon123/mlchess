@@ -1,22 +1,29 @@
-import { useState } from "react";
-import { GameBoard, type MoveRecord } from "./GameBoard";
-import { formatScore, type EngineAnalysis } from "../api/analysis";
+import { useMemo, useState } from "react";
+import { GameBoard } from "./GameBoard";
+import { formatScore, replayPv, type EngineAnalysis } from "../api/analysis";
 
 export function EngineAnalysisPanel({ analysis }: { analysis: EngineAnalysis | null }) {
-  const [pvIndex, setPvIndex] = useState(0);
+  if (!analysis) return <section className="analysis-panel" aria-label="Engine analysis"><p role="status">Engine analysis pending…</p></section>;
+  return <VerifiedAnalysis key={analysis.analysis_id} analysis={analysis} />;
+}
 
-  if (!analysis || analysis.status === "pending") return <section className="analysis-panel" aria-label="Engine analysis"><div className="analysis-status" role="status">Engine analysis pending…</div></section>;
-  if (analysis.status === "unavailable") return <section className="analysis-panel" aria-label="Engine analysis"><div className="analysis-status" role="status">Analysis unavailable for this position.</div></section>;
-
-  const currentPv = analysis.pv[pvIndex];
-  const pvMoves: MoveRecord[] = analysis.pv.slice(0, pvIndex).map((move, index) => ({ ply: index + 1, san: move.san, uci: move.uci }));
-  return (
-    <section className="analysis-panel" aria-label="Engine analysis">
-      <div className="analysis-header"><h2>Engine analysis</h2><span className={`quality-badge quality-${analysis.quality ?? "none"}`}>{analysis.quality ?? "No quality label"}</span></div>
-      <div className="score-row"><div className="score-bar" role="img" aria-label={`Evaluation ${formatScore(analysis.score, analysis.perspective)}`}><span style={{ width: analysis.score?.kind === "cp" ? `${Math.min(100, Math.max(0, 50 + analysis.score.value / 20))}%` : "50%" }} /></div><strong>{formatScore(analysis.score, analysis.perspective)}</strong></div>
-      <div className="analysis-lines"><div><span>Best move</span><strong>{analysis.best_move ? `${analysis.best_move.san} · ${analysis.best_move.uci}` : "Unavailable"}</strong></div><div><span>Perspective</span><strong>{analysis.perspective}</strong></div></div>
-      <div className="analysis-alternatives"><h3>Alternatives</h3>{analysis.alternatives.length === 0 ? <p>No alternatives returned.</p> : <ol>{analysis.alternatives.map((line) => <li key={line.uci}><span>{line.san} · {line.uci}</span><span>{formatScore(line.score, analysis.perspective)}</span></li>)}</ol>}</div>
-      <div className="pv-replay"><div className="analysis-header"><h3>Principal variation</h3><span>{analysis.pv.length === 0 ? "No legal PV" : `${pvIndex + 1}/${analysis.pv.length}`}</span></div>{currentPv && <GameBoard fen={currentPv.fen} moves={pvMoves} disabled onMoveAttempt={() => undefined} />}<div className="pv-controls"><button type="button" onClick={() => setPvIndex((index) => Math.max(0, index - 1))} disabled={pvIndex === 0}>Previous</button><button type="button" onClick={() => setPvIndex((index) => Math.min(analysis.pv.length - 1, index + 1))} disabled={pvIndex >= analysis.pv.length - 1}>Next</button></div></div>
-    </section>
-  );
+function VerifiedAnalysis({ analysis }: { analysis: EngineAnalysis }) {
+  const [index, setIndex] = useState(0);
+  const frames = useMemo(() => {
+    try { return replayPv(analysis.before_fen, analysis.top_moves[0].pv_uci); }
+    catch { return []; }
+  }, [analysis]);
+  const ply = Math.min(index, frames.length);
+  const fen = ply === 0 ? analysis.before_fen : frames[ply - 1].fen;
+  return <section className="analysis-panel" aria-label="Engine analysis">
+    <div className="analysis-header"><h2>Engine analysis</h2><span className={`quality-badge quality-${analysis.quality}`}>{analysis.quality}</span></div>
+    <p>Before: {formatScore(analysis.score_before)} · After: {formatScore(analysis.score_after)}</p>
+    <p>Best move before the played move: {analysis.top_moves[0].san} · {analysis.best_move_uci}</p>
+    <ol>{analysis.top_moves.map((line) => <li key={line.uci}>{line.san} · {formatScore(line.score)}</li>)}</ol>
+    <details><summary>Principal variation</summary>{frames.length > 0 ? <>
+      <p>{ply}/{frames.length}</p><GameBoard fen={fen} moves={frames.slice(0, ply)} disabled onMoveAttempt={() => undefined} />
+      <div className="pv-controls"><button type="button" onClick={() => setIndex((value) => Math.max(0, value - 1))} disabled={ply === 0}>Previous</button><button type="button" onClick={() => setIndex((value) => Math.min(frames.length, value + 1))} disabled={ply >= frames.length}>Next</button></div>
+    </> : <p>Variation unavailable.</p>}</details>
+    <small>{analysis.engine.version} · White POV</small>
+  </section>;
 }

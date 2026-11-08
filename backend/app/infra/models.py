@@ -304,3 +304,56 @@ class WorkerJob(Base):
         DateTime(timezone=True), nullable=False, default=utcnow
     )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class CoachExplanation(Base):
+    __tablename__ = "coach_explanations"
+    __table_args__ = (
+        UniqueConstraint(
+            "requester_id",
+            "analysis_id",
+            "model_id",
+            "prompt_version",
+            "language",
+            "level",
+            "student_context_version",
+            name="uq_coach_request",
+        ),
+        CheckConstraint(
+            "status IN ('pending','ready','failed')", name="ck_coach_status"
+        ),
+        CheckConstraint(
+            "status <> 'ready' OR payload_json IS NOT NULL",
+            name="ck_coach_ready_payload",
+        ),
+        CheckConstraint(
+            "status <> 'failed' OR error_code IS NOT NULL", name="ck_coach_failed_error"
+        ),
+        Index("ix_coach_game", "game_id", "revision"),
+    )
+    id: Mapped[UUID] = mapped_column(
+        ForeignKey("outbox_events.id", ondelete="CASCADE"), primary_key=True
+    )
+    requester_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    analysis_id: Mapped[UUID] = mapped_column(
+        ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False
+    )
+    game_id: Mapped[UUID] = mapped_column(
+        ForeignKey("games.id", ondelete="CASCADE"), nullable=False
+    )
+    revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    ply: Mapped[int] = mapped_column(Integer, nullable=False)
+    model_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    prompt_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    language: Mapped[str] = mapped_column(String(2), nullable=False)
+    level: Mapped[str] = mapped_column(String(24), nullable=False)
+    student_context_version: Mapped[str] = mapped_column(String(120), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    fallback_used: Mapped[bool] = mapped_column(nullable=False, default=False)
+    payload_json: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )

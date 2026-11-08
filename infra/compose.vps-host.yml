@@ -46,6 +46,13 @@ services:
       MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
       MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
     volumes: [./container_probe.py:/app/infra/container_probe.py:ro]
+  coach-worker:
+    network_mode: host
+    networks: !reset []
+    environment:
+      MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+    volumes: [./container_probe.py:/app/infra/container_probe.py:ro]
   web:
     network_mode: host
     networks: !reset []

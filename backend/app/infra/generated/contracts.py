@@ -35,6 +35,87 @@ class CapabilitiesV1(BaseModel):
     can_analyze_now: bool
 
 
+class ReferencedUciItem(RootModel[str]):
+    root: str = Field(..., pattern="^[a-h][1-8][a-h][1-8][qrbn]?$")
+
+
+class HighlightSquare(RootModel[str]):
+    root: str = Field(..., pattern="^[a-h][1-8]$")
+
+
+class ClaimRef(RootModel[str]):
+    root: str = Field(..., pattern="^[a-zA-Z0-9._:-]+$")
+
+
+class CoachExplanationV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    game_id: str
+    revision: int = Field(..., ge=0)
+    ply: int = Field(..., ge=1)
+    analysis_id: str
+    language: Literal["ru", "en"]
+    level: Literal[
+        "short",
+        "detailed",
+        "observation",
+        "direction",
+        "idea",
+        "candidates",
+        "solution",
+    ]
+    summary: str = Field(..., max_length=500, min_length=1)
+    why: str = Field(..., max_length=2000, min_length=1)
+    question: str = Field(..., max_length=500, min_length=1)
+    referenced_uci: list[ReferencedUciItem] = Field(..., max_length=8)
+    highlight_squares: list[HighlightSquare] = Field(..., max_length=16)
+    claim_refs: list[ClaimRef] = Field(..., max_length=16)
+    template_id: str = Field(..., max_length=120, pattern="^[a-zA-Z0-9._:-]+$")
+    confidence: Literal["grounded", "uncertain", "fallback"]
+    model_id: str = Field(..., max_length=160, min_length=1)
+    prompt_version: str = Field(..., max_length=80, pattern="^[a-zA-Z0-9._:-]+$")
+    fallback_used: bool
+
+
+class CoachJobV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    job_id: str
+    status: Literal["pending", "ready", "failed"]
+    game_id: str
+    analysis_id: str
+    revision: int = Field(..., ge=0)
+    ply: int = Field(..., ge=1)
+    explanation: CoachExplanationV1 | None = None
+    error_code: str | None = Field(None, max_length=80, pattern="^[A-Z0-9_:-]+$")
+
+
+class CoachRequestV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    game_id: str
+    analysis_id: str
+    revision: int = Field(..., ge=0)
+    ply: int = Field(..., ge=1)
+    language: Literal["ru", "en"]
+    level: Literal[
+        "short",
+        "detailed",
+        "observation",
+        "direction",
+        "idea",
+        "candidates",
+        "solution",
+    ]
+    student_context_version: str | None = Field(None, max_length=120, min_length=1)
+
+
 class DisplayName(RootModel[str]):
     root: str = Field(..., max_length=80, min_length=1)
 
