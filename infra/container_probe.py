@@ -8,17 +8,24 @@ import sys
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-from sqlalchemy import text
-from backend.app.infra.db import create_engine
-
 
 async def database() -> None:
-    engine = create_engine(os.environ["MLCHESS_DATABASE_URL"])
+    # A health subprocess shares the worker's CPU quota. Avoid importing the ORM
+    # and application graph on every probe, especially on a 0.4 CPU VPS worker.
+    import asyncpg
+
+    url = os.environ["MLCHESS_DATABASE_URL"]
+    if not url.startswith("postgresql+asyncpg://"):
+        raise ValueError("Worker probe requires PostgreSQL")
+    connection = await asyncpg.connect(
+        url.replace("postgresql+asyncpg://", "postgresql://", 1),
+        timeout=2,
+        command_timeout=2,
+    )
     try:
-        async with engine.connect() as connection:
-            await connection.execute(text("SELECT id FROM worker_jobs LIMIT 1"))
+        await connection.fetchval("SELECT id FROM worker_jobs LIMIT 1")
     finally:
-        await engine.dispose()
+        await connection.close(timeout=1)
 
 
 def main() -> int:

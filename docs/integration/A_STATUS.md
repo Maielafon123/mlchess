@@ -175,3 +175,22 @@ final analysis26 PASS; engine/infra target previously36 PASS plus the corrected
 invitation fixture case. Ruff check/format, web lint/build and generation check PASS.
 PostgreSQL concurrency and real-container E2E are pending CI; no A-I09 live signoff
 or deployment of these new analysis sources is claimed yet.
+
+## A-I09 public runtime evidence and probe repair
+
+PR38 merged c7fcb2bac57d559436826b6b0ea96edbba6cfbfc after all six jobs PASS
+on head0597c93446dc402c4a795f9479f95801eeaa3aeb in42526640621. PostgreSQL
+concurrent requests share one job/lease; gameplay advancement preserves earlier
+analysis, unique event sequence and duplicate-delivery fencing PASS.
+VPS API/gameplay/analysis images0597c93 deployed with infra c7fcb2b; static web and
+gateway retain845f4b1 (no frontend/proxy change in this release). Pre-update SQL
+backup retained with private server permissions. Public HTTPS Playwright7 PASS
+(15.4s), including actual Linux Stockfish analysis, factual model/binary metadata,
+result persistence across page reload and all six phone cases.
+
+Runtime found an operational defect missed by CI: the analysis worker at0.4CPU
+executes jobs but its ORM-heavy health subprocess exceeds the5s probe timeout on
+this VPS. No OOM/restarts occurred. Replace repeated ORM/app imports with a small
+asyncpg probe, connect/query/close timeouts2/2/1s, no exception output. Host overlay
+mounts that probe read-only so an unchanged tested application image can receive
+the correction. Targeted probe/host config4 PASS; actual VPS measurement pending.
