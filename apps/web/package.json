@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:live": "playwright test --config=playwright.live.config.ts"
+    "test:e2e:live": "playwright test --config=playwright.live.config.ts",
+    "test:e2e:realtime": "playwright test --config=playwright.realtime.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.2",

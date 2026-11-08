@@ -83,6 +83,10 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
     api_command = services["api"]["command"]
     assert api_command[api_command.index("--host") + 1] == "127.0.0.1"
     assert api_command[api_command.index("--port") + 1] == "58000"
+    assert api_command[api_command.index("--ws") + 1] == "websockets"
+    assert api_command[api_command.index("--ws-max-size") + 1] == "2048"
+    assert api_command[api_command.index("--ws-max-queue") + 1] == "4"
+    assert api_command[api_command.index("--ws-per-message-deflate") + 1] == "false"
     for name in ("api", "worker", "analysis-worker", "coach-worker", "migrate"):
         assert (
             "@127.0.0.1:55432/" in services[name]["environment"]["MLCHESS_DATABASE_URL"]

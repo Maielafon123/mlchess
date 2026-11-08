@@ -2208,6 +2208,29 @@
         "aborted"
       ]
     },
+    "GameSubscribeV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "game_id",
+        "after_seq"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "subscribe"
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "after_seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
     "GameTakebackAppliedEventV1": {
       "type": "object",
       "additionalProperties": false,

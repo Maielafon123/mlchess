@@ -10,6 +10,14 @@ test("guest challenge works by touch on two phones and survives refresh @guest",
   try {
     const page = await first.newPage();
     const errors: string[] = [];
+    const received: string[] = [];
+    const observeStream = (target: typeof page) => target.on("websocket", (socket) => {
+      if (new URL(socket.url()).pathname.startsWith("/ws/v1/games/")) socket.on("framereceived", (event) => {
+        const frame = JSON.parse(String(event.payload));
+        received.push(frame.type);
+      });
+    });
+    observeStream(page);
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/play/friend");
     await page.getByRole("button", { name: "Создать вызов", exact: true }).click();
@@ -19,10 +27,13 @@ test("guest challenge works by touch on two phones and survives refresh @guest",
     expect(link).toContain("#token=");
     expect(new URL(page.url()).hash).toBe("");
     const other = await second.newPage();
+    observeStream(other);
     other.on("pageerror", (error) => errors.push(error.message));
     await other.goto(link);
     await expect(other.getByRole("status").filter({ hasText: "Ход соперника" })).toBeVisible();
     await expect(page.getByRole("status").filter({ hasText: "Ваш ход" })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Связь установлена" })).toBeVisible();
+    await expect(other.getByRole("status").filter({ hasText: "Связь установлена" })).toBeVisible();
     expect(new URL(other.url()).hash).toBe("");
     const user1 = await (await first.request.get("/api/v1/me")).json();
     const user2 = await (await second.request.get("/api/v1/me")).json();
@@ -37,6 +48,9 @@ test("guest challenge works by touch on two phones and survives refresh @guest",
     await other.locator('.board-frame [data-square="e5"]').tap();
     await expect(page.locator(".move-history ol li")).toHaveCount(2);
     await expect(other.locator(".move-history ol li")).toHaveCount(2);
+    await expect.poll(() => received.filter((type) => type === "game.move_committed").length).toBeGreaterThanOrEqual(2);
+    expect(received).not.toContain("analysis.ready");
+    expect(received).not.toContain("coach.ready");
     // Keep a real successful poll in flight while reloading. WebKit must see an
     // explicit app cancellation rather than reporting a navigation/CORS error.
     const gameId = new URL(other.url()).searchParams.get("game");
@@ -50,7 +64,7 @@ test("guest challenge works by touch on two phones and survives refresh @guest",
       await route.fulfill({ response }).catch(() => { /* old document cancelled its fetch */ });
     }, { times: 1 });
     try {
-      await expect.poll(() => pollInFlight).toBe(true);
+      await expect.poll(() => pollInFlight, { timeout: 10000 }).toBe(true);
       await other.reload();
     } finally { releasePoll(); }
     await expect(other.locator(".move-history ol li")).toHaveCount(2);

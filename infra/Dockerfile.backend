@@ -6,7 +6,7 @@ COPY contracts/coach/ contracts/coach/
 RUN pip install --constraint backend/requirements.lock ./backend
 COPY infra/container_probe.py infra/
 USER 10001:10001
-CMD ["uvicorn", "backend.app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers", "--no-access-log"]
+CMD ["uvicorn", "backend.app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers", "--no-access-log", "--log-level", "warning", "--ws", "websockets", "--ws-max-size", "2048", "--ws-max-queue", "4", "--ws-per-message-deflate", "false"]
 
 FROM api AS worker
 USER root

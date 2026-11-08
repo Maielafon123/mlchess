@@ -74,3 +74,17 @@ flow. Production OIDC/guest auth, WebSocket fanout, analysis, coach and learning
 composition remain separate dependencies. The current B temporary clients need
 to adopt the generated request/response types described above; do not weaken the
 server contract to accept their old partial payloads.
+
+
+## Read-only realtime
+
+Connect on the same origin to `/ws/v1/games/{game_id}`, with the existing session
+cookie and browser Origin. Send one generated GameSubscribeV1 frame. Zero requests
+an atomic snapshot/cursor; retained cursors replay and tail durable SQL batches.
+Commands remain HTTP with CSRF. See `contracts/game/events.md` for control handling
+and close codes. SQL tailing is the current transport; Redis fanout is not claimed.
+
+`pnpm --dir apps/web test:e2e:realtime` runs the production web build against a
+loopback Uvicorn and a new disposable temporary SQLite database, without Docker
+or engine workers. It checks actual WS frames on Android Chromium/iPhone WebKit.
+Use the Compose live suite for PostgreSQL, workers and full integration acceptance.

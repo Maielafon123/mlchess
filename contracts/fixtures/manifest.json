@@ -194,5 +194,9 @@
   {
     "path": "learning/progress.json",
     "schema": "https://mlchess.local/contracts/learning/v1.yaml#/$defs/StudentProgressV1"
+  },
+  {
+    "path": "events/subscribe.json",
+    "schema": "https://mlchess.local/contracts/game/subscription.v1.yaml#/$defs/GameSubscribeV1"
   }
 ]

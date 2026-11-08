@@ -3,8 +3,8 @@ openapi: 3.1.0
 info:
   title: MLChess API contract review candidate
   version: 1.0.0
-  description: Schema-first review candidate. Only routes marked implemented-scaffold have runtime handlers;
-    proposed routes are documentation.
+  description: Versioned API contracts. Operation implementation markers describe their integration stage;
+    schema presence alone is not a production release signoff.
 servers:
 - url: /
 security:
@@ -3863,6 +3863,23 @@ components:
       - active
       - finished
       - aborted
+    GameSubscribeV1:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - game_id
+      - after_seq
+      properties:
+        type:
+          type: string
+          const: subscribe
+        game_id:
+          $ref: '#/components/schemas/UUIDv4'
+        after_seq:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
     GameTakebackAppliedEventV1:
       type: object
       additionalProperties: false
@@ -5098,6 +5115,7 @@ x-source-schemas:
   GameSnapshotV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameSnapshotV1
   GameStatusChangedEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameStatusChangedEventV1
   GameStatusV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameStatusV1
+  GameSubscribeV1: https://mlchess.local/contracts/game/subscription.v1.yaml#/$defs/GameSubscribeV1
   GameTakebackAppliedEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameTakebackAppliedEventV1
   GuestSessionRequestV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/GuestSessionRequestV1
   HealthV1: https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1
@@ -5134,3 +5152,7 @@ x-source-schemas:
   UciMoveV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/UciMoveV1
   VerifiedClaimV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/VerifiedClaimV1
 x-websocket-schema: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1
+x-websocket-subscription:
+  path: /ws/v1/games/{game_id}
+  request_schema: https://mlchess.local/contracts/game/subscription.v1.yaml#/$defs/GameSubscribeV1
+  authentication: same-origin session cookie; Origin and participant ACL required

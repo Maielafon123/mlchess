@@ -625,6 +625,15 @@ class GameStatusChangedEventV1(BaseModel):
     payload: Payload4
 
 
+class GameSubscribeV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    type: Literal["subscribe"]
+    game_id: UUIDv4
+    after_seq: int = Field(..., ge=0, le=9007199254740991)
+
+
 class Payload5(BaseModel):
     model_config = ConfigDict(
         extra="forbid",

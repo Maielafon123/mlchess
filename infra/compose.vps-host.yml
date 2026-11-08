@@ -28,7 +28,7 @@ services:
     environment:
       MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
       MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
-    command: [uvicorn, backend.app.main:create_app, --factory, --host, 127.0.0.1, --port, "58000", --no-proxy-headers, --no-access-log, --limit-concurrency, "64", --backlog, "64", --timeout-keep-alive, "5"]
+    command: [uvicorn, backend.app.main:create_app, --factory, --host, 127.0.0.1, --port, "58000", --no-proxy-headers, --no-access-log, --log-level, warning, --ws, websockets, --ws-max-size, "2048", --ws-max-queue, "4", --ws-per-message-deflate, "false", --limit-concurrency, "64", --backlog, "64", --timeout-keep-alive, "5"]
     volumes: [./host_api_probe.py:/app/infra/host_api_probe.py:ro]
     healthcheck:
       test: [CMD, python, -m, infra.host_api_probe]
