@@ -120,3 +120,78 @@ def test_gameplay_can_advance_without_invalidating_an_earlier_analysis(pg_app):
         assert result.status_code == 200
         check_analysis_fixture(result.json())
         assert http.get(f"/api/v1/games/{game['id']}").json()["ply"] == 2
+
+
+def test_position_capture_is_coherent_when_gameplay_commits_between_reads(pg_app):
+    import re
+    import threading
+    from sqlalchemy import event
+    from backend.app.engine.adapter import EngineMove
+
+    with TestClient(pg_app) as http:
+        headers = login(http)
+        game = create(http, headers)
+        move(http, game, headers)
+        http.post(
+            f"/api/v1/games/{game['id']}/analysis-requests",
+            json={"ply": 1, "analysis_level": "quick"},
+            headers={**headers, "Idempotency-Key": str(uuid4())},
+        )
+        factory = pg_app.state.database_factory
+        analysis = AnalysisWorker(factory, AnalysisEngine(), METADATA)
+        gameplay = GameplayWorker(factory, FakeEngine())
+        analysis_lease, gameplay_lease = (
+            asyncio.run(analysis.claim()),
+            asyncio.run(gameplay.claim()),
+        )
+        engine = factory.kw["bind"].sync_engine
+        captured, resume, writer_reached, writer_done = [
+            threading.Event() for _ in range(4)
+        ]
+        local = threading.local()
+
+        def game_query(statement):
+            return re.search(r"\bFROM (?:\w+\.)?games\b", statement, re.I) is not None
+
+        def after_read(_conn, _cursor, statement, _params, _context, _many):
+            if (
+                getattr(local, "reader", False)
+                and game_query(statement)
+                and not captured.is_set()
+            ):
+                captured.set()
+                assert resume.wait(5), "Reader gate timed out"
+
+        def before_write(_conn, _cursor, statement, _params, _context, _many):
+            if not getattr(local, "reader", False) and game_query(statement):
+                writer_reached.set()
+
+        def read():
+            local.reader = True
+            return asyncio.run(analysis.position(analysis_lease))
+
+        def write():
+            try:
+                return asyncio.run(gameplay.apply(gameplay_lease, EngineMove("e7e5")))
+            finally:
+                writer_done.set()
+
+        event.listen(engine, "after_cursor_execute", after_read)
+        event.listen(engine, "before_cursor_execute", before_write)
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                reader = pool.submit(read)
+                assert captured.wait(5)
+                writer = pool.submit(write)
+                assert writer_reached.wait(5)
+                # An unlocked implementation commits here, mixing game v1 with state v2.
+                # A coherent capture holds its short row lock until the copied state exits.
+                writer_done.wait(1)
+                resume.set()
+                position = reader.result(timeout=5)
+                assert position is not None
+                assert writer.result(timeout=5) == "done"
+        finally:
+            resume.set()
+            event.remove(engine, "after_cursor_execute", after_read)
+            event.remove(engine, "before_cursor_execute", before_write)

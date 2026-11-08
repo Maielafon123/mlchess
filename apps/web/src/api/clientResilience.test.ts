@@ -1,8 +1,20 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ApiClient } from "./client";
 
 describe("HTTP cancellation and problems", () => {
+  it("cancels an in-flight poll explicitly before page navigation", async () => {
+    const navigation = new EventTarget();
+    vi.stubGlobal("window", navigation);
+    try {
+      const client = new ApiClient({ fetchImpl: async (_url, init) => new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+      }) });
+      const response = client.get("/poll");
+      navigation.dispatchEvent(new Event("pagehide"));
+      await expect(response).rejects.toMatchObject({ name: "AbortError" });
+    } finally { vi.unstubAllGlobals(); }
+  });
   it("accepts a successful logout with no body even if JSON content type is present", async () => {
     const client = new ApiClient({ fetchImpl: async () => new Response(null, { status: 204, headers: { "content-type": "application/json" } }) });
     await expect(client.post("/logout", {})).resolves.toBeUndefined();
