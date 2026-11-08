@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "opening-center",
+  "title": "Центр и развитие",
+  "summary": "Свяжите контроль центра с активностью фигур.",
+  "body": "В дебюте пешки и фигуры борются за центральные поля. Развивайте лёгкие фигуры и следите за прямыми угрозами. После каждого хода соперника проверьте шахи, взятия и незащищённые фигуры. Повторный ход одной фигурой должен иметь конкретную причину, пока другие фигуры остаются на начальных полях.",
+  "language": "ru",
+  "status": "not-started",
+  "tags": [
+    "opening",
+    "development"
+  ],
+  "source_name": "MLChess original curriculum",
+  "source_url": "https://github.com/Maielafon123/mlchess/blob/main/docs/learning/CURRICULUM.md",
+  "license": "CC BY 4.0"
+}

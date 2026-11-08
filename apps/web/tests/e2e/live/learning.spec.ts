@@ -1,0 +1,38 @@
+import { expect, test } from "@playwright/test";
+
+test("guest learning saves lessons, hints and real server-graded progress @guest", async ({ page }, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/learn");
+  await page.getByRole("button", { name: "Открыть урок" }).first().click();
+  await expect(page.getByRole("button", { name: "Завершить урок" })).toBeEnabled();
+  await page.getByRole("button", { name: "Завершить урок" }).click();
+  await expect(page.getByRole("button", { name: "Завершить урок" })).toBeDisabled();
+  await page.reload();
+  await expect(page.locator(".lesson-card").first()).toContainText("Завершён");
+  await page.getByRole("link", { name: "Задачи", exact: true }).click();
+  await expect(page.getByLabel("UCI move")).toBeEnabled();
+  const before = await page.request.get("/api/v1/learning/puzzles/back-rank/state");
+  expect(before.status()).toBe(200);
+  expect(await before.json()).not.toHaveProperty("solution");
+  await page.getByRole("button", { name: "Следующая подсказка" }).click();
+  await expect(page.locator(".hint-stack p")).toHaveCount(1);
+  await page.reload();
+  await expect(page.locator(".hint-stack p")).toHaveCount(1);
+  await page.locator('.board-frame [data-square="d1"]').click();
+  await page.locator('.board-frame [data-square="d8"]').click();
+  await expect(page.getByRole("heading", { name: "Ваше решение" })).toBeVisible();
+  await expect(page.getByLabel("UCI move")).toBeDisabled();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Ваше решение" })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("phone-puzzle.png"), fullPage: true });
+  await page.getByRole("link", { name: "Прогресс", exact: true }).click();
+  await expect(page.locator(".progress-card")).toHaveCount(2);
+  await expect(page.locator(".progress-card").first()).toContainText("1/1");
+  await expect(page.locator(".progress-card").first()).toContainText("1 подсказок");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await page.setViewportSize({ width: 320, height: 640 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});

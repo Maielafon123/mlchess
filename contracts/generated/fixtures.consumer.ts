@@ -1231,3 +1231,65 @@ export const fixture43 = {
     "fallback_used": false
   }
 } satisfies components["schemas"]["CoachJobV1"];
+
+// learning/lesson.json
+export const fixture44 = {
+  "schema_version": 1,
+  "id": "opening-center",
+  "title": "Центр и развитие",
+  "summary": "Свяжите контроль центра с активностью фигур.",
+  "body": "В дебюте пешки и фигуры борются за центральные поля. Развивайте лёгкие фигуры и следите за прямыми угрозами. После каждого хода соперника проверьте шахи, взятия и незащищённые фигуры. Повторный ход одной фигурой должен иметь конкретную причину, пока другие фигуры остаются на начальных полях.",
+  "language": "ru",
+  "status": "not-started",
+  "tags": [
+    "opening",
+    "development"
+  ],
+  "source_name": "MLChess original curriculum",
+  "source_url": "https://github.com/Maielafon123/mlchess/blob/main/docs/learning/CURRICULUM.md",
+  "license": "CC BY 4.0"
+} satisfies components["schemas"]["LessonV1"];
+
+// learning/puzzle.json
+export const fixture45 = {
+  "schema_version": 1,
+  "id": "back-rank",
+  "fen": "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
+  "difficulty": 1,
+  "tags": [
+    "mate",
+    "back-rank"
+  ],
+  "source_name": "MLChess original curriculum",
+  "source_url": "https://github.com/Maielafon123/mlchess/blob/main/docs/learning/CURRICULUM.md",
+  "license": "CC BY 4.0"
+} satisfies components["schemas"]["PuzzleV1"];
+
+// learning/state-before.json
+export const fixture46 = {
+  "schema_version": 1,
+  "learning_epoch": 0,
+  "puzzle_id": "back-rank",
+  "session_number": 0,
+  "current_fen": "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
+  "next_ply": 0,
+  "completed": false,
+  "hints": []
+} satisfies components["schemas"]["PuzzleStateV1"];
+
+// learning/attempt.json
+export const fixture47 = {
+  "schema_version": 1,
+  "learning_epoch": 0,
+  "attempt_id": "0fc9a92e-5eab-4d93-aea5-f33cfef168fd",
+  "uci": "d1d8",
+  "expected_ply": 0,
+  "session_number": 0
+} satisfies components["schemas"]["PuzzleAttemptRequestV1"];
+
+// learning/progress.json
+export const fixture48 = {
+  "schema_version": 1,
+  "student_id": "0fc9a92e-5eab-4d93-aea5-f33cfef168fd",
+  "skills": []
+} satisfies components["schemas"]["StudentProgressV1"];

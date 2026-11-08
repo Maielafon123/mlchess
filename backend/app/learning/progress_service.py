@@ -1,6 +1,6 @@
 """Deterministic Student Progress and spaced repetition service (B-022)."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Callable
 
@@ -62,7 +62,20 @@ class ProgressService:
         else:
             progress.streak = 0
             progress.due_at = self.now()
-        self.events[(student_id, event_id)] = progress
+        self.events[(student_id, event_id)] = replace(progress)
+        return progress
+
+    def record_hint(
+        self, student_id: str, skill: str, *, event_id: str
+    ) -> SkillProgress:
+        if not event_id or len(event_id) > 120:
+            raise ValueError("event_id is required and bounded")
+        duplicate = self.events.get((student_id, event_id))
+        if duplicate is not None:
+            return duplicate
+        progress = self.get(student_id).skills.setdefault(skill, SkillProgress(skill))
+        progress.hints_used += 1
+        self.events[(student_id, event_id)] = replace(progress)
         return progress
 
     def review_queue(self, student_id: str) -> list[SkillProgress]:

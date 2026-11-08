@@ -357,3 +357,153 @@ class CoachExplanation(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
+
+
+class LearningProfileRow(Base):
+    __tablename__ = "learning_profiles"
+    __table_args__ = (CheckConstraint("epoch >= 0", name="ck_learning_epoch"),)
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    epoch: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+
+class LessonRow(Base):
+    __tablename__ = "lessons"
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    content: Mapped[dict] = mapped_column(JSON, nullable=False)
+    tags: Mapped[list] = mapped_column(JSON, nullable=False)
+    source_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    source_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    license: Mapped[str] = mapped_column(String(120), nullable=False)
+
+
+class PuzzleRow(Base):
+    __tablename__ = "puzzles"
+    __table_args__ = (
+        CheckConstraint("difficulty BETWEEN 1 AND 5", name="ck_puzzle_difficulty"),
+    )
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    fen: Mapped[str] = mapped_column(String(120), nullable=False)
+    difficulty: Mapped[int] = mapped_column(Integer, nullable=False)
+    tags: Mapped[list] = mapped_column(JSON, nullable=False)
+    private_solution: Mapped[list] = mapped_column(JSON, nullable=False)
+    solution_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    hints: Mapped[dict] = mapped_column(JSON, nullable=False)
+    source_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    source_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    license: Mapped[str] = mapped_column(String(120), nullable=False)
+
+
+class LessonProgressRow(Base):
+    __tablename__ = "lesson_progress"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('started','completed')", name="ck_lesson_progress_status"
+        ),
+    )
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    lesson_id: Mapped[str] = mapped_column(
+        ForeignKey("lessons.id", ondelete="CASCADE"), primary_key=True
+    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
+class PuzzleStateRow(Base):
+    __tablename__ = "puzzle_states"
+    __table_args__ = (
+        CheckConstraint(
+            "cursor >= 0 AND hints_count >= 0 AND hints_accounted >= 0 AND hints_accounted <= hints_count AND session_number >= 0",
+            name="ck_puzzle_state_counters",
+        ),
+    )
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    puzzle_id: Mapped[str] = mapped_column(
+        ForeignKey("puzzles.id", ondelete="CASCADE"), primary_key=True
+    )
+    fen: Mapped[str] = mapped_column(String(120), nullable=False)
+    history: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    cursor: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    hints_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    hints_accounted: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    session_number: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
+class PuzzleAttemptRow(Base):
+    __tablename__ = "puzzle_attempts"
+    __table_args__ = (
+        Index("ix_puzzle_attempt_student_time", "student_id", "created_at"),
+    )
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    attempt_id: Mapped[str] = mapped_column(String(120), primary_key=True)
+    uci: Mapped[str] = mapped_column(String(5), nullable=False)
+    puzzle_id: Mapped[str] = mapped_column(
+        ForeignKey("puzzles.id", ondelete="CASCADE"), nullable=False
+    )
+    session_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    response: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
+class StudentSkillRow(Base):
+    __tablename__ = "student_skills"
+    __table_args__ = (
+        CheckConstraint(
+            "attempts >= 0 AND correct >= 0 AND correct <= attempts AND hints_used >= 0 AND streak >= 0 AND streak <= correct",
+            name="ck_student_skill_counters",
+        ),
+    )
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    skill: Mapped[str] = mapped_column(String(80), primary_key=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    correct: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    hints_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ProgressEventRow(Base):
+    __tablename__ = "progress_events"
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    event_id: Mapped[str] = mapped_column(String(120), primary_key=True)
+    skill: Mapped[str] = mapped_column(String(80), nullable=False)
+    result: Mapped[str] = mapped_column(String(16), nullable=False)
+    snapshot: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )
+
+
+class LearningReceiptRow(Base):
+    __tablename__ = "learning_receipts"
+    __table_args__ = (
+        Index("ix_learning_receipt_student_time", "student_id", "created_at"),
+    )
+    student_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    command_key: Mapped[UUID] = mapped_column(UUIDType, primary_key=True)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    response: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow
+    )

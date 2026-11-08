@@ -256,7 +256,49 @@ Explicit new analysis commands can retry a failed/stale current position under t
 same40/hour and256 pending limits; old receipts remain exact. Retry events count
 toward the quota. Undo/current phase/ACL checks remain mandatory before retry.
 
-Learning work is preserved on codex/durable-learning and its named Git stash:
+Learning work was preserved on codex/durable-learning and has now been restored (no remaining stash):
 eight original bilingual lessons, four mechanically validated mate puzzles and
 one expand-only0005 schema/seed migration (offline and fresh SQLite upgrade PASS).
 No learning routes or production learning deployment are claimed yet.
+
+Coherent-read correction PR41 mergedb45791b6365cf23595b895243a1c045a4706a508
+after six green jobs42531660756 on6baf166ef447eaee627b0e535c6b72fcaa79eacd.
+All four images6baf166 deployed with matching infrastructure; migration/health PASS.
+Repeated external public HTTPS acceptance:10/10 PASS in30.5s at6 workers, including
+all three coach browsers, held-poll reload on iPhone/Android and all guest flows.
+The gated PostgreSQL concurrent capture regression PASS. A separate old-release
+WebKit held-poll control also passed, so the original navigation failure was
+intermittent; the cancellation change is defensive and the public retest is green.
+Proceed with A-I11; no full-product or external-LLM signoff is implied.
+
+
+## A-I11 persistent learning implementation (acceptance pending)
+
+Base b45791b6365cf23595b895243a1c045a4706a508, exact-main CI42532285064 PASS;
+coach merge cad3 exact-main CI42530143824 PASS. Andrei integration/b-next remains
+9ea5331, already integrated. Cross-owner work follows CCR-A-I11-LEARNING.md.
+
+Migration0005 adds nine learning tables and a frozen original CC BY4.0 seed:
+eight bilingual lessons and four mechanically legal mate-in-one puzzles.
+All14 guarded learning routes now use SQL. Actor row locks serialize commands,
+receipts preserve exact responses, attempt identifiers deduplicate progress, cursor
+and restart counters reject old tabs. A retained learning epoch also fences delayed
+pre-reset commands. Reset removes only this actor's learning, retaining games/auth.
+The grader accepts equivalent final mates, including rook underpromotion. Private
+solutions never appear in initial DTOs or the production frontend bundle; hints
+are server requests and replay appears only after completion. Progress follows
+server grades and hint events, with spaced review dates and paginated private export.
+
+Frontend now uses generated DTOs and live HTTP throughout lessons, puzzles and
+progress. Removed bundled demo solutions, fabricated metrics and localStorage
+lesson persistence. Added RU/EN learning navigation, mobile selection/replay,
+explicit reset UI and stable command retries after uncertain transport outcomes.
+Demo E2E fixture transport exists only in the test source; live tests use real SQL.
+
+Local full backend524 PASS/19 SKIP before final migration/export additions;
+learning+migration/recovery target24 PASS before final export negatives. Web53
+unit PASS, demo3 PASS, production build and lint PASS. Contracts49 goldens PASS,
+generation current. PG races and all three live learning browsers added to CI;
+no PostgreSQL or public learning success is claimed until those jobs execute.
+Route preflight still blocks on two matchmaking operations and WebSocket transport.
+External Google/LLM credentials and offsite PITR acceptance remain outstanding.

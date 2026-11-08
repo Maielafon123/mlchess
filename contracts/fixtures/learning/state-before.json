@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "learning_epoch": 0,
+  "puzzle_id": "back-rank",
+  "session_number": 0,
+  "current_fen": "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
+  "next_ply": 0,
+  "completed": false,
+  "hints": []
+}

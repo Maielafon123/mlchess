@@ -75,3 +75,20 @@ verified-rules-v1 identifies actual rule-based coaching from engine facts.
 
 Every ticket must record its exact base SHA, B-owned files, tests, live-vs-mock
 evidence, security negatives, open CCRs and handoff requirements.
+
+
+## Integrated A-I11 handoff (base b45791b)
+
+User authorized completing cross-owner integration without human review gates;
+CCR-A-I11-LEARNING.md records the boundary. B's original four learning schemas
+remain unchanged and are embedded in generated HTTP contracts. Guarded SQL routes,
+server hint delivery, monotonic lesson status, private progress/review/export/reset
+and a live frontend replace the old demo adapters. Equivalent final checkmates
+are accepted; duplicate progress events retain immutable snapshots.
+
+Web53 unit and demo3 browser tests PASS locally; production build/lint PASS.
+Full backend524 PASS/19 SKIP before final learning tests. PostgreSQL actor-lock
+races and Android/iPhone real learning acceptance await CI/public deployment.
+Actual deployed coach uses verified-rules-v1, not a remote LLM; Google credentials
+remain absent. TLS and existing games/coach were already verified publicly.
+No complete B backlog or full product release signoff is implied.

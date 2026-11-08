@@ -65,7 +65,7 @@ class PuzzleGrader:
         result: Literal["correct", "incorrect", "illegal"]
         if not self._is_legal(session.board, uci):
             result = "illegal"
-        elif uci != session.puzzle.solution_uci[session.solution_index]:
+        elif not self._matches_solution(session, uci):
             result = "incorrect"
         else:
             result = "correct"
@@ -82,6 +82,27 @@ class PuzzleGrader:
         }
         session.attempts[attempt_id] = response
         return response
+
+    @staticmethod
+    def _matches_solution(session: PuzzleSession, uci: str) -> bool:
+        expected = session.puzzle.solution_uci[session.solution_index]
+        if uci == expected:
+            return True
+        if (
+            "mate" not in session.puzzle.tags
+            or session.solution_index != len(session.puzzle.solution_uci) - 1
+        ):
+            return False
+        canonical, candidate = (
+            session.board.copy(stack=True),
+            session.board.copy(stack=True),
+        )
+        try:
+            canonical.push_uci(expected)
+            candidate.push_uci(uci)
+        except ValueError:
+            return False
+        return canonical.is_checkmate() and candidate.is_checkmate()
 
     @staticmethod
     def _is_legal(board: chess.Board, uci: str) -> bool:
