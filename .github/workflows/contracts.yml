@@ -175,5 +175,8 @@ jobs:
             /tmp/mlchess-images.tar.gz
             /tmp/mlchess-images.sha256
           retention-days: 3
+      - if: failure()
+        name: Sanitized application diagnostics
+        run: python -m infra.compose_diagnostics --env-file .env.dev.local --compose infra/compose.server.yml --compose infra/compose.vps-host.yml
       - if: always()
         run: docker compose --env-file .env.dev.local -f infra/compose.server.yml -f infra/compose.vps-host.yml down

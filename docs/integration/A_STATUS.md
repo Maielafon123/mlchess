@@ -1,9 +1,11 @@
 # Developer A integration status
 
 LATEST USER CONSTRAINT (2026-11-09): no VPN inspection/checksums/tests or changes.
-Do not touch VPN files/interfaces/routes/rules/services. Do not change VPS host
-networking or create Docker bridges/NAT. Use compose.vps-host.yml with the server
-base file; private services bind loopback. This supersedes older checklist text.
+Do not touch VPN files/interfaces/routes/rules/services. Current agent choice is
+host networking to avoid bridge/NAT changes during recovery; this is a precaution,
+not an established cause of the outage or an extra instruction from the user.
+Use compose.vps-host.yml with the server base; private services bind loopback.
+This supersedes older VPN-checklist text.
 
 Baseline origin/main: `8095e86882187441842048cab2db9f2cfb657bcb`.
 Worktree `a-backend`, branch `integration/a-backend`.
@@ -113,8 +115,8 @@ Next smallest task: guest challenge links + mobile public deployment.
 ## Resume 2026-11-09
 
 User reports loss of VPN connectivity during prior deployment and explicitly
-forbids further VPN access/checks. No cause is inferred. No VPN checks or host
-network mutations are allowed in resumed work. Previously loaded application
+forbids further VPN access/checks. No cause is inferred. The recovery deployment
+avoids VPN checks and host-network changes by agent choice. Previously loaded application
 images845f4b1 are present; application containers were not started.
 
 Fetched Andrei integration/b-next at9ea5331 and merged his three commits: coach
