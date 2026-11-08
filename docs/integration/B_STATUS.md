@@ -1,49 +1,57 @@
 # Developer B integration status
 
-**Base:** `origin/main` at `2d62371410cc5721e112a46e95e17ec8760fdc21`  
-**Branch:** `integration/b-web`  
-**Date:** 2026-11-07
+**Base:** `origin/main` at `845f4b149e946b68bf7e81ad306ed2ad855cd9af`  
+**Branch:** `integration/b-next`  
+**Date:** 2026-11-08
 
-This is an evidence log for the B consumer side. It intentionally separates
-library/demo checks from live A HTTP/WS acceptance. No item below is called
-release-ready without a deployed backend and persisted state evidence.
+This is the current B consumer/domain evidence log. Demo UI checks and live
+Compose checks are separate; no production or public VPS sign-off is claimed.
 
-## Current matrix
+## B-00 baseline map
 
 | Area | Current state | Evidence / blocker |
 |---|---|---|
-| Generated A client | Connected in repository; `contracts/generated/api.d.ts` is the source of DTO types | B must remove remaining temporary API types and use one adapter |
-| Same-origin HTTP client | Consumer boundary implemented | B `ApiClient` uses same-origin credentials, timeout/AbortController, CSRF cookie provider and stable caller-supplied idempotency keys; generated DTO aliases are consumed by game/AI clients |
-| Auth/session | Partial | UI now targets `/api/v1/me` and `/api/v1/logout`; production fake auth is rejected. Real OIDC/dev session and CSRF handshake remain A-dependent |
-| Solo/AI/Coach game | Demo/mock boundary | A release preflight reports missing game routes; no live move/Stockfish evidence |
-| Coach | B provider/grounding tests pass; runtime route absent | A-015/A-011/A-014 composition, queue and AnalysisReader required |
-| Learning | Schemas and demo adapters exist | Real lesson/puzzle/progress routes and persistence are absent |
-| Friend/rated | UI screens and mock snapshot board exist | Invitation/matchmaking/game HTTP and WS routes are absent |
-| WebSocket | Client boundary/unit tests exist | Client accepts only generated `GameEventV1` event types; `/ws/v1/games/{game_id}` is missing from composed app and needs runtime evidence |
-| E2E | Navigation/demo smoke only | Existing Playwright tests do not call A backend or verify DB/WS state |
-| Release preflight | Blocked | `python -m infra.release_check` exits 1: 18 HTTP operations and game WS missing |
+| Guest sessions/challenge | Live in local Compose | PR #35: durable guest session, single-use invite, seat restore and third-user rejection; public TLS/VPS not verified |
+| Solo AI | Live in local Compose | Real PostgreSQL command path, Stockfish worker response and takeback covered by A live scenarios |
+| Friend | Live in local Compose over HTTP polling | Guest two-browser/mobile flow passes; real game WebSocket is still absent |
+| Rated | UI boundary only | Account/OIDC and matchmaking API are not composed; guest rated remains denied |
+| Analysis | Server primitives exist, consumer still temporary | `apps/web/src/api/analysis.ts` uses legacy types; analysis routes are missing from composed app |
+| Coach | B provider, grounding and pure service tests exist | Production router is intentionally empty; durable A ports, queue, ACL and persistence are required |
+| Learning | B pure services and demo adapters exist | Production router is empty; lessons, puzzle attempts and progress routes are absent |
+| WebSocket | Client boundary and tests exist | `/ws/v1/games/{game_id}` is missing; live resync/reconnect evidence unavailable |
+| Mobile | Live static Compose scenarios pass | Android Chromium and iPhone WebKit pass at 320px; public deployment remains unverified |
 
-## Checks run on this base
+## Checks executed on this base
 
-- `python -m infra.release_check` — **FAIL (expected blocker)**; see `docs/A027_RELEASE_STATUS.md`.
-- `pnpm run lint` — **PASS**.
-- `pnpm run typecheck` — **PASS**.
-- `pnpm run test` — **PASS (43 tests)**.
-- `pnpm run build` — **PASS**.
-- `pnpm run test:e2e:live` — **FAIL by design without `MLCHESS_LIVE_BASE_URL`**; it refuses to run demo tests when no live backend is configured.
-- Live HTTP/WS and two-browser tests — **NOT RUN**; required A routes are not composed.
+- `pnpm --dir apps/web run lint` — **PASS**.
+- `pnpm --dir apps/web run typecheck` — **PASS**.
+- `pnpm --dir apps/web run test` — **PASS (48 tests)**.
+- `pnpm --dir apps/web run build` — **PASS**.
+- `pnpm --dir apps/web run test:e2e` — **PASS (3 demo scenarios)**.
+- `python -m infra.release_check` — **BLOCKED**: 8 HTTP operations and
+  `/ws/v1/games/{game_id}` are not mounted.
+- A reports backend **478 PASS / 2 Windows SKIP**, static Compose **8 live
+  scenarios PASS** and generated contract checks PASS in `A_STATUS.md`.
 
-## B next steps
+## Current B-owned blockers
 
-1. Replace remaining legacy feature API paths with published generated contracts once A merges them.
-2. Confirm CSRF cookie/header handshake and add live mutation evidence.
-3. Update auth consumer to `/api/v1/me` and `/api/v1/logout`; keep fake auth dev-only.
-4. Add live E2E command/fixtures that fail clearly when `MLCHESS_LIVE_BASE_URL` is absent.
-5. Refresh this file with exact runtime SHA and HTTP/WS/DB evidence after A publishes the missing surface.
+1. A analysis contract/handler must become `A-CONTRACT-READY` before B replaces
+   the temporary analysis consumer and wires coach context to a real `analysis_id`.
+2. A coach ports (verified analysis reader, principal/ACL, queue and durable
+   store) are required before mounting guarded coach routes.
+3. A learning migrations/store ports are required before live lesson, puzzle and
+   progress routes can replace `.demo()` adapters.
+4. A realtime WebSocket route is required before friend UX can move off polling.
+5. Public TLS/VPS deployment, OIDC credentials and cloud LLM credentials remain
+   explicitly unverified or blocked.
 
-## Requests to A
+## Next B work
 
-- Publish the deployed API/WS base URL and exact contract SHA used by staging.
-- Mount game, coach and learning routers with session/ACL/mode guards.
-- Provide the CSRF handshake/header contract for browser mutations.
-- Provide a disposable PostgreSQL/Redis/worker/Stockfish staging profile for `test:e2e:live`.
+- B-02/B-03: freeze generated analysis consumer after A contract handoff;
+- B-05/B-06: publish coach factory/port CCR and guarded route factory on fake
+  ports, without claiming production routes;
+- B-11/B-14: finish learning contract/port proposals and persistence handoff;
+- B-18/B-19: integrate `GameWebSocket` after A mounts the real route.
+
+Every ticket must record its exact base SHA, B-owned files, tests, live-vs-mock
+evidence, security negatives, open CCRs and handoff requirements.
