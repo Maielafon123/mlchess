@@ -23,3 +23,4 @@ package-dir = {"backend.app" = "app", "contracts.coach" = "../contracts/coach"}
 
 [tool.setuptools.package-data]
 "contracts.coach" = ["*.schema.json"]
+"backend.app.learning" = ["catalog.json"]

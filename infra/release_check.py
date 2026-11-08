@@ -38,6 +38,17 @@ REQUIRED_HTTP = {
     ("GET", "/api/v1/learning/lessons"),
     ("POST", "/api/v1/learning/puzzles/{puzzle_id}/attempts"),
     ("GET", "/api/v1/learning/progress"),
+    ("GET", "/api/v1/learning/context"),
+    ("GET", "/api/v1/learning/lessons/{id}"),
+    ("POST", "/api/v1/learning/lessons/{id}/status"),
+    ("GET", "/api/v1/learning/puzzles"),
+    ("GET", "/api/v1/learning/puzzles/{id}"),
+    ("GET", "/api/v1/learning/puzzles/{id}/state"),
+    ("POST", "/api/v1/learning/puzzles/{id}/hints"),
+    ("POST", "/api/v1/learning/puzzles/{id}/restart"),
+    ("GET", "/api/v1/learning/review-queue"),
+    ("GET", "/api/v1/learning/export"),
+    ("DELETE", "/api/v1/learning/data"),
 }
 REQUIRED_WS = {"/ws/v1/games/{game_id}"}
 

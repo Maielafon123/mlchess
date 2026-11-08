@@ -33,7 +33,7 @@ export function HomePage() {
         <div className="card-grid card-grid-3">
           <SectionCard title={t.home.aiTitle}><p>{t.home.aiDescription}</p><Link className="button button-secondary" to="/play/ai">{t.home.aiTitle}</Link></SectionCard>
           <SectionCard title={t.home.coachTitle}><p>{t.home.coachDescription}</p><Link className="button button-secondary" to="/play/coach">{t.home.coachTitle}</Link></SectionCard>
-          <SectionCard title={t.home.learnTitle}><p>{t.home.learnDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
+          <SectionCard title={t.home.learnTitle}><p>{t.home.learnDescription}</p><Link className="button button-secondary" to="/learn">{t.home.learnTitle}</Link></SectionCard>
         </div>
       </section>
     </div>
@@ -77,24 +77,27 @@ export function MatchmakingPage() {
 }
 
 export function PuzzlePage() {
-  return <div className="page"><section className="page-heading"><div className="eyebrow">Puzzles</div><h1>Solve a chess puzzle</h1><p>Moves are graded by the server; hints are progressive.</p></section><PuzzleScreen /></div>;
+  const { locale } = useI18n();
+  return <div className="page"><LearningNav /><section className="page-heading"><h1>{locale === "ru" ? "Шахматные задачи" : "Solve a chess puzzle"}</h1><p>{locale === "ru" ? "Найдите матующий ход. Если трудно, откройте подсказку." : "Find the mating move. Request a hint if you get stuck."}</p></section><PuzzleScreen key={locale} language={locale} /></div>;
 }
 
 export function ProgressPage() {
-  return <div className="page"><section className="page-heading"><div className="eyebrow">Progress</div><h1>Review what you learned</h1><p>Progress and review dates come from server-graded attempts.</p></section><ProgressDashboard /></div>;
+  const { locale } = useI18n();
+  return <div className="page"><LearningNav /><section className="page-heading"><h1>{locale === "ru" ? "Результаты обучения" : "Review what you learned"}</h1></section><ProgressDashboard key={locale} language={locale} /></div>;
+}
+
+function LearningNav() {
+  const { locale } = useI18n();
+  return <nav className="game-actions" aria-label="Learning navigation"><Link className="button button-secondary" to="/learn">{locale === "ru" ? "Уроки" : "Lessons"}</Link><Link className="button button-secondary" to="/learn/puzzles">{locale === "ru" ? "Задачи" : "Puzzles"}</Link><Link className="button button-secondary" to="/learn/progress">{locale === "ru" ? "Прогресс" : "Progress"}</Link></nav>;
 }
 
 export function LearnPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   return (
     <div className="page">
       <section className="page-heading"><div className="eyebrow">{t.learn.eyebrow}</div><h1>{t.learn.title}</h1><p>{t.learn.description}</p></section>
-      <LessonCatalog />
-      <div className="card-grid card-grid-3">
-        <SectionCard title={t.learn.lessonTitle}><p>{t.learn.lessonDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
-        <SectionCard title={t.learn.puzzleTitle}><p>{t.learn.puzzleDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
-        <SectionCard title={t.learn.progressTitle}><p>{t.learn.progressDescription}</p><span className="status-chip">{t.common.placeholder}</span></SectionCard>
-      </div>
+      <LearningNav />
+      <LessonCatalog key={locale} language={locale} />
     </div>
   );
 }

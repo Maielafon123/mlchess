@@ -174,5 +174,25 @@
   {
     "path": "coach/job-ready.json",
     "schema": "https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachJobV1"
+  },
+  {
+    "path": "learning/lesson.json",
+    "schema": "https://mlchess.local/contracts/learning/v1.yaml#/$defs/LessonV1"
+  },
+  {
+    "path": "learning/puzzle.json",
+    "schema": "https://mlchess.local/contracts/learning/v1.yaml#/$defs/PuzzleV1"
+  },
+  {
+    "path": "learning/state-before.json",
+    "schema": "https://mlchess.local/contracts/learning/v1.yaml#/$defs/PuzzleStateV1"
+  },
+  {
+    "path": "learning/attempt.json",
+    "schema": "https://mlchess.local/contracts/learning/v1.yaml#/$defs/PuzzleAttemptRequestV1"
+  },
+  {
+    "path": "learning/progress.json",
+    "schema": "https://mlchess.local/contracts/learning/v1.yaml#/$defs/StudentProgressV1"
   }
 ]

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "id": "back-rank",
+  "fen": "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
+  "difficulty": 1,
+  "tags": [
+    "mate",
+    "back-rank"
+  ],
+  "source_name": "MLChess original curriculum",
+  "source_url": "https://github.com/Maielafon123/mlchess/blob/main/docs/learning/CURRICULUM.md",
+  "license": "CC BY 4.0"
+}

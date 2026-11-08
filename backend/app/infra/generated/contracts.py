@@ -198,6 +198,111 @@ class InviteUrl(RootModel[str]):
     root: str = Field(..., max_length=2048)
 
 
+class LearningContextV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+
+
+class Lesson(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    lesson_id: str = Field(..., max_length=80, min_length=1, pattern="^[a-z0-9-]+$")
+    status: Literal["started", "completed"]
+
+
+class LearningResetV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    confirm: Literal[True]
+
+
+class LessonStatusRequestV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    status: Literal["started", "completed"]
+
+
+class Tag(RootModel[str]):
+    root: str = Field(..., max_length=80)
+
+
+class LessonV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    id: str = Field(..., pattern="^[a-z0-9-]+$")
+    title: str = Field(..., max_length=200, min_length=1)
+    summary: str = Field(..., max_length=500)
+    body: str = Field(..., max_length=10000)
+    language: Literal["ru", "en"]
+    status: Literal["not-started", "started", "completed"]
+    source_name: str = Field(..., max_length=200)
+    source_url: str = Field(..., pattern="^https://")
+    license: str = Field(..., max_length=120)
+    tags: list[Tag] = Field(..., max_length=16)
+
+
+class PuzzleAttemptV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    attempt_id: str = Field(..., max_length=120, min_length=1)
+    result: Literal["correct", "incorrect", "illegal", "completed"]
+    completed: bool
+    next_ply: int = Field(..., ge=0)
+
+
+class PuzzleHintV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    puzzle_id: str = Field(..., max_length=80, min_length=1, pattern="^[a-z0-9-]+$")
+    session_number: int = Field(..., ge=0, le=9007199254740991)
+    hint_index: int = Field(..., ge=1, le=3)
+    text: str = Field(..., max_length=500, min_length=1)
+    has_more: bool
+
+
+class PuzzleSessionRequestV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    session_number: int = Field(..., ge=0, le=9007199254740991)
+
+
+class Hint(RootModel[str]):
+    root: str = Field(..., max_length=500, min_length=1)
+
+
+class PuzzleV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    id: str = Field(..., max_length=160, min_length=1)
+    fen: str = Field(..., max_length=120, min_length=1)
+    difficulty: int = Field(..., ge=1, le=5)
+    tags: list[Tag] = Field(..., max_length=16)
+    source_name: str = Field(..., max_length=200)
+    source_url: str = Field(..., pattern="^https://")
+    license: str = Field(..., max_length=120)
+
+
 class Payload6(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -234,6 +339,27 @@ class ScoreV1(RootModel[ScoreV11 | ScoreV12]):
 
 class SideV1(RootModel[Literal["white", "black"]]):
     root: Literal["white", "black"]
+
+
+class Skill(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    skill: str = Field(..., max_length=80)
+    attempts: int = Field(..., ge=0)
+    correct: int = Field(..., ge=0)
+    hints_used: int = Field(..., ge=0)
+    streak: int = Field(..., ge=0)
+    due_at: str | None = None
+
+
+class StudentProgressV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    student_id: str = Field(..., max_length=120, min_length=1)
+    skills: list[Skill] = Field(..., max_length=100)
 
 
 class TimeControlV1(BaseModel):
@@ -538,6 +664,30 @@ class InviteSnapshotV1(BaseModel):
     invite_url: InviteUrl | None = None
 
 
+class LearningExportAttemptV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    attempt_id: str = Field(
+        ..., max_length=120, min_length=1, pattern="^[A-Za-z0-9._:-]+$"
+    )
+    puzzle_id: str = Field(..., max_length=80, min_length=1, pattern="^[a-z0-9-]+$")
+    uci: UciMoveV1
+    response: PuzzleAttemptV1
+    created_at: UTCDateTime
+
+
+class LessonListV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    items: list[LessonV1] = Field(..., max_length=24)
+    page: int = Field(..., ge=1, le=9007199254740991)
+    total_pages: int = Field(..., ge=1, le=9007199254740991)
+
+
 class MoveV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -583,6 +733,52 @@ class ProblemDetailsV1(BaseModel):
     ]
     detail: str = Field(..., max_length=1000)
     request_id: UUIDv4
+
+
+class PuzzleAttemptRequestV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    attempt_id: str = Field(
+        ..., max_length=120, min_length=1, pattern="^[A-Za-z0-9._:-]+$"
+    )
+    uci: UciMoveV1
+    expected_ply: int = Field(..., ge=0, le=9007199254740991)
+    session_number: int = Field(..., ge=0, le=9007199254740991)
+
+
+class PuzzleListV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    items: list[PuzzleV1] = Field(..., max_length=100)
+
+
+class PuzzleReplayMoveV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    uci: UciMoveV1
+    san: str = Field(..., max_length=32, min_length=1)
+    fen: str = Field(..., max_length=120, min_length=1)
+
+
+class PuzzleStateV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    puzzle_id: str = Field(..., max_length=80, min_length=1, pattern="^[a-z0-9-]+$")
+    session_number: int = Field(..., ge=0, le=9007199254740991)
+    current_fen: str = Field(..., max_length=120, min_length=1)
+    next_ply: int = Field(..., ge=0, le=9007199254740991)
+    completed: bool
+    hints: list[Hint] = Field(..., max_length=3)
+    solution: list[PuzzleReplayMoveV1] | None = Field(None, max_length=128)
 
 
 class ResyncRequiredEventV1(BaseModel):
@@ -728,6 +924,20 @@ class GameSnapshotV1(BaseModel):
         ]
         | None
     ) = None
+
+
+class LearningExportV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    learning_epoch: int = Field(..., ge=0, le=9007199254740991)
+    student_id: str = Field(..., max_length=120, min_length=1)
+    progress: StudentProgressV1
+    lessons: list[Lesson] = Field(..., max_length=1000)
+    puzzles: list[PuzzleStateV1] = Field(..., max_length=1000)
+    attempts: list[LearningExportAttemptV1] = Field(..., max_length=100)
+    next_cursor: str | None = Field(..., max_length=300)
 
 
 class MoveAcceptedV1(BaseModel):
