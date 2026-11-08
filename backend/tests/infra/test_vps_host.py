@@ -1,4 +1,4 @@
-"""Protect the user's no-host-network-mutations deployment requirement."""
+"""Verify the chosen host overlay without inspecting protected host networking."""
 
 import json
 import os
@@ -52,6 +52,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
     assert set(services) == {
         "api",
         "worker",
+        "analysis-worker",
         "web",
         "gateway",
         "postgres",
@@ -81,7 +82,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
     api_command = services["api"]["command"]
     assert api_command[api_command.index("--host") + 1] == "127.0.0.1"
     assert api_command[api_command.index("--port") + 1] == "58000"
-    for name in ("api", "worker", "migrate"):
+    for name in ("api", "worker", "analysis-worker", "migrate"):
         assert (
             "@127.0.0.1:55432/" in services[name]["environment"]["MLCHESS_DATABASE_URL"]
         )

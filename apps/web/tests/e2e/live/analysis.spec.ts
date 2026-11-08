@@ -1,0 +1,32 @@
+import { randomUUID } from "node:crypto";
+import { expect, test } from "@playwright/test";
+
+test("real analysis worker produces verified persisted facts @guest", async ({ page, context }) => {
+  test.setTimeout(60000);
+  await page.goto("/play/ai");
+  await expect(page.getByLabel("UCI move")).toBeEnabled();
+  const gameId = new URL(page.url()).searchParams.get("game");
+  await page.locator('.board-frame [data-square="e2"]').click();
+  await page.locator('.board-frame [data-square="e4"]').click();
+  await expect(page.locator(".move-history ol li")).toHaveCount(2, { timeout: 20000 });
+  const origin = new URL(page.url()).origin;
+  const csrf = (await context.cookies()).find((cookie) => cookie.name === "mlchess_csrf")!.value;
+  const key = randomUUID();
+  const request = { data: { ply: 1, analysis_level: "quick" }, headers: { Origin: origin, "X-CSRF-Token": csrf, "Idempotency-Key": key } };
+  const accepted = await context.request.post(`/api/v1/games/${gameId}/analysis-requests`, request);
+  expect(accepted.status()).toBe(202);
+  const job = await accepted.json();
+  await expect.poll(async () => (await context.request.get(`/api/v1/games/${gameId}/analysis/1`)).status(), { timeout: 20000 }).toBe(200);
+  const result = await (await context.request.get(`/api/v1/games/${gameId}/analysis/1`)).json();
+  expect(result.analysis_id).toBe(job.id);
+  expect(result.played_move_uci).toBe("e2e4");
+  expect(result.engine.version).toContain("Stockfish");
+  expect(result.engine.model_hash).toMatch(/^[a-f0-9]{64}$/);
+  expect(result.engine.binary_sha256).toBe("af67e5f96d92cf6a730f89291ea439ba90ca5bf7921e5d740d79ccfc4584bc92");
+  expect(result.top_moves).toHaveLength(3);
+  expect(result.score_before.pov).toBe("white");
+  expect(result.facts.captures).toBe(false);
+  expect((await (await context.request.post(`/api/v1/games/${gameId}/analysis-requests`, request)).json())).toEqual(job);
+  await page.reload();
+  expect(await (await context.request.get(`/api/v1/games/${gameId}/analysis/1`)).json()).toEqual(result);
+});

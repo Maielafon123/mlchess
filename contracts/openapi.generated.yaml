@@ -235,7 +235,7 @@ paths:
         $ref: '#/components/schemas/UUIDv4'
     post:
       operationId: requestAnalysis
-      x-implementation-status: proposed
+      x-implementation-status: implemented
       responses:
         '202':
           description: Success
@@ -326,7 +326,7 @@ paths:
         maximum: 9007199254740991
     get:
       operationId: getAnalysis
-      x-implementation-status: proposed
+      x-implementation-status: implemented
       responses:
         '200':
           description: Success

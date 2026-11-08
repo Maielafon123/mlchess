@@ -7,14 +7,12 @@ import asyncio
 import json
 import os
 import re
-from dataclasses import asdict, dataclass
-from datetime import timedelta
+from dataclasses import asdict
 from pathlib import Path
 from typing import Protocol
-from uuid import UUID, uuid4
 
 import chess
-from sqlalchemy import and_, or_, select, update
+from sqlalchemy import select
 
 from backend.app.engine.adapter import (
     EngineBudget,
@@ -32,21 +30,13 @@ from backend.app.games.durable import (
 from backend.app.infra.db import create_engine, session_factory
 from backend.app.infra.models import Game, GameMove, GamePlayer, GameState, WorkerJob
 from backend.app.infra.settings import Settings
+from backend.app.workers.leases import LeasedWorker
 
 
 class MoveEngine(Protocol):
     def choose_move(
         self, board: chess.Board, *, budget: EngineBudget, profile: str
     ) -> EngineMove: ...
-
-
-@dataclass(frozen=True)
-class Lease:
-    id: UUID
-    token: UUID
-    game_id: UUID
-    version: int
-    revision: int
 
 
 BUDGETS = {
@@ -57,7 +47,9 @@ BUDGETS = {
 }
 
 
-class GameplayWorker:
+class GameplayWorker(LeasedWorker):
+    queue = "gameplay"
+
     def __init__(
         self,
         factory,
@@ -66,56 +58,10 @@ class GameplayWorker:
         lease_seconds: int = 30,
         max_attempts: int = 3,
     ):
-        if not 30 <= lease_seconds <= 300 or not 1 <= max_attempts <= 10:
-            raise ValueError("Invalid worker bounds")
-        self.factory, self.engine = factory, engine
-        self.lease_seconds, self.max_attempts = lease_seconds, max_attempts
-
-    async def claim(self) -> Lease | None:
-        async with self.factory() as session, session.begin():
-            now = await DurableGameService.now(session)
-            await session.execute(
-                update(WorkerJob)
-                .where(
-                    WorkerJob.queue == "gameplay",
-                    WorkerJob.status == "running",
-                    WorkerJob.lease_until <= now,
-                    WorkerJob.attempts >= self.max_attempts,
-                )
-                .values(
-                    status="failed",
-                    failure_code="LEASE_EXHAUSTED",
-                    finished_at=now,
-                    lease_token=None,
-                    lease_until=None,
-                )
-            )
-            job = await session.scalar(
-                select(WorkerJob)
-                .where(
-                    WorkerJob.queue == "gameplay",
-                    WorkerJob.attempts < self.max_attempts,
-                    or_(
-                        and_(
-                            WorkerJob.status == "pending", WorkerJob.available_at <= now
-                        ),
-                        and_(
-                            WorkerJob.status == "running", WorkerJob.lease_until <= now
-                        ),
-                    ),
-                )
-                .order_by(WorkerJob.created_at, WorkerJob.id)
-                .limit(1)
-                .with_for_update(skip_locked=True)
-            )
-            if job is None:
-                return None
-            job.status, job.lease_token = "running", uuid4()
-            job.attempts += 1
-            job.lease_until = now + timedelta(seconds=self.lease_seconds)
-            return Lease(
-                job.id, job.lease_token, job.game_id, job.expected_version, job.revision
-            )
+        super().__init__(
+            factory, lease_seconds=lease_seconds, max_attempts=max_attempts
+        )
+        self.engine = engine
 
     @staticmethod
     def matches(game, state, players, lease):
@@ -152,26 +98,6 @@ class GameplayWorker:
             if not self.matches(game, state, players, lease):
                 return None
             return decode_domain(state.domain).board, state.config["ai_profile"]
-
-    async def fail(self, lease, code: str, *, stale: bool = False) -> str:
-        async with self.factory() as session, session.begin():
-            job = await session.scalar(
-                select(WorkerJob).where(WorkerJob.id == lease.id).with_for_update()
-            )
-            if job is None or job.status != "running" or job.lease_token != lease.token:
-                return "lost"
-            now = await DurableGameService.now(session)
-            job.failure_code = code
-            job.lease_token, job.lease_until = None, None
-            if stale or job.attempts >= self.max_attempts:
-                job.status = "stale" if stale else "failed"
-                job.finished_at = now
-            else:
-                job.status, job.available_at = (
-                    "pending",
-                    now + timedelta(seconds=min(30, 2**job.attempts)),
-                )
-            return job.status
 
     async def apply(self, lease, move: EngineMove) -> str:
         async with self.factory() as session, session.begin():

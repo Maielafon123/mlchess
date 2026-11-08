@@ -38,6 +38,12 @@ services:
     environment:
       MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
       MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+  analysis-worker:
+    network_mode: host
+    networks: !reset []
+    environment:
+      MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
   web:
     network_mode: host
     networks: !reset []

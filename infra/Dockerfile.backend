@@ -13,6 +13,9 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends stockfish=15.1-4 \
     && echo 'af67e5f96d92cf6a730f89291ea439ba90ca5bf7921e5d740d79ccfc4584bc92  /usr/games/stockfish' | sha256sum -c - \
     && rm -rf /var/lib/apt/lists/*
+RUN python -m backend.app.engine.manifest --binary /usr/games/stockfish --write /app/stockfish-manifest.json \
+    && chmod 444 /app/stockfish-manifest.json
 ENV MLCHESS_STOCKFISH_BINARY=/usr/games/stockfish MLCHESS_STOCKFISH_SHA256=af67e5f96d92cf6a730f89291ea439ba90ca5bf7921e5d740d79ccfc4584bc92
+ENV MLCHESS_STOCKFISH_MANIFEST=/app/stockfish-manifest.json
 USER 10001:10001
 CMD ["python", "-m", "backend.app.workers.runner"]
