@@ -73,6 +73,10 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
     assert {mount["target"] for mount in tls_mounts} == {"/data", "/config"}
     assert all(mount["volume"]["nocopy"] for mount in tls_mounts)
     assert "listen_addresses=127.0.0.1" in services["postgres"]["command"]
+    # Image entrypoint uses its standard Unix socket to create POSTGRES_DB.
+    assert not any(
+        "unix_socket_directories=" in item for item in services["postgres"]["command"]
+    )
     assert "--bind 127.0.0.1" in " ".join(services["redis"]["command"])
     api_command = services["api"]["command"]
     assert api_command[api_command.index("--host") + 1] == "127.0.0.1"
