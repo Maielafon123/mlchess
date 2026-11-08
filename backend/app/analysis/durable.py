@@ -67,6 +67,30 @@ class DurableAnalysisService:
     def __init__(self, factory):
         self.factory = factory
 
+    @staticmethod
+    async def budget(session, actor_id, now):
+        if session.bind.dialect.name == "postgresql":
+            await session.execute(select(func.pg_advisory_xact_lock(750120261109)))
+        recent = await session.scalar(
+            select(func.count())
+            .select_from(OutboxEvent)
+            .where(
+                OutboxEvent.event_type.in_(["analysis.requested", "analysis.retried"]),
+                OutboxEvent.created_at >= now - timedelta(hours=1),
+                OutboxEvent.payload["actor_id"].as_string() == str(actor_id),
+            )
+        )
+        pending = await session.scalar(
+            select(func.count())
+            .select_from(WorkerJob)
+            .where(
+                WorkerJob.queue == "analysis",
+                WorkerJob.status.in_(["pending", "running"]),
+            )
+        )
+        if recent >= 40 or pending >= 256:
+            raise PublicProblem(429)
+
     async def submit(self, game_id: UUID, actor_id: UUID, key: UUID, payload: dict):
         digest = fingerprint("analysis", {"game_id": str(game_id), **payload})
         async with self.factory() as session, session.begin():
@@ -101,29 +125,7 @@ class DurableAnalysisService:
             )
             now = await DurableGameService.now(session)
             if analysis is None:
-                if session.bind.dialect.name == "postgresql":
-                    await session.execute(
-                        select(func.pg_advisory_xact_lock(750120261109))
-                    )
-                recent = await session.scalar(
-                    select(func.count())
-                    .select_from(OutboxEvent)
-                    .where(
-                        OutboxEvent.event_type == "analysis.requested",
-                        OutboxEvent.created_at >= now - timedelta(hours=1),
-                        OutboxEvent.payload["actor_id"].as_string() == str(actor_id),
-                    )
-                )
-                pending = await session.scalar(
-                    select(func.count())
-                    .select_from(WorkerJob)
-                    .where(
-                        WorkerJob.queue == "analysis",
-                        WorkerJob.status.in_(["pending", "running"]),
-                    )
-                )
-                if recent >= 40 or pending >= 256:
-                    raise PublicProblem(429)
+                await self.budget(session, actor_id, now)
                 analysis = Analysis(
                     id=uuid4(),
                     game_id=game_id,
@@ -169,6 +171,26 @@ class DurableAnalysisService:
                 event = await session.get(OutboxEvent, analysis.id)
                 if job is None or event is None:
                     raise PublicProblem(503)
+                if job.status in {"failed", "stale"}:
+                    # A new explicit command may retry the same still-authorized
+                    # position. Old command receipts remain exact and immutable.
+                    await self.budget(session, actor_id, now)
+                    job.status, job.attempts, job.available_at = "pending", 0, now
+                    job.failure_code = job.finished_at = job.lease_token = (
+                        job.lease_until
+                    ) = job.output = None
+                    analysis.status, analysis.updated_at = "pending", now
+                    analysis.result = analysis.error_code = None
+                    event.payload = {**event.payload, "actor_id": str(actor_id)}
+                    session.add(
+                        OutboxEvent(
+                            aggregate_type="analysis",
+                            aggregate_id=analysis.id,
+                            event_type="analysis.retried",
+                            created_at=now,
+                            payload={"actor_id": str(actor_id)},
+                        )
+                    )
             response = job_snapshot(analysis, job, event)
             DurableGameService.remember(
                 session, actor_id, key, digest, game_id, response, "analysis"

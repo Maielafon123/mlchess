@@ -46,7 +46,7 @@ class CoachWorker(LeasedWorker):
         request = domain_request(row)
         try:
             game, state, analysis = await read_verified(
-                session, row.requester_id, request, lock=False
+                session, row.requester_id, request, lock=True
             )
         except PublicProblem:
             return None

@@ -63,7 +63,7 @@ class AnalysisWorker(LeasedWorker):
             return None
         try:
             game, state, _ = await DurableGameService.load(
-                session, lease.game_id, actor_id
+                session, lease.game_id, actor_id, lock=True
             )
             require_analysis(game)
             if row.revision != game.revision or row.revision != lease.revision:

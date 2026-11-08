@@ -228,3 +228,35 @@ stale-analysis/hint tests3 PASS; build/lint and demo3 PASS. Contract44 fixtures 
 generation64 tests PASS, including a Windows CRLF checkout without false drift.
 Surface preflight still BLOCKED: five learning/matchmaking HTTP operations and WS.
 Next: real PostgreSQL/Compose coach acceptance, then persistent learning.
+
+## A-I10 live acceptance and concurrent-read correction
+
+PR40 mergedcad3c5808598b81c84780c1067dc8404c3783b7f after all six jobs PASS
+in42529744334 on45addbc0163c65845e61bf6256bea6c15cbd9fee. Earlier ae8f907
+failed the Docker frontend build because test JSON fixtures were not copied into
+the build stage;45addbc fixes the missing input without changing test coverage.
+All four application images45addbc deployed; migration0004 completed, gateway and
+seven app/data containers started, all available health checks PASS. Private
+pre-coach SQL backup retained. Browser manually verified e2e4, engine reply and
+both observation/solution hints without fallback; mobile screenshot retained locally.
+
+Public concurrent Playwright on the VPS found8 PASS/2 FAIL. One WebKit coach case
+received analysis STALE_POSITION while the persisted game remained active, same
+revision0, advancing version1->2. Root cause: worker preflight reads did not lock
+the game while loading the separate state row; a gameplay commit could mix two
+READ COMMITTED snapshots. HTTP game/result reads were already locked. Analysis
+and coach position capture now take the same short game lock; no inference/provider
+runs under that lock. A real PostgreSQL gated-read/write regression is added.
+
+The second WebKit error happened37ms into page reload, with surrounding game HTTP
+requests all200: an in-flight poll was cancelled by navigation. ApiClient now aborts
+explicitly at pagehide and removes the lifecycle listener after completion.
+Transport cancellation is unit-tested; repeated public WebKit acceptance pending.
+Explicit new analysis commands can retry a failed/stale current position under the
+same40/hour and256 pending limits; old receipts remain exact. Retry events count
+toward the quota. Undo/current phase/ACL checks remain mandatory before retry.
+
+Learning work is preserved on codex/durable-learning and its named Git stash:
+eight original bilingual lessons, four mechanically validated mate puzzles and
+one expand-only0005 schema/seed migration (offline and fresh SQLite upgrade PASS).
+No learning routes or production learning deployment are claimed yet.

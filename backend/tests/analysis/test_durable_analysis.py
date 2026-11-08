@@ -139,6 +139,12 @@ def test_expired_lease_recovery_fences_old_worker_and_bounds_failure(settings):
         failed = http.get(f"/api/v1/games/{game['id']}/analysis/1")
         assert failed.status_code == 202 and failed.json()["status"] == "failed"
         assert failed.json()["error"]["status"] == 503 and "SECRET" not in failed.text
+        # A new explicit request retries recovered infrastructure; no permanent
+        # failed cache entry can trap the Retry button on a valid current line.
+        retried = submit(http, game, headers, analysis_level="deep")
+        assert retried.status_code == 202 and retried.json()["status"] == "pending"
+        assert retried.json()["id"] == failed.json()["id"]
+        assert asyncio.run(worker(app).run_one()) == "done"
 
 
 def test_analysis_acl_csrf_phase_and_strict_input(settings):

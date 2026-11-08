@@ -52,6 +52,9 @@ export class ApiClient {
       if (csrf) headers.set("X-CSRF-Token", csrf);
     }
     const controller = new AbortController();
+    const navigationTarget = typeof window === "undefined" ? null : window;
+    const navigating = () => controller.abort();
+    navigationTarget?.addEventListener("pagehide", navigating, { once: true });
     const abort = () => controller.abort(init.signal?.reason);
     if (init.signal?.aborted) abort();
     else init.signal?.addEventListener("abort", abort, { once: true });
@@ -71,6 +74,7 @@ export class ApiClient {
     } finally {
       globalThis.clearTimeout(timeout);
       init.signal?.removeEventListener("abort", abort);
+      navigationTarget?.removeEventListener("pagehide", navigating);
     }
   }
 
