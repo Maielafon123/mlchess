@@ -302,3 +302,11 @@ generation current. PG races and all three live learning browsers added to CI;
 no PostgreSQL or public learning success is claimed until those jobs execute.
 Route preflight still blocks on two matchmaking operations and WebSocket transport.
 External Google/LLM credentials and offsite PITR acceptance remain outstanding.
+
+
+A-I11 first CI run42535352848: contracts, legacy, web and real PostgreSQL recovery/
+learning races PASS. Live Compose found a true320px horizontal overflow in the
+new learning action/navigation rows; grading, hint persistence and lesson flows
+passed before the layout assertion. Corrected action wrapping and added a local
+320px browser regression; demo3 PASS. Final local learning target28 PASS. Public
+learning is not deployed while either Compose acceptance remains red.

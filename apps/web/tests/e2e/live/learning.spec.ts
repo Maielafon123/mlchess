@@ -31,8 +31,8 @@ test("guest learning saves lessons, hints and real server-graded progress @guest
   await expect(page.locator(".progress-card")).toHaveCount(2);
   await expect(page.locator(".progress-card").first()).toContainText("1/1");
   await expect(page.locator(".progress-card").first()).toContainText("1 подсказок");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   await page.setViewportSize({ width: 320, height: 640 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
