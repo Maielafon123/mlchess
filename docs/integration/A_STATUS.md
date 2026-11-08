@@ -1,5 +1,10 @@
 # Developer A integration status
 
+LATEST USER CONSTRAINT (2026-11-09): no VPN inspection/checksums/tests or changes.
+Do not touch VPN files/interfaces/routes/rules/services. Do not change VPS host
+networking or create Docker bridges/NAT. Use compose.vps-host.yml with the server
+base file; private services bind loopback. This supersedes older checklist text.
+
 Baseline origin/main: `8095e86882187441842048cab2db9f2cfb657bcb`.
 Worktree `a-backend`, branch `integration/a-backend`.
 User-provided CODEX_DEVELOPER_A.md read completely.
@@ -104,3 +109,21 @@ Caddy config validated locally. Public TLS/VPS acceptance and exact merge CI
 remain pending. No all-mode production signoff is implied by guest/mobile checks.
 
 Next smallest task: guest challenge links + mobile public deployment.
+
+## Resume 2026-11-09
+
+User reports loss of VPN connectivity during prior deployment and explicitly
+forbids further VPN access/checks. No cause is inferred. No VPN checks or host
+network mutations are allowed in resumed work. Previously loaded application
+images845f4b1 are present; application containers were not started.
+
+Fetched Andrei integration/b-next at9ea5331 and merged his three commits: coach
+protocols, learning handoff and refreshed B status. Coach/learning49 PASS; ruff
+check/format PASS. These are integration interfaces, not new live endpoints.
+
+Added host-network VPS overlay: zero Docker networks/port publishing/NAT/sysctls,
+loopback-only data/API/static listeners, public-IP-only gateway. Rendered Compose
+regression PASS without a Docker daemon. Local Docker Desktop is stopped; new
+runtime acceptance/build/export is delegated to the existing GitHub Actions
+workflow (not a separate agent). Host runtime guest acceptance is required before
+public startup. The old standalone server bridge config is NOT used on this VPS.

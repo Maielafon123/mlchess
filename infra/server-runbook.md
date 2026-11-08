@@ -16,8 +16,8 @@ From /opt/mlchess/releases/EXACT_SHA, which contains infra/:
 
 ```sh
 python3 -m infra.init_compose_env --server --origin https://PUBLIC_IPV4 --output /opt/mlchess/shared/.env.server.local
-MLCHESS_IMAGE_TAG=EXACT_SHA docker compose --env-file /opt/mlchess/shared/.env.server.local -f infra/compose.server.yml config --quiet
-MLCHESS_IMAGE_TAG=EXACT_SHA docker compose --env-file /opt/mlchess/shared/.env.server.local -f infra/compose.server.yml up -d --no-build --wait
+MLCHESS_IMAGE_TAG=EXACT_SHA docker compose --env-file /opt/mlchess/shared/.env.server.local -f infra/compose.server.yml -f infra/compose.vps-host.yml config --quiet
+MLCHESS_IMAGE_TAG=EXACT_SHA docker compose --env-file /opt/mlchess/shared/.env.server.local -f infra/compose.server.yml -f infra/compose.vps-host.yml up -d --no-build --wait
 ```
 
 Create release/shared directories with restricted access. Initializer refuses
@@ -26,12 +26,17 @@ on upgrades. Rotating the invitation key voids unused links. Guest sessions last
 7days; invite links expire24hours and seat one opponent. Cleared browser cookies
 cannot recover an anonymous seat. Never expose development/fake auth publicly.
 
-Only80/tcp and443/tcp+udp are published. PostgreSQL/Redis have no host ports.
-API/worker/static web run non-root with read-only filesystems. CPU/RAM limits
-leave VPN capacity. CHECK network overlap before starting. Do not modify VPN
-files, interfaces, routes, sysctls, firewall policy or restart host Docker/network.
-Compare protected VPN config hashes/interface/route before and after; do not
-print private configuration or peer credentials.
+User update2026-11-09: do not inspect, read, hash, test or modify the VPN.
+No VPN checks are a prerequisite. Do not change host routes, sysctls/firewall or
+restart host Docker/networking. The VPS overlay creates no Docker networks or
+published-port NAT. PostgreSQL55432, Redis56379, API58000 and static-web58080
+bind127.0.0.1 only. Gateway alone binds the configured public IP on80/443.
+API/worker/static web remain non-root and read-only. Gateway runs with only
+NET_BIND_SERVICE capability to bind privileged host ports without changing
+host sysctls. Host network sharing trades container network isolation for
+avoiding changes to the host's networking; data services remain loopback-only.
+Use application-port probes only. If inbound80/443 is blocked externally, report
+that blocker; do not change firewall or VPN settings. CPU/RAM limits remain.
 
 Caddy2.11.9 uses Let's Encrypt's shortlived profile, with160-hour IP certificates
 and automatic renewal. Preserve tls_data/tls_config volumes. default_sni handles

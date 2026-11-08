@@ -1,0 +1,17 @@
+{
+	admin off
+	auto_https off
+}
+:58080 {
+	bind 127.0.0.1
+	root * /srv
+	handle /assets/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+	handle {
+		header Cache-Control no-cache
+		try_files {path} /index.html
+		file_server
+	}
+}

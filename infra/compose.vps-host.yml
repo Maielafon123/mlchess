@@ -1,0 +1,64 @@
+# VPS overlay: no Docker bridges, published-port NAT, routes or firewall edits.
+# Combine with compose.server.yml. All private services bind loopback explicitly.
+services:
+  postgres:
+    network_mode: host
+    networks: !reset []
+    cap_drop: [NET_RAW]
+    environment:
+      PGPORT: "55432"
+    command: [postgres, -c, listen_addresses=127.0.0.1, -c, port=55432, -c, unix_socket_directories=/tmp]
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -p, "55432", -U, mlchess, -d, mlchess]
+  redis:
+    network_mode: host
+    networks: !reset []
+    command: [sh, -ec, 'exec redis-server --bind 127.0.0.1 --port 56379 --protected-mode yes --appendonly yes --maxmemory 48mb --maxmemory-policy noeviction --requirepass "$$REDIS_PASSWORD"']
+    healthcheck:
+      test: [CMD, redis-cli, -h, 127.0.0.1, -p, "56379", ping]
+  migrate:
+    network_mode: host
+    networks: !reset []
+    environment:
+      MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+  api:
+    network_mode: host
+    networks: !reset []
+    environment:
+      MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+    command: [uvicorn, backend.app.main:create_app, --factory, --host, 127.0.0.1, --port, "58000", --no-proxy-headers, --no-access-log, --limit-concurrency, "64", --backlog, "64", --timeout-keep-alive, "5"]
+    volumes: [./host_api_probe.py:/app/infra/host_api_probe.py:ro]
+    healthcheck:
+      test: [CMD, python, -m, infra.host_api_probe]
+  worker:
+    network_mode: host
+    networks: !reset []
+    environment:
+      MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+  web:
+    network_mode: host
+    networks: !reset []
+    volumes: [./Caddyfile.host-static:/etc/caddy/Caddyfile:ro]
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:58080/]
+  gateway:
+    # The host retains its privileged-port policy. Only the proxy needs this cap.
+    user: "0:0"
+    network_mode: host
+    networks: !reset []
+    ports: !reset []
+    cap_add: [NET_BIND_SERVICE]
+    volumes:
+      - ${MLCHESS_VPS_CADDYFILE:-./Caddyfile.vps}:/etc/caddy/Caddyfile:ro
+      - type: volume
+        source: tls_data
+        target: /data
+        volume: {nocopy: true}
+      - type: volume
+        source: tls_config
+        target: /config
+        volume: {nocopy: true}
+networks: !reset {}
