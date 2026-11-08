@@ -53,5 +53,17 @@ Compose checks are separate; no production or public VPS sign-off is claimed.
 - B-11/B-14: finish learning contract/port proposals and persistence handoff;
 - B-18/B-19: integrate `GameWebSocket` after A mounts the real route.
 
+## Latest B-05/B-11 handoff
+
+- Commit: `6d3b59e` (`integration/b-next`).
+- Added provider-neutral coach ports in `backend/app/coach/ports.py` without
+  changing A-owned composition or creating migrations.
+- Added `CCR-B-05-COACH-PORTS.md` and `CCR-B-11-LEARNING-CONTRACT.md` with the
+  required ACL, idempotency, storage and `A-CONTRACT-READY` handoff conditions.
+- `python -m pytest backend/tests/coach backend/tests/learning -q` — **PASS
+  (49 tests)**.
+- `ruff` was not installed in this Windows environment; no ruff result is
+  claimed for this commit.
+
 Every ticket must record its exact base SHA, B-owned files, tests, live-vs-mock
 evidence, security negatives, open CCRs and handoff requirements.
