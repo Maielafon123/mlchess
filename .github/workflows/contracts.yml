@@ -132,3 +132,51 @@ jobs:
           MLCHESS_LIVE_BASE_URL: http://localhost:8080
       - if: always()
         run: docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml down
+
+  vps-host-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MLCHESS_IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+      MLCHESS_PUBLIC_ORIGIN: http://localhost:60080
+      MLCHESS_SITE_ADDRESS: 127.0.0.1
+      MLCHESS_RUNTIME_ENVIRONMENT: test
+      MLCHESS_VPS_CADDYFILE: ./Caddyfile.vps-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.25.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm --dir apps/web install --frozen-lockfile
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
+      - run: python -m infra.init_compose_env
+      - run: docker compose --env-file .env.dev.local -f infra/compose.server.yml -f infra/compose.vps-host.yml config --quiet
+      - run: docker compose --env-file .env.dev.local -f infra/compose.server.yml -f infra/compose.vps-host.yml up -d --build --wait
+      - run: pnpm --dir apps/web test:e2e:live --grep '@guest'
+        env:
+          MLCHESS_LIVE_BASE_URL: http://localhost:60080
+      - name: Export tested application images
+        run: |
+          docker image save "mlchess-api:$MLCHESS_IMAGE_TAG" "mlchess-worker:$MLCHESS_IMAGE_TAG" "mlchess-web:$MLCHESS_IMAGE_TAG" "mlchess-gateway:$MLCHESS_IMAGE_TAG" | gzip -1 > /tmp/mlchess-images.tar.gz
+          cd /tmp
+          sha256sum mlchess-images.tar.gz > mlchess-images.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server-images-${{ env.MLCHESS_IMAGE_TAG }}
+          path: |
+            /tmp/mlchess-images.tar.gz
+            /tmp/mlchess-images.sha256
+          retention-days: 3
+      - if: failure()
+        name: Sanitized application diagnostics
+        run: python -m infra.compose_diagnostics --env-file .env.dev.local --compose infra/compose.server.yml --compose infra/compose.vps-host.yml
+      - if: always()
+        run: docker compose --env-file .env.dev.local -f infra/compose.server.yml -f infra/compose.vps-host.yml down
