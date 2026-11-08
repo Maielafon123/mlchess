@@ -14,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from starlette.exceptions import HTTPException
 
 from backend.app.auth.router import router as auth_router
+from backend.app.analysis.durable import DurableAnalysisService
+from backend.app.analysis.router import router as analysis_router
 from backend.app.auth.service import (
     AuthService,
     InMemorySessionStore,
@@ -97,6 +99,7 @@ def create_app(
         session_ttl_seconds=settings.session_ttl_seconds,
     )
     app.state.game_service = DurableGameService(factory) if factory else None
+    app.state.analysis_service = DurableAnalysisService(factory) if factory else None
     app.state.invitation_service = (
         InvitationService(
             factory,
@@ -109,6 +112,7 @@ def create_app(
     app.state.database_factory = factory
     app.include_router(auth_router)
     app.include_router(games_router)
+    app.include_router(analysis_router)
     app.include_router(invitation_router)
     app.include_router(coach_router)
     app.include_router(learning_router)

@@ -94,8 +94,13 @@ class UciEngineAdapter:
                 for key, value in {"Threads": 1, "Hash": 32}.items()
                 if key in self._engine.options
             }
+            if "Use NNUE" in self._engine.options:
+                options["Use NNUE"] = True
             self._engine.configure(options)
         return self._engine
+
+    def identity(self) -> str:
+        return self._start().id["name"]
 
     def stop(self) -> None:
         engine, self._engine = self._engine, None

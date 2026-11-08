@@ -32,6 +32,7 @@ REQUIRED_HTTP = {
     ("POST", "/api/v1/matchmaking/tickets"),
     ("GET", "/api/v1/matchmaking/tickets/{ticket_id}"),
     ("POST", "/api/v1/games/{game_id}/analysis-requests"),
+    ("GET", "/api/v1/games/{game_id}/analysis/{ply}"),
     ("POST", "/api/v1/games/{game_id}/coach-requests"),
     ("GET", "/api/v1/games/{game_id}/coach-requests/{job_id}"),
     ("GET", "/api/v1/learning/lessons"),

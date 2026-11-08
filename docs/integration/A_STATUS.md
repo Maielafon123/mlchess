@@ -129,3 +129,49 @@ regression PASS without a Docker daemon. Local Docker Desktop is stopped; new
 runtime acceptance/build/export is delegated to the existing GitHub Actions
 workflow (not a separate agent). Host runtime guest acceptance is required before
 public startup. The old standalone server bridge config is NOT used on this VPS.
+
+## Public guest deployment accepted (2026-11-09)
+
+PR37 merged at28d750024ca0aa8df0f40aed2956b1ffe554a41e; exact merge run42524839016
+and all six PR jobs in42524465131 PASS. Host overlay acceptance includes six
+Android Chromium/iPhone WebKit guest cases with development authentication OFF.
+VPS runs existing application images845f4b149e946b68bf7e81ad306ed2ad855cd9af
+with infrastructure7b3c81c670faac8fab1102e136f18bd61ea10110. The only application
+source difference is the unused B coach port definitions. Do not confuse the
+infrastructure revision with the deployed application image revision.
+
+Public IP HTTPS uses a trusted Let's Encrypt certificate; HTTP redirects to HTTPS.
+Ready200; six long-running services started, API/worker/web/data healthy, migrate0.
+External phone acceptance on the actual public HTTPS address:6 PASS (19.8s).
+Manual browser: guest AI creation, e2e4/e7e5, refresh restores same game/history;
+390px mobile layout inspected. No certificate validation bypass. No VPN operations.
+An inaccurate VPS clock was corrected using the existing synchronized chrony
+source; neither network configuration nor VPN was inspected or changed.
+
+Guest/mobile deployment is accepted. Full product signoff remains BLOCKED by
+analysis, coach, learning, realtime, matchmaking and recovery tasks listed above.
+Continue A-I09 durable analysis next.
+
+## A-I09 analysis implementation
+
+Mounted strict v1 request/result endpoints over existing analyses/worker/outbox
+tables; no schema expansion needed. Actor/game locks, exact receipts, cache by
+position/revision/policy/level, durable40jobs/hour quota and global256 pending cap.
+No engine runs in HTTP. A separate bounded analysis-worker uses the shared SQL
+lease mechanism, retries3, restart recovery and late-result fencing. Result and
+analysis.ready event commit atomically. Active PvP is denied on submit/read/commit;
+finished friendly participants can read verified analysis. Undo invalidates old
+jobs even when a later line recreates the same ply. Advancement on the same line
+does not invalidate an earlier analysis.
+
+Stockfish15.1-4 binary pinned. Build exports the embedded NNUE using the upstream
+export_net command, hashes the actual bytes, then removes the temporary export;
+runtime verifies the build manifest against the running engine. Mate stays a mate
+score; loss is calculated from mover POV only for cp. Facts include independently
+checked en-passant capture square, promotion material gain, castling and checkmate.
+
+Local: full backend487 PASS/17 SKIP before the last two added boundary tests;
+final analysis26 PASS; engine/infra target previously36 PASS plus the corrected
+invitation fixture case. Ruff check/format, web lint/build and generation check PASS.
+PostgreSQL concurrency and real-container E2E are pending CI; no A-I09 live signoff
+or deployment of these new analysis sources is claimed yet.
