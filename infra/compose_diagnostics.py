@@ -46,6 +46,7 @@ def main() -> int:
             "api",
             "worker",
             "analysis-worker",
+            "coach-worker",
             "web",
             "gateway",
         ],

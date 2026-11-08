@@ -1,0 +1,209 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://mlchess.local/contracts/coach/v1.yaml
+$defs:
+  CoachRequestV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - game_id
+    - analysis_id
+    - revision
+    - ply
+    - language
+    - level
+    properties:
+      schema_version:
+        const: 1
+      game_id:
+        type: string
+        format: uuid
+      analysis_id:
+        type: string
+        format: uuid
+      revision:
+        type: integer
+        minimum: 0
+      ply:
+        type: integer
+        minimum: 1
+      language:
+        type: string
+        enum:
+        - ru
+        - en
+      level:
+        type: string
+        enum:
+        - short
+        - detailed
+        - observation
+        - direction
+        - idea
+        - candidates
+        - solution
+      student_context_version:
+        type: string
+        minLength: 1
+        maxLength: 120
+  CoachExplanationV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - game_id
+    - revision
+    - ply
+    - analysis_id
+    - language
+    - level
+    - summary
+    - why
+    - question
+    - referenced_uci
+    - highlight_squares
+    - claim_refs
+    - template_id
+    - confidence
+    - model_id
+    - prompt_version
+    - fallback_used
+    properties:
+      schema_version:
+        const: 1
+      game_id:
+        type: string
+        format: uuid
+      revision:
+        type: integer
+        minimum: 0
+      ply:
+        type: integer
+        minimum: 1
+      analysis_id:
+        type: string
+        format: uuid
+      language:
+        type: string
+        enum:
+        - ru
+        - en
+      level:
+        type: string
+        enum:
+        - short
+        - detailed
+        - observation
+        - direction
+        - idea
+        - candidates
+        - solution
+      summary:
+        type: string
+        minLength: 1
+        maxLength: 500
+      why:
+        type: string
+        minLength: 1
+        maxLength: 2000
+      question:
+        type: string
+        minLength: 1
+        maxLength: 500
+      referenced_uci:
+        type: array
+        items:
+          type: string
+          pattern: ^[a-h][1-8][a-h][1-8][qrbn]?$
+        maxItems: 8
+        uniqueItems: true
+      highlight_squares:
+        type: array
+        items:
+          type: string
+          pattern: ^[a-h][1-8]$
+        maxItems: 16
+        uniqueItems: true
+      claim_refs:
+        type: array
+        items:
+          type: string
+          pattern: ^[a-zA-Z0-9._:-]+$
+        maxItems: 16
+        uniqueItems: true
+      template_id:
+        type: string
+        pattern: ^[a-zA-Z0-9._:-]+$
+        maxLength: 120
+      confidence:
+        type: string
+        enum:
+        - grounded
+        - uncertain
+        - fallback
+      model_id:
+        type: string
+        minLength: 1
+        maxLength: 160
+      prompt_version:
+        type: string
+        pattern: ^[a-zA-Z0-9._:-]+$
+        maxLength: 80
+      fallback_used:
+        type: boolean
+  CoachJobV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - job_id
+    - status
+    - game_id
+    - analysis_id
+    - revision
+    - ply
+    properties:
+      schema_version:
+        const: 1
+      job_id:
+        type: string
+        format: uuid
+      status:
+        type: string
+        enum:
+        - pending
+        - ready
+        - failed
+      game_id:
+        type: string
+        format: uuid
+      analysis_id:
+        type: string
+        format: uuid
+      revision:
+        type: integer
+        minimum: 0
+      ply:
+        type: integer
+        minimum: 1
+      explanation:
+        $ref: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachExplanationV1
+      error_code:
+        type: string
+        pattern: ^[A-Z0-9_:-]+$
+        maxLength: 80
+    allOf:
+    - if:
+        properties:
+          status:
+            const: ready
+      then:
+        required:
+        - explanation
+    - if:
+        properties:
+          status:
+            const: failed
+      then:
+        required:
+        - error_code

@@ -146,6 +146,12 @@ def test_check_detects_manual_generated_edit_without_modifying_it(tmp_path):
     destination.parent.mkdir(parents=True)
     shutil.copyfile(ROOT.parent / generated, destination)
     artifact = root / "generated/api.d.ts"
+    windows_checkout = (
+        artifact.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+    )
+    artifact.write_bytes(windows_checkout)
+    generate(root, check=True)
+    assert artifact.read_bytes() == windows_checkout
     changed = artifact.read_text() + "\n// accidental manual change\n"
     artifact.write_text(changed)
     with pytest.raises(RuntimeError, match="contracts/generated/api.d.ts"):

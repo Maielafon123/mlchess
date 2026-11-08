@@ -194,3 +194,37 @@ this VPS. No OOM/restarts occurred. Replace repeated ORM/app imports with a smal
 asyncpg probe, connect/query/close timeouts2/2/1s, no exception output. Host overlay
 mounts that probe read-only so an unchanged tested application image can receive
 the correction. Targeted probe/host config4 PASS; actual VPS measurement pending.
+
+Probe correction PR39 merged0a143bdf7e558419e5a38a750fe932b012ad6e4c after six
+green PR jobs42527615370. Exact merge CI42527893564 PASS; analysis merge
+CI42526905637 PASS. Actual lightweight VPS probe3.42s; updated host overlay deployed
+with existing0597c93 API/worker images. All six application/data health checks PASS,
+including the previously unhealthy analysis-worker. No VPN access or checks.
+
+## A-I10 coach composition implementation (CI pending)
+
+CCR-A-I10-COACH records the cross-owner integration and tighter principal privacy.
+Expand-only0004 persists explanations, foreign keys and request uniqueness. The
+guarded B router mounts only game-scoped async endpoints; both reads and writes
+recheck the actor, game phase, completed analysis and current revision. A separate
+coach-worker executes B CoachService and grounding in a bounded child process,
+with8s hard timeout,32KiB input/output and no database credentials in its environment.
+Provider failures become deterministic fallback; stale results cannot publish.
+
+No cloud model credentials are available. Production provider verified-rules-v1
+is explicit rule-based feedback from actual engine facts, not fake and not an LLM.
+External LLM validation remains pending credentials; no full LLM signoff is claimed.
+The child and parent repeat grounding; ready payload and coach.ready event commit
+atomically. Personalized jobs/caches remain private even from the other player.
+
+Frontend uses generated analysis/coach types, reconstructs legal PV previews,
+keeps White POV, resumes the coach game URL, requests analysis only for the human
+move and hides old hints immediately on branch/context change. Five hint levels
+are localized; Android Chromium/iPhone WebKit live coach cases added to CI.
+
+Local: full backend499 PASS/17 SKIP before the final same-game privacy test;
+final durable coach5 PASS, earlier coach/host target52 PASS. Web51 unit PASS;
+stale-analysis/hint tests3 PASS; build/lint and demo3 PASS. Contract44 fixtures and
+generation64 tests PASS, including a Windows CRLF checkout without false drift.
+Surface preflight still BLOCKED: five learning/matchmaking HTTP operations and WS.
+Next: real PostgreSQL/Compose coach acceptance, then persistent learning.

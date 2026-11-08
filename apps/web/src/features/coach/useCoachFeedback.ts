@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CoachApi, type CoachExplanation, type CoachLevel, type CoachRequest } from "../../api/coachApi";
 
 export type CoachFeedbackState = { explanation: CoachExplanation | null; pending: boolean; error: string | null };
@@ -6,6 +6,7 @@ export type CoachFeedbackState = { explanation: CoachExplanation | null; pending
 export function useCoachFeedback(api?: CoachApi) {
   const resolvedApi = useMemo(() => api ?? new CoachApi(), [api]);
   const requestId = useRef(0);
+  useEffect(() => () => { requestId.current += 1; }, []);
   const [state, setState] = useState<CoachFeedbackState>({ explanation: null, pending: false, error: null });
 
   const invalidate = useCallback(() => {
@@ -29,7 +30,7 @@ export function useCoachFeedback(api?: CoachApi) {
         setState({ explanation: null, pending: false, error: "Coach feedback is still processing. Try again shortly." });
         return;
       }
-      if (ready.status === "failed" || !ready.explanation || ready.game_id !== input.game_id || ready.analysis_id !== input.analysis_id || ready.revision !== input.revision || ready.ply !== input.ply || ready.explanation.level !== level) {
+      if (ready.status === "failed" || !ready.explanation || ready.game_id !== input.game_id || ready.analysis_id !== input.analysis_id || ready.revision !== input.revision || ready.ply !== input.ply || ready.explanation.level !== level || ready.explanation.game_id !== input.game_id || ready.explanation.analysis_id !== input.analysis_id || ready.explanation.revision !== input.revision || ready.explanation.ply !== input.ply) {
         setState({ explanation: null, pending: false, error: "Coach feedback is stale for this position." });
         return;
       }

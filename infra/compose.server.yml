@@ -111,6 +111,22 @@ services:
       interval: 15s
       timeout: 5s
       retries: 4
+  coach-worker:
+    <<: *runtime
+    image: mlchess-api:${MLCHESS_IMAGE_TAG:?Required}
+    build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
+    command: [python, -m, backend.app.coach.worker]
+    mem_limit: 256m
+    cpus: 0.4
+    environment: *backend-env
+    networks: [data]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -m, infra.container_probe, worker]
+      interval: 15s
+      timeout: 10s
+      retries: 4
   web:
     <<: *runtime
     image: mlchess-web:${MLCHESS_IMAGE_TAG:?Required}

@@ -2,10 +2,18 @@
 
 **Base:** `origin/main` at `845f4b149e946b68bf7e81ad306ed2ad855cd9af`  
 **Branch:** `integration/b-next`  
-**Date:** 2026-11-08
+**Date:** 2026-11-09
 
 This is the current B consumer/domain evidence log. Demo UI checks and live
 Compose checks are separate; no production or public VPS sign-off is claimed.
+
+A integration update: public guest/mobile and analysis are now verified on the
+IP HTTPS deployment (PR38/c7fcb2b, external7 cases PASS). Host probe fix PR39
+merged0a143bd and all app/data health checks PASS. The baseline table below is
+the earlier B handoff, not the current deployed analysis state. A-I10 coach SQL,
+guarded router, worker and generated consumers are implemented under
+CCR-A-I10-COACH; runtime acceptance is pending CI. No cloud LLM is configured;
+verified-rules-v1 identifies actual rule-based coaching from engine facts.
 
 ## B-00 baseline map
 

@@ -25,7 +25,7 @@ class LeasedWorker:
     def __init__(self, factory, *, lease_seconds=30, max_attempts=3):
         if not 30 <= lease_seconds <= 300 or not 1 <= max_attempts <= 10:
             raise ValueError("Invalid worker bounds")
-        if self.queue not in {"gameplay", "analysis"}:
+        if self.queue not in {"gameplay", "analysis", "coach"}:
             raise ValueError("Unknown worker queue")
         self.factory = factory
         self.lease_seconds, self.max_attempts = lease_seconds, max_attempts

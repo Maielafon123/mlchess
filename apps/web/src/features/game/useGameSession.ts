@@ -23,17 +23,22 @@ function conflictSnapshot(error: unknown): GameSnapshot | null {
 export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSnapshot) => void, mode: "ai" | "coach" = "ai") {
   const resolvedApi = useMemo(() => api ?? new GameApi(), [api]);
   const creationKey = useMemo(() => ({ mode, key: createIdempotencyKey() }), [mode]).key;
+  const resume = useMemo(() => ({ mode, id: new URLSearchParams(window.location.search).get("game") }), [mode]);
   const [state, setState] = useState<SessionState>({ snapshot: null, pending: false, error: null });
 
   useEffect(() => {
     let cancelled = false;
-    ensurePublicSession().then(() => resolvedApi.create(mode, undefined, creationKey)).then((snapshot) => {
-      if (!cancelled) setState({ snapshot, pending: false, error: null });
+    ensurePublicSession().then(() => resume.id ? resolvedApi.get(resume.id) : resolvedApi.create(mode, undefined, creationKey)).then((snapshot) => {
+      if (snapshot.mode !== mode) throw new Error("Это ссылка на другой режим игры.");
+      if (!cancelled) {
+        window.history.replaceState(window.history.state, "", `/play/${mode}?game=${encodeURIComponent(snapshot.id)}`);
+        setState({ snapshot, pending: false, error: null });
+      }
     }).catch((error: unknown) => {
       if (!cancelled) setState({ snapshot: null, pending: false, error: error instanceof Error ? error.message : "Unable to create game" });
     });
     return () => { cancelled = true; };
-  }, [resolvedApi, mode, creationKey]);
+  }, [resolvedApi, mode, creationKey, resume]);
 
   const gameId = state.snapshot?.id;
   const enginePending = state.snapshot?.status === "active" && state.snapshot.players.some(
