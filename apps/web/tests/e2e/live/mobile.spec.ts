@@ -37,7 +37,22 @@ test("guest challenge works by touch on two phones and survives refresh @guest",
     await other.locator('.board-frame [data-square="e5"]').tap();
     await expect(page.locator(".move-history ol li")).toHaveCount(2);
     await expect(other.locator(".move-history ol li")).toHaveCount(2);
-    await other.reload();
+    // Keep a real successful poll in flight while reloading. WebKit must see an
+    // explicit app cancellation rather than reporting a navigation/CORS error.
+    const gameId = new URL(other.url()).searchParams.get("game");
+    let releasePoll = () => {};
+    const heldPoll = new Promise<void>((resolve) => { releasePoll = resolve; });
+    let pollInFlight = false;
+    await other.route(`**/api/v1/games/${gameId}`, async (route) => {
+      const response = await route.fetch();
+      pollInFlight = true;
+      await heldPoll;
+      await route.fulfill({ response }).catch(() => { /* old document cancelled its fetch */ });
+    }, { times: 1 });
+    try {
+      await expect.poll(() => pollInFlight).toBe(true);
+      await other.reload();
+    } finally { releasePoll(); }
     await expect(other.locator(".move-history ol li")).toHaveCount(2);
     expect((await (await second.request.get("/api/v1/me")).json()).id).toBe(user2.id);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
