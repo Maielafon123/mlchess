@@ -24,6 +24,7 @@ REQUIRED_HTTP = {
     ("GET", "/api/v1/auth/providers"),
     ("POST", "/api/v1/auth/oidc/start"),
     ("GET", "/api/v1/auth/oidc/callback"),
+    ("GET", "/api/v1/coach/provider"),
     ("POST", "/api/v1/games"),
     ("GET", "/api/v1/games/{game_id}"),
     ("POST", "/api/v1/games/{game_id}/moves"),

@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/coach/provider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCoachProvider"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games": {
         parameters: {
             query?: never;
@@ -841,6 +857,11 @@ export interface components {
             explanation?: components["schemas"]["CoachExplanationV1"];
             error_code?: string;
         } & (unknown & unknown);
+        CoachProviderStatusV1: {
+            /** @constant */
+            schema_version: 1;
+            external: boolean;
+        };
         /** @description Durable event: seq is allocated atomically with game state/outbox. Publish only after commit. */
         CoachReadyEventV1: {
             /** @constant */
@@ -1630,6 +1651,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthProvidersV1"];
+                };
+            };
+        };
+    };
+    getCoachProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Whether this installation uses an external coach provider. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoachProviderStatusV1"];
                 };
             };
         };

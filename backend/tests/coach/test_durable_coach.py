@@ -119,7 +119,7 @@ def test_undo_rejects_job_read_and_fences_late_provider_result(settings):
         accepted = post(http, game, body(game, analysis), headers)
         executor = CoachWorker(app.state.database_factory)
         lease = asyncio.run(executor.claim())
-        request, facts = asyncio.run(executor.position(lease))
+        request, facts, _model = asyncio.run(executor.position(lease))
         explanation = RulesCoachProvider().explain(request)
         undo = http.post(
             f"/api/v1/games/{game['id']}/takeback",
@@ -173,7 +173,7 @@ def test_provider_process_failure_returns_grounded_fallback_without_secret(
         post(http, game, body(game, analysis), headers)
         executor = CoachWorker(app.state.database_factory)
         lease = asyncio.run(executor.claim())
-        request, facts = asyncio.run(executor.position(lease))
+        request, facts, _model = asyncio.run(executor.position(lease))
 
         def unavailable(*args, **kwargs):
             assert kwargs["timeout"] == 8

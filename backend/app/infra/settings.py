@@ -65,6 +65,8 @@ class Settings(BaseSettings):
     trust_loopback_gateway: bool = False
     learning_split: bool = False
     redis_url: str | None = Field(default=None, repr=False)
+    coach_openai_model: str = Field(default="", pattern=r"^[A-Za-z0-9_.-]{0,60}$")
+    coach_openai_api_key: SecretStr = Field(default=SecretStr(""), repr=False)
 
     @field_validator("public_origin")
     @classmethod

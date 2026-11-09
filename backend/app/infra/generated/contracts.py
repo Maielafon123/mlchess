@@ -102,6 +102,14 @@ class CoachJobV1(BaseModel):
     error_code: str | None = Field(None, max_length=80, pattern="^[A-Z0-9_:-]+$")
 
 
+class CoachProviderStatusV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    external: bool
+
+
 class CoachRequestV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",

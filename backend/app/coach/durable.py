@@ -47,8 +47,9 @@ def snapshot(row, job):
 
 
 class DurableCoachService:
-    def __init__(self, factory):
+    def __init__(self, factory, *, model_id=RulesCoachProvider.model_id):
         self.factory = factory
+        self.model_id = model_id
 
     async def submit(self, actor_id: UUID, key: UUID, payload: dict):
         request = CoachRequest(
@@ -68,7 +69,7 @@ class DurableCoachService:
                 select(CoachExplanation).where(
                     CoachExplanation.requester_id == actor_id,
                     CoachExplanation.analysis_id == UUID(request.analysis_id),
-                    CoachExplanation.model_id == RulesCoachProvider.model_id,
+                    CoachExplanation.model_id == self.model_id,
                     CoachExplanation.prompt_version == PROMPT_VERSION,
                     CoachExplanation.language == request.language,
                     CoachExplanation.level == request.level,
@@ -97,6 +98,17 @@ class DurableCoachService:
                         WorkerJob.status.in_(["pending", "running"]),
                     )
                 )
+                if self.model_id.startswith("openai:"):
+                    remote_recent = await session.scalar(
+                        select(func.count())
+                        .select_from(CoachExplanation)
+                        .where(
+                            CoachExplanation.model_id.startswith("openai:"),
+                            CoachExplanation.created_at >= now - timedelta(hours=1),
+                        )
+                    )
+                    if remote_recent >= 120 or recent >= 20:
+                        raise PublicProblem(429)
                 if recent >= 120 or pending >= 256:
                     raise PublicProblem(429)
                 job_id = uuid4()
@@ -118,7 +130,7 @@ class DurableCoachService:
                     game_id=game.id,
                     revision=request.revision,
                     ply=request.ply,
-                    model_id=RulesCoachProvider.model_id,
+                    model_id=self.model_id,
                     prompt_version=PROMPT_VERSION,
                     language=request.language,
                     level=request.level,

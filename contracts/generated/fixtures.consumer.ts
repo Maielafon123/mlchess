@@ -1377,3 +1377,9 @@ export const fixture56 = {
   "schema_version": 1,
   "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=fixture.apps.googleusercontent.com"
 } satisfies components["schemas"]["GoogleLoginStartV1"];
+
+// coach/provider.json
+export const fixture57 = {
+  "schema_version": 1,
+  "external": false
+} satisfies components["schemas"]["CoachProviderStatusV1"];

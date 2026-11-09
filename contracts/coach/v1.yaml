@@ -1,6 +1,13 @@
 $schema: https://json-schema.org/draft/2020-12/schema
 $id: https://mlchess.local/contracts/coach/v1.yaml
 $defs:
+  CoachProviderStatusV1:
+    type: object
+    additionalProperties: false
+    required: [schema_version, external]
+    properties:
+      schema_version: {type: integer, const: 1}
+      external: {type: boolean}
   CoachRequestV1:
     type: object
     additionalProperties: false

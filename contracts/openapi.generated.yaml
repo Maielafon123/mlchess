@@ -157,6 +157,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthProvidersV1'
+  /api/v1/coach/provider:
+    get:
+      operationId: getCoachProvider
+      security: []
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: Whether this installation uses an external coach provider.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachProviderStatusV1'
   /api/v1/games:
     post:
       operationId: createGame
@@ -3474,6 +3486,18 @@ components:
         then:
           required:
           - error_code
+    CoachProviderStatusV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - external
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        external:
+          type: boolean
     CoachReadyEventV1:
       type: object
       additionalProperties: false
@@ -5917,6 +5941,7 @@ x-source-schemas:
   ClockV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/ClockV1
   CoachExplanationV1: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachExplanationV1
   CoachJobV1: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachJobV1
+  CoachProviderStatusV1: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachProviderStatusV1
   CoachReadyEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/CoachReadyEventV1
   CoachRequestV1: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachRequestV1
   CreateGameV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/CreateGameV1
