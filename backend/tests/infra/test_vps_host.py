@@ -11,7 +11,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
+@pytest.mark.parametrize("domain", [False, True])
+def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain):
     docker = shutil.which("docker")
     if not docker:
         pytest.skip("Docker Compose CLI is required (daemon is not needed)")
@@ -35,8 +36,11 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
         env={
             **os.environ,
             "MLCHESS_IMAGE_TAG": "test",
-            "MLCHESS_PUBLIC_ORIGIN": "https://203.0.113.10",
-            "MLCHESS_SITE_ADDRESS": "203.0.113.10",
+            "MLCHESS_PUBLIC_ORIGIN": "https://chess.example.test"
+            if domain
+            else "https://203.0.113.10",
+            "MLCHESS_SITE_ADDRESS": "chess.example.test" if domain else "203.0.113.10",
+            "MLCHESS_BIND_ADDRESS": "203.0.113.10" if domain else "",
             "MLCHESS_INVITATION_SECRET": "x" * 43,
             "POSTGRES_PASSWORD": "disposable_config_only",
             "REDIS_PASSWORD": "disposable_config_only",
@@ -69,6 +73,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
         assert not service.get("privileged")
         assert "NET_ADMIN" not in service.get("cap_add", [])
     assert services["gateway"]["cap_add"] == ["NET_BIND_SERVICE"]
+    assert services["gateway"]["environment"]["MLCHESS_BIND_ADDRESS"] == "203.0.113.10"
     assert "ALL" in services["gateway"]["cap_drop"]
     tls_mounts = [
         mount for mount in services["gateway"]["volumes"] if mount["type"] == "volume"

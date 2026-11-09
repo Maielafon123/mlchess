@@ -14,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from starlette.exceptions import HTTPException
 
 from backend.app.auth.router import router as auth_router
+from backend.app.auth.google import GoogleOIDC
+from backend.app.auth.oidc_attempts import OAuthAttempts
 from backend.app.analysis.durable import DurableAnalysisService
 from backend.app.analysis.router import router as analysis_router
 from backend.app.auth.service import (
@@ -30,6 +32,7 @@ from backend.app.infra.models import (
     Game,
     GameState,
     GameMove,
+    OAuthAttemptRow,
     WorkerJob,
     CoachExplanation,
 )
@@ -77,6 +80,8 @@ def create_app(
             await session.execute(select(LessonRow.id).limit(1))
             await session.execute(select(MatchTicketRow.id).limit(1))
             await session.execute(select(RatingSettlementRow.game_id).limit(1))
+            if settings.google_client_id:
+                await session.execute(select(OAuthAttemptRow.session_hash).limit(1))
 
     async def persistence_required():
         raise RuntimeError("Deployed API persistence is not configured")
@@ -113,6 +118,22 @@ def create_app(
     app.state.metrics = MetricsRegistry()
     app.state.dev_login_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
     app.state.guest_login_limiter = SlidingWindowLimiter(limit=120, window_seconds=600)
+    app.state.oidc_ip_limiter = SlidingWindowLimiter(limit=30, window_seconds=600)
+    app.state.oidc_actor_limiter = SlidingWindowLimiter(limit=6, window_seconds=300)
+    app.state.google_oidc = (
+        GoogleOIDC(
+            settings.google_client_id,
+            settings.google_client_secret.get_secret_value(),
+            settings.public_origin + "/api/v1/auth/oidc/callback",
+        )
+        if factory and settings.google_client_id
+        else None
+    )
+    app.state.oauth_attempts = (
+        OAuthAttempts(factory, settings.session_ttl_seconds)
+        if app.state.google_oidc
+        else None
+    )
     app.state.command_limiter = SlidingWindowLimiter(limit=120, window_seconds=60)
     app.state.auth_service = AuthService(
         SqlAlchemySessionStore(factory) if factory else InMemorySessionStore(),

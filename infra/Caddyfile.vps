@@ -11,11 +11,11 @@
 	}
 }
 http://{$MLCHESS_SITE_ADDRESS} {
-	bind {$MLCHESS_SITE_ADDRESS}
+	bind {$MLCHESS_BIND_ADDRESS}
 	redir https://{$MLCHESS_SITE_ADDRESS}{uri} permanent
 }
 https://{$MLCHESS_SITE_ADDRESS} {
-	bind {$MLCHESS_SITE_ADDRESS}
+	bind {$MLCHESS_BIND_ADDRESS}
 	tls {
 		issuer acme {
 			dir https://acme-v02.api.letsencrypt.org/directory
@@ -40,6 +40,7 @@ https://{$MLCHESS_SITE_ADDRESS} {
 		reverse_proxy 127.0.0.1:58000 {
 			header_up Host {http.request.host}
 			header_up -Forwarded
+			header_up X-MLChess-Client-IP {http.request.remote.host}
 		}
 	}
 	handle {

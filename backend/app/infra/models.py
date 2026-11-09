@@ -63,6 +63,21 @@ class Session(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class OAuthAttemptRow(Base):
+    __tablename__ = "oauth_attempts"
+    __table_args__ = (Index("ix_oauth_attempt_expiry", "expires_at"),)
+
+    session_hash: Mapped[str] = mapped_column(
+        ForeignKey("sessions.token_hash", ondelete="CASCADE"), primary_key=True
+    )
+    state_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    nonce: Mapped[str] = mapped_column(String(43), nullable=False)
+    verifier: Mapped[str] = mapped_column(String(43), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
 class Game(Base):
     __tablename__ = "games"
     __table_args__ = (

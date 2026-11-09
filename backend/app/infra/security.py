@@ -4,6 +4,35 @@ import re
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
+from ipaddress import ip_address, ip_network
+
+from starlette.requests import HTTPConnection
+
+
+def client_key(connection: HTTPConnection) -> str:
+    """Use only a single address from the explicitly trusted local gateway."""
+    try:
+        peer = ip_address(connection.client.host) if connection.client else None
+    except ValueError:
+        peer = None
+    if (
+        peer
+        and peer.is_loopback
+        and connection.app.state.settings.trust_loopback_gateway
+    ):
+        addresses = connection.headers.getlist("x-mlchess-client-ip")
+        if len(addresses) == 1 and len(addresses[0]) <= 45:
+            try:
+                peer = ip_address(addresses[0])
+            except ValueError:
+                pass
+    if not peer:
+        return "unknown"
+    if peer.version == 6 and peer.ipv4_mapped:
+        return str(peer.ipv4_mapped)
+    return (
+        str(ip_network(f"{peer}/64", strict=False)) if peer.version == 6 else str(peer)
+    )
 
 
 class RateLimitExceeded(Exception):

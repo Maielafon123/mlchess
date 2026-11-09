@@ -76,8 +76,11 @@ export function FriendPage() {
 }
 
 export function MatchmakingPage() {
-  const { user, status } = useAuth();
-  return <div className="page"><section className="page-heading"><h1>Найти соперника</h1><p>Выберите рапид или блиц. Рейтинг меняется после завершения партии.</p></section>{status === "loading" ? <p role="status">Проверяем аккаунт…</p> : <MatchmakingScreen key={user?.id ?? "guest"} eligible={user?.kind === "account"} userId={user?.id} />}</div>;
+  const { user, status, googleAvailable, googlePending, signIn } = useAuth();
+  return <div className="page"><section className="page-heading"><h1>Найти соперника</h1><p>Выберите рапид или блиц. Рейтинг меняется после завершения партии.</p></section>
+    {status !== "loading" && user?.kind !== "account" && googleAvailable && <button className="button button-primary" type="button" disabled={googlePending} onClick={() => void signIn()}>Войти через Google для игры на рейтинг</button>}
+    {status === "loading" ? <p role="status">Проверяем аккаунт…</p> : <MatchmakingScreen key={user?.id ?? "guest"} eligible={user?.kind === "account"} userId={user?.id} />}
+  </div>;
 }
 
 export function PuzzlePage() {

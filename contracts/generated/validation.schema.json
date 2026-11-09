@@ -469,6 +469,23 @@
       ],
       "description": "Engine facts only; no coach prose. position_key = sha256(before_fen + \"|\" + played_move_uci). Replay the played move to after_fen and each candidate PV from before_fen. cp_loss = max(0, (score_before.value - score_after.value) * (1 for a white mover, -1 for black)), only when both scores are cp. No public arbitrary-FEN endpoint."
     },
+    "AuthProvidersV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "google"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "google": {
+          "type": "boolean"
+        }
+      }
+    },
     "CapabilitiesV1": {
       "type": "object",
       "additionalProperties": false,
@@ -2389,6 +2406,26 @@
         }
       },
       "description": "Durable event: seq is allocated atomically with game state/outbox. Publish only after commit."
+    },
+    "GoogleLoginStartV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "authorization_url"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "authorization_url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048,
+          "pattern": "^https://accounts\\.google\\.com/o/oauth2/v2/auth\\?"
+        }
+      }
     },
     "GuestSessionRequestV1": {
       "type": "object",

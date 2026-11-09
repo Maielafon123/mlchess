@@ -20,6 +20,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/oidc/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["finishGoogleLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/oidc/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["startGoogleLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["authProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games": {
         parameters: {
             query?: never;
@@ -734,6 +782,11 @@ export interface components {
             facts: components["schemas"]["AnalysisFactsV1"];
             created_at: components["schemas"]["UTCDateTime"];
         } & unknown;
+        AuthProvidersV1: {
+            /** @constant */
+            schema_version: 1;
+            google: boolean;
+        };
         /** @description Server-computed, viewer-specific permissions; not an authorization credential. */
         CapabilitiesV1: {
             can_move: boolean;
@@ -1006,6 +1059,12 @@ export interface components {
                 side_to_move: components["schemas"]["SideV1"];
                 clock: components["schemas"]["ClockV1"] | null;
             };
+        };
+        GoogleLoginStartV1: {
+            /** @constant */
+            schema_version: 1;
+            /** Format: uri */
+            authorization_url: string;
         };
         GuestSessionRequestV1: Record<string, never>;
         HealthV1: {
@@ -1465,6 +1524,112 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    finishGoogleLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Same-origin redirect after consuming a browser-bound login attempt. */
+            303: {
+                headers: {
+                    Location: "/play" | "/play?auth=google-failed";
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Google sign-in is not configured. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    startGoogleLogin: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Begin Google sign-in with the current browser session. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleLoginStartV1"];
+                };
+            };
+            /** @description No active browser session. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Invalid origin or CSRF token. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Google sign-in is not configured. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Login rate limit exceeded. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    authProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Available account sign-in providers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthProvidersV1"];
                 };
             };
         };

@@ -1,6 +1,7 @@
 import { ApiClient, ApiError } from "../api";
 import { createIdempotencyKey } from "../api/client";
 import type { AuthConfig } from "./config";
+import type { components } from "../../../../contracts/generated/api";
 
 export type AuthUser = {
   id: string;
@@ -20,9 +21,20 @@ export class AuthClient {
     }
   }
 
-  beginSignIn() {
-    if (this.config.mode === "fake") return;
-    window.location.assign(this.config.loginPath);
+  async providers(signal?: AbortSignal) {
+    const response = await this.api.get<components["schemas"]["AuthProvidersV1"]>("/api/v1/auth/providers", { signal });
+    return response.schema_version === 1 && response.google === true;
+  }
+
+  async beginSignIn() {
+    if (this.config.mode !== "guest" && this.config.mode !== "oidc") return;
+    const response = await this.api.post<components["schemas"]["GoogleLoginStartV1"]>(this.config.loginPath, {});
+    const destination = new URL(response.authorization_url);
+    if (response.schema_version !== 1 || destination.origin !== "https://accounts.google.com" ||
+      destination.pathname !== "/o/oauth2/v2/auth" || destination.username || destination.password || destination.hash) {
+      throw new Error("Unexpected login destination");
+    }
+    window.location.assign(destination.href);
   }
 
   developmentSignIn() {

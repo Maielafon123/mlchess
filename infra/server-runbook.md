@@ -1,9 +1,8 @@
 # Guest preview on the VPS
 
-This serves real AI games and unrated guest challenge links, including mobile
-Chromium/WebKit. It is a limited guest preview, not A-I19 signoff for all modes.
-Google OIDC, analysis/coach/learning integration, rated matchmaking, WebSocket
-replay and independently tested offsite PITR remain separate release tasks.
+The guest preview serves mobile AI, coach, learning and unrated challenge games
+over trusted HTTPS. Account-only rating is exercised by isolated CI. The IP
+preview does not enable Google login and is not the A-I19 release signoff.
 
 Use an exact reviewed merge SHA as MLCHESS_IMAGE_TAG. Build Linux amd64 API,
 worker, static-web and gateway images on the development machine using
@@ -58,6 +57,23 @@ pnpm --dir apps/web test:e2e:live --grep '@guest'
 The full account/dev-login suite runs on isolated CI/local stacks. Guests cannot
 use rated games or active-PvP analysis/coaching/takeback. API bounds command body
 size/read time, mutation rate, limiter memory and active-game resource quotas.
+
+Google account sign-in requires a DNS name pointing to the application gateway
+and a Google Cloud **Web application** OAuth client. Google does not accept a
+public IP in an authorized redirect URI. Add exactly
+`https://YOUR_DOMAIN/api/v1/auth/oidc/callback` in Google Cloud and set
+`MLCHESS_PUBLIC_ORIGIN=https://YOUR_DOMAIN`, `MLCHESS_SITE_ADDRESS=YOUR_DOMAIN`
+and `MLCHESS_BIND_ADDRESS=PUBLIC_IPV4` in the private Compose env. Verify
+trusted TLS before enabling credentials. Add `MLCHESS_GOOGLE_CLIENT_ID` and
+`MLCHESS_GOOGLE_CLIENT_SECRET` only to the private API configuration on the
+server. Leave both empty on the current IP preview. Client secrets never belong
+in browser environment variables or Git. [Google redirect rules](https://developers.google.com/identity/protocols/oauth2/web-server#uri-validation).
+
+The trusted loopback header is overwritten by Caddy; enable
+`MLCHESS_TRUST_LOOPBACK_GATEWAY` only when API ingress is limited to this local
+gateway. Do not expose the backend port. Public cookies migrate to
+`__Host-mlchess_session`; a rollback to images predating the cookie change
+may require visitors who have already migrated to re-establish their session.
 
 Before upgrades, back up PostgreSQL and record current SHA/image IDs. Migrations
 are expand-only; rollback compatible application images while retaining schema
