@@ -163,8 +163,8 @@ export function MatchmakingScreen({ api, gameApi, eligible = false, userId }: { 
         {snapshot.status === "finished" && <p role="status">Партия завершена: {outcome}{snapshot.termination === "timeout" ? " · время вышло" : ""}</p>}
         {settled && <p className="rating-result" role="status">Рейтинг {settled.before} → {settled.after} ({settled.delta > 0 ? "+" : ""}{settled.delta})</p>}
         <PlayerClocks clock={snapshot.clock} />
-        <GameBoard fen={snapshot.fen} moves={snapshot.moves} orientation={side} disabled={actions.pending || !snapshot.capabilities.can_move} onMoveAttempt={actions.move} />
         {active && <GameActionControls actions={actions.capabilities} disabled={actions.pending} onAction={actions.action} />}
+        <GameBoard fen={snapshot.fen} moves={snapshot.moves} orientation={side} disabled={actions.pending || !snapshot.capabilities.can_move} onMoveAttempt={actions.move} />
         {snapshot.status === "finished" && <div className="game-actions"><button className="button button-primary" type="button" disabled={actions.pending} onClick={another}>Новый поиск</button><GameReviewLink game={snapshot} /></div>}
       </div>}
     </>}

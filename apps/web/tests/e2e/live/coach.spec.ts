@@ -20,5 +20,8 @@ test("guest coach uses persisted real analysis and survives refresh @guest", asy
   expect(new URL(page.url()).searchParams.get("game")).toBe(gameId);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath("phone-coach.png"), fullPage: true });
+  await page.getByRole("button", { name: "Сдаться", exact: true }).click();
+  await page.getByRole("button", { name: "Подтвердить сдачу" }).click();
+  await expect(page.getByText("Партия завершена: победили чёрные · игрок сдался")).toBeVisible();
   expect(errors).toEqual([]);
 });

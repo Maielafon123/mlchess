@@ -65,6 +65,7 @@ test("rated search pairs two accounts, streams a move and saves both Elo results
     await white.getByRole("button", { name: "Предложить ничью" }).click();
     await expect(black.getByRole("button", { name: "Принять ничью" })).toBeVisible();
     await black.getByRole("button", { name: "Сдаться" }).click();
+    await black.getByRole("button", { name: "Подтвердить сдачу" }).click();
     await expect(status(white, "Рейтинг 1200 → 1216 (+16)")).toBeVisible();
     await expect(status(black, "Рейтинг 1200 → 1184 (-16)")).toBeVisible();
     await white.reload();

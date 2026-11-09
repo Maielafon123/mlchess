@@ -21,6 +21,7 @@ test("guests can analyze a finished challenge and a stranger cannot open it @gue
     await host.locator('.board-frame [data-square="e4"]').tap();
     await expect(opponent.locator(".move-history ol li")).toHaveCount(1);
     await opponent.getByRole("button", { name: "Сдаться" }).click();
+    await opponent.getByRole("button", { name: "Подтвердить сдачу" }).click();
     await host.getByRole("link", { name: "Разобрать партию" }).click();
     await expect(host.getByRole("heading", { name: "Разбор партии" })).toBeVisible();
     await host.getByRole("button", { name: "Разобрать ход" }).click();

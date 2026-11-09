@@ -75,9 +75,12 @@ test("guest challenge works by touch on two phones and survives refresh @guest",
     await intruder.goto(link);
     await expect(intruder.getByRole("alert")).toBeVisible();
     await expect(intruder.getByRole("region", { name: "Game board" })).toHaveCount(0);
-    await other.getByRole("button", { name: "Сдаться", exact: true }).click();
-    await expect(page.getByRole("status").filter({ hasText: "Партия завершена" })).toBeVisible();
-    await expect(other.getByRole("status").filter({ hasText: "Партия завершена" })).toBeVisible();
+    await other.getByRole("button", { name: "Предложить ничью", exact: true }).tap();
+    await expect(other.getByText("Вы предложили ничью.")).toBeVisible();
+    await expect(page.getByText("Соперник предлагает ничью.")).toBeVisible();
+    await page.getByRole("button", { name: "Принять ничью", exact: true }).tap();
+    await expect(page.getByRole("status").filter({ hasText: "Партия завершена: ничья" })).toBeVisible();
+    await expect(other.getByRole("status").filter({ hasText: "Партия завершена: ничья" })).toBeVisible();
     expect(errors).toEqual([]);
   } finally { await Promise.allSettled([first.close(), second.close(), outsider.close()]); }
 });
@@ -110,4 +113,12 @@ test("guest AI keeps the game on refresh and supports the black side @guest", as
   await expect(page.locator(".move-history ol li")).toHaveCount(3, { timeout: 20000 });
   await page.getByRole("button", { name: "Take back", exact: true }).click();
   await expect(page.locator(".move-history ol li")).toHaveCount(1);
+  await page.getByRole("button", { name: "Сдаться", exact: true }).tap();
+  await page.getByRole("button", { name: "Продолжить игру" }).tap();
+  await expect(page.getByLabel("UCI move")).toBeEnabled();
+  await page.getByRole("button", { name: "Сдаться", exact: true }).tap();
+  await page.getByRole("button", { name: "Подтвердить сдачу" }).tap();
+  await expect(page.getByText("Партия завершена: победили белые · игрок сдался")).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Партия завершена: победили белые · игрок сдался")).toBeVisible();
 });
