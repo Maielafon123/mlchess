@@ -3,6 +3,7 @@ import { ApiError } from "../../api/errors";
 import { GameApi, canAdoptSnapshot, type GameSnapshot } from "../../api/gameApi";
 import { createIdempotencyKey } from "../../api/client";
 import { ensurePublicSession } from "../../auth/guestSession";
+import { useHumanGameActions } from "./useHumanGameActions";
 
 type SessionState = {
   snapshot: GameSnapshot | null;
@@ -25,6 +26,12 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
   const creationKey = useMemo(() => ({ mode, key: createIdempotencyKey() }), [mode]).key;
   const resume = useMemo(() => ({ mode, id: new URLSearchParams(window.location.search).get("game") }), [mode]);
   const [state, setState] = useState<SessionState>({ snapshot: null, pending: false, error: null });
+  const adopt = useCallback((next: GameSnapshot) => {
+    setState((current) => current.snapshot && canAdoptSnapshot(current.snapshot, next)
+      ? { ...current, snapshot: next, error: null } : current);
+  }, []);
+  const actions = useHumanGameActions(state.snapshot, resolvedApi, adopt, state.pending);
+  const pending = state.pending || actions.pending;
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +52,7 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
   const enginePending = state.snapshot?.status === "active" && state.snapshot.players.some(
     (player) => player.kind === "engine" && player.side === state.snapshot?.side_to_move);
   useEffect(() => {
-    if (!gameId || (!enginePending && !timedActive) || state.pending) return;
+    if (!gameId || (!enginePending && !timedActive) || pending) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
@@ -61,11 +68,11 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
     };
     timer = setTimeout(poll, 500);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [enginePending, gameId, resolvedApi, state.pending, timedActive]);
+  }, [enginePending, gameId, pending, resolvedApi, timedActive]);
 
   const move = useCallback(async (uci: string) => {
     const snapshot = state.snapshot;
-    if (!snapshot || state.pending || !snapshot.capabilities.can_move) return;
+    if (!snapshot || pending || !snapshot.capabilities.can_move) return;
     setState((current) => ({ ...current, pending: true, error: null }));
     try {
       const next = await resolvedApi.move(snapshot.id, { uci, client_move_id: clientMoveId(), expected_version: snapshot.version });
@@ -75,19 +82,7 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
       const rollback = conflictSnapshot(error);
       setState((current) => ({ snapshot: rollback ?? current.snapshot, pending: false, error: error instanceof Error ? error.message : "Move rejected" }));
     }
-  }, [onAcceptedMove, resolvedApi, state.pending, state.snapshot]);
+  }, [onAcceptedMove, pending, resolvedApi, state.snapshot]);
 
-  const resign = useCallback(async () => {
-    const snapshot = state.snapshot;
-    if (!snapshot || state.pending || snapshot.status !== "active") return;
-    setState((current) => ({ ...current, pending: true, error: null }));
-    try {
-      const next = await resolvedApi.resign(snapshot.id, snapshot.version);
-      setState({ snapshot: next, pending: false, error: null });
-    } catch (error: unknown) {
-      setState((current) => ({ ...current, pending: false, error: error instanceof Error ? error.message : "Resign rejected" }));
-    }
-  }, [resolvedApi, state.pending, state.snapshot]);
-
-  return useMemo(() => ({ ...state, move, resign }), [move, resign, state]);
+  return { ...state, pending, error: actions.error ?? state.error, actions, move };
 }

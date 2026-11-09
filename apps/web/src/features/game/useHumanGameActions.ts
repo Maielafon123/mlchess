@@ -14,9 +14,17 @@ export function useHumanGameActions(game: GameSnapshot | null, api: GameApi, ado
   useEffect(() => {
     if (!gameId || !active) return;
     const abort = new AbortController();
-    void api.actions(gameId, abort.signal).then((next) => { if (!abort.signal.aborted) setCapabilities(next); })
-      .catch(() => { if (!abort.signal.aborted) setCapabilities(null); });
-    return () => abort.abort();
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = async () => {
+      try {
+        const next = await api.actions(gameId, abort.signal);
+        if (!abort.signal.aborted) setCapabilities(next);
+      } catch {
+        if (!abort.signal.aborted) timer = setTimeout(refresh, 1500);
+      }
+    };
+    void refresh();
+    return () => { abort.abort(); clearTimeout(timer); };
   }, [active, api, gameId, version]);
   const send = async (action: HumanAction | "move", uci?: string) => {
     if (!game || !active || suspended || operation.current || (action === "move" && (!uci || !game.capabilities.can_move))) return;

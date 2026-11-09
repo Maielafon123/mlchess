@@ -142,8 +142,8 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
       {!finished && <span className="coach-status" role="status">{connected ? "Связь установлена" : "Проверяем соединение…"}</span>}
       <div className="friend-game-status" role="status">{finished ? "Партия завершена: " + (game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : "победили чёрные") + (game.termination === "timeout" ? " · время вышло" : "") : game.status === "active" ? game.capabilities.can_move ? "Ваш ход" : "Ход соперника" : "Партия ещё не началась"}</div>
       <PlayerClocks clock={game.clock} />
-      <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || actions.pending || !game.capabilities.can_move} onMoveAttempt={(uci) => { setError(null); actions.move(uci); }} />
       {game.status === "active" && <GameActionControls actions={actions.capabilities} disabled={pending || actions.pending} onAction={(kind) => { setError(null); actions.action(kind); }} />}
+      <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || actions.pending || !game.capabilities.can_move} onMoveAttempt={(uci) => { setError(null); actions.move(uci); }} />
       {finished && <div className="game-actions"><a className="button button-primary" href="/play/friend">Новая партия</a><GameReviewLink game={game} /></div>}
     </>}
     <p className="friend-description">В этой партии нет подсказок тренера или анализа.</p>

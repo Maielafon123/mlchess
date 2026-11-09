@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiGameApi, aiView, type AiGameOptions, type AiGameSnapshot } from "../../api/aiGameApi";
 import { createIdempotencyKey } from "../../api/client";
 import { ensurePublicSession } from "../../auth/guestSession";
-import { canAdoptSnapshot } from "../../api/gameApi";
+import { canAdoptSnapshot, type GameSnapshot } from "../../api/gameApi";
+import { useHumanGameActions } from "../game/useHumanGameActions";
 
-export type AiOperation = "creating" | "moving" | "takeback" | "engine" | null;
+export type AiOperation = "creating" | "moving" | "takeback" | "engine" | "action" | null;
 export type AiSessionState = { snapshot: AiGameSnapshot | null; pending: AiOperation; error: string | null };
 
 /** Ignore a delayed engine response once a newer operation has changed the branch. */
@@ -27,6 +28,12 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
   } }), [options]);
   const requestId = useRef(0);
   const [state, setState] = useState<AiSessionState>({ snapshot: null, pending: "creating", error: null });
+  const adopt = useCallback((wire: GameSnapshot) => {
+    const snapshot = aiView(wire, options.profile_id);
+    setState((current) => current.snapshot && canAdoptSnapshot(current.snapshot, snapshot)
+      ? { snapshot, pending: snapshot.engine_pending ? "engine" : null, error: null } : current);
+  }, [options.profile_id]);
+  const actions = useHumanGameActions(state.snapshot, resolvedApi, adopt, state.pending !== null && state.pending !== "engine");
 
   useEffect(() => {
     const id = ++requestId.current;
@@ -48,7 +55,7 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
   const gameId = state.snapshot?.id;
   const timedActive = state.snapshot?.status === "active" && !!state.snapshot.clock;
   useEffect(() => {
-    if (!gameId || (state.pending !== "engine" && !(timedActive && state.pending === null))) return;
+    if (!gameId || actions.pending || (state.pending !== "engine" && !(timedActive && state.pending === null))) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const id = requestId.current;
@@ -67,7 +74,7 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
     };
     timer = setTimeout(poll, 500);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [gameId, options.profile_id, resolvedApi, state.pending, timedActive]);
+  }, [actions.pending, gameId, options.profile_id, resolvedApi, state.pending, timedActive]);
 
   const recover = useCallback(async (gameId: string, id: number, error: unknown) => {
     const message = error instanceof Error ? error.message : "Обновляем позицию…";
@@ -81,7 +88,7 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
 
   const move = useCallback(async (uci: string) => {
     const snapshot = state.snapshot;
-    if (!snapshot || state.pending || !snapshot.capabilities.can_move) return;
+    if (!snapshot || state.pending || actions.pending || !snapshot.capabilities.can_move) return;
     const id = ++requestId.current;
     setState((current) => ({ ...current, pending: "moving", error: null }));
     try {
@@ -91,11 +98,11 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
     } catch (error: unknown) {
       await recover(snapshot.id, id, error);
     }
-  }, [options.profile_id, recover, resolvedApi, state.pending, state.snapshot]);
+  }, [actions.pending, options.profile_id, recover, resolvedApi, state.pending, state.snapshot]);
 
   const takeback = useCallback(async () => {
     const snapshot = state.snapshot;
-    if (!snapshot || (state.pending && state.pending !== "engine") || !snapshot.capabilities.can_takeback) return;
+    if (!snapshot || actions.pending || (state.pending && state.pending !== "engine") || !snapshot.capabilities.can_takeback) return;
     const id = ++requestId.current;
     setState((current) => ({ ...current, pending: "takeback", error: null }));
     try {
@@ -104,7 +111,7 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
     } catch (error: unknown) {
       await recover(snapshot.id, id, error);
     }
-  }, [options.profile_id, recover, resolvedApi, state.pending, state.snapshot]);
+  }, [actions.pending, options.profile_id, recover, resolvedApi, state.pending, state.snapshot]);
 
-  return useMemo(() => ({ ...state, move, takeback }), [move, state, takeback]);
+  return { ...state, pending: actions.pending ? "action" as const : state.pending, error: actions.error ?? state.error, actions, move, takeback };
 }

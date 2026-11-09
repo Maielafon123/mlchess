@@ -68,6 +68,8 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .pending-overlay { margin-bottom: 12px; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); color: var(--color-muted); }
 .error-banner { margin-bottom: 12px; padding: 10px 14px; border: 1px solid #d88484; border-radius: 10px; background: #fff3f3; color: #8d2525; }
 .game-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.game-action-panel { margin-bottom: 12px; }
+.game-action-buttons { justify-content: flex-start; flex-wrap: wrap; }
 .ai-game-screen { display: grid; gap: 14px; max-width: 720px; }
 .ai-game-toolbar { display: flex; flex-wrap: wrap; gap: 12px; }
 .ai-game-toolbar label { display: grid; gap: 6px; color: var(--color-muted); font-size: 0.82rem; }
@@ -127,6 +129,8 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .lesson-card h2, .lesson-card p, .lesson-detail h2, .lesson-detail p { margin: 0; }
 .lesson-card h2, .lesson-detail h2 { font-size: 1.2rem; }
 .lesson-card p, .lesson-detail p { color: var(--color-muted); line-height: 1.5; }
+.lesson-detail { grid-template-columns: minmax(0, 1fr); }
+.lesson-board-actions { justify-content: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
 .lesson-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .lesson-tags span { padding: 3px 7px; border-radius: 999px; background: var(--color-surface-soft); color: var(--color-muted); font-size: 0.75rem; }
 .catalog-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; }

@@ -1,6 +1,7 @@
 import { GameBoard } from "../../components/GameBoard";
 import { PlayerClocks } from "../../components/PlayerClocks";
 import { GameReviewLink } from "../../components/GameReviewLink";
+import { GameActionControls, SoloGameResult } from "../../components/GameActionControls";
 import { type GameApi, type GameSnapshot } from "../../api/gameApi";
 import { useGameSession } from "./useGameSession";
 import { useEffect } from "react";
@@ -18,18 +19,16 @@ export function GameSessionScreen({ api, onAcceptedMove, onSnapshot, mode = "ai"
     <div className="game-session" aria-busy={session.pending}>
       {session.pending && <div className="pending-overlay" role="status">Waiting for server…</div>}
       {session.error && <div className="error-banner" role="alert">{session.error}</div>}
-      {snapshot.termination === "timeout" && <p role="status">Партия завершена: время вышло.</p>}
+      <SoloGameResult game={snapshot} />
       <PlayerClocks clock={snapshot.clock} />
+      {snapshot.status === "active" && <GameActionControls key={snapshot.id} actions={session.actions.capabilities} disabled={session.pending} onAction={session.actions.action} />}
       <GameBoard
         fen={snapshot.fen}
         moves={snapshot.moves}
         disabled={session.pending || !snapshot.capabilities.can_move}
         onMoveAttempt={session.move}
       />
-      <div className="game-actions">
-        <button className="button button-secondary" type="button" onClick={() => void session.resign()} disabled={session.pending || snapshot.status !== "active"}>Resign</button>
-        <GameReviewLink game={snapshot} />
-      </div>
+      {snapshot.status === "finished" && <div className="game-actions"><GameReviewLink game={snapshot} /></div>}
     </div>
   );
 }
