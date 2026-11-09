@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiGameApi, aiView, type AiGameOptions, type AiGameSnapshot } from "../../api/aiGameApi";
 import { createIdempotencyKey } from "../../api/client";
 import { ensurePublicSession } from "../../auth/guestSession";
+import { canAdoptSnapshot } from "../../api/gameApi";
 
 export type AiOperation = "creating" | "moving" | "takeback" | "engine" | null;
 export type AiSessionState = { snapshot: AiGameSnapshot | null; pending: AiOperation; error: string | null };
@@ -45,8 +46,9 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
   }, [creation, options.profile_id, resolvedApi]);
 
   const gameId = state.snapshot?.id;
+  const timedActive = state.snapshot?.status === "active" && !!state.snapshot.clock;
   useEffect(() => {
-    if (!gameId || state.pending !== "engine") return;
+    if (!gameId || (state.pending !== "engine" && !(timedActive && state.pending === null))) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const id = requestId.current;
@@ -54,7 +56,7 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
       try {
         const next = aiView(await resolvedApi.get(gameId), options.profile_id);
         if (!cancelled && id === requestId.current) {
-          setState((current) => next.version >= (current.snapshot?.version ?? 0)
+          setState((current) => canAdoptSnapshot(current.snapshot, next)
             ? { snapshot: next, pending: next.engine_pending ? "engine" : null, error: null } : current);
         }
       } catch (error: unknown) {
@@ -65,7 +67,7 @@ export function useAiGameSession(options: AiGameOptions, api?: AiGameApi) {
     };
     timer = setTimeout(poll, 500);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [gameId, options.profile_id, resolvedApi, state.pending]);
+  }, [gameId, options.profile_id, resolvedApi, state.pending, timedActive]);
 
   const recover = useCallback(async (gameId: string, id: number, error: unknown) => {
     const message = error instanceof Error ? error.message : "Обновляем позицию…";

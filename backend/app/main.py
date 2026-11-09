@@ -26,7 +26,13 @@ from backend.app.games.router import router as games_router
 from backend.app.games.invitation_router import router as invitation_router
 from backend.app.games.invitation_service import InvitationService
 from backend.app.infra.db import create_engine, create_schema, session_factory
-from backend.app.infra.models import GameState, GameMove, WorkerJob, CoachExplanation
+from backend.app.infra.models import (
+    Game,
+    GameState,
+    GameMove,
+    WorkerJob,
+    CoachExplanation,
+)
 from backend.app.coach.router import create_durable_router
 from backend.app.coach.durable import DurableCoachService
 from backend.app.learning.router import create_durable_router as learning_router
@@ -59,7 +65,8 @@ def create_app(
 
     async def database_ready():
         async with factory() as session:
-            await session.execute(select(GameState.game_id).limit(1))
+            await session.execute(select(GameState.clock_observed_at).limit(1))
+            await session.execute(select(Game.clock_deadline_at).limit(1))
             await session.execute(select(GameMove.worker_job_id).limit(1))
             await session.execute(select(WorkerJob).limit(1))
             await session.execute(select(CoachExplanation.id).limit(1))

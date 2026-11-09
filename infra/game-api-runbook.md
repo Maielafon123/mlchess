@@ -88,3 +88,21 @@ and close codes. SQL tailing is the current transport; Redis fanout is not claim
 loopback Uvicorn and a new disposable temporary SQLite database, without Docker
 or engine workers. It checks actual WS frames on Android Chromium/iPhone WebKit.
 Use the Compose live suite for PostgreSQL, workers and full integration acceptance.
+
+
+## Timed games
+
+Run migration0006 before the API and `python -m backend.app.workers.clock`.
+Compose starts the independent `clock-worker` with no public port. It polls the
+partial deadline index every250ms when idle, locks each candidate, and atomically
+commits timeout only if the current authoritative clock is actually expired.
+The `clock.expired`, `clock.reindexed`, `clock.quarantined` and `clock.failed`
+logs contain no game/user IDs or secrets. Quarantine clears only a corrupt index
+projection; it preserves board/clock data for repair. Health probes validate DB
+access and the schema; real idle expiry is verified separately by live E2E.
+
+A guest friend clock starts only after the second seat accepts. Reconnect obtains
+server times and the final stored result; a displayed zero does not award a win.
+Clock watermarks are separate columns, preserving the previous JSON format for
+application rollback. All wall-clock observations are trusted server UTC and
+clamped to the stored watermark; no client timestamp is accepted.

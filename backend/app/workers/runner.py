@@ -20,10 +20,9 @@ from backend.app.engine.adapter import (
     EngineMove,
     UciEngineAdapter,
 )
-from backend.app.games.clocks import ServerClock
 from backend.app.games.durable import (
     DurableGameService,
-    decode_clock,
+    read_clock,
     decode_domain,
     public_clock,
 )
@@ -130,20 +129,10 @@ class GameplayWorker(LeasedWorker):
                 )
                 job.lease_token, job.lease_until = None, None
                 return "stale"
-            domain, clock = decode_domain(state.domain), decode_clock(state.clock)
-            if (
-                clock
-                and clock.running_side is not None
-                and clock.remaining(clock.running_side, now=now) == 0
-            ):
-                domain = domain.timeout(loser=clock.running_side)
-                clock = ServerClock(
-                    clock.remaining(True, now=now),
-                    clock.remaining(False, now=now),
-                    clock.increment_ms,
-                )
-                DurableGameService.save(game, state, domain, clock, now)
-                DurableGameService.status_event(session, game, state, clock, now)
+            domain, clock = decode_domain(state.domain), read_clock(state)
+            if clock:
+                now = clock.effective_time(now)
+            if DurableGameService.expire(session, game, state, domain, clock, now):
                 job.status, job.failure_code = "stale", "CLOCK_EXPIRED"
             else:
                 updated = domain.play(
@@ -160,11 +149,7 @@ class GameplayWorker(LeasedWorker):
                         actor=domain.side_to_move, server_now=now
                     )
                     if updated.result is not None:
-                        clock = ServerClock(
-                            clock.remaining(True, now=now),
-                            clock.remaining(False, now=now),
-                            clock.increment_ms,
-                        )
+                        clock = clock.stop(now)
                 DurableGameService.save(game, state, updated, clock, now)
                 record = updated.moves[-1]
                 session.add(

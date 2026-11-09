@@ -127,6 +127,22 @@ services:
       interval: 15s
       timeout: 10s
       retries: 4
+  clock-worker:
+    <<: *runtime
+    image: mlchess-api:${MLCHESS_IMAGE_TAG:?Required}
+    build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
+    command: [python, -m, backend.app.workers.clock]
+    mem_limit: 192m
+    cpus: 0.25
+    environment: *backend-env
+    networks: [data]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -m, infra.container_probe, clock]
+      interval: 15s
+      timeout: 10s
+      retries: 4
   web:
     <<: *runtime
     image: mlchess-web:${MLCHESS_IMAGE_TAG:?Required}

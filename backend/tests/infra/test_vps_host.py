@@ -54,6 +54,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
         "worker",
         "analysis-worker",
         "coach-worker",
+        "clock-worker",
         "web",
         "gateway",
         "postgres",
@@ -87,7 +88,14 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path):
     assert api_command[api_command.index("--ws-max-size") + 1] == "2048"
     assert api_command[api_command.index("--ws-max-queue") + 1] == "4"
     assert api_command[api_command.index("--ws-per-message-deflate") + 1] == "false"
-    for name in ("api", "worker", "analysis-worker", "coach-worker", "migrate"):
+    for name in (
+        "api",
+        "worker",
+        "analysis-worker",
+        "coach-worker",
+        "clock-worker",
+        "migrate",
+    ):
         assert (
             "@127.0.0.1:55432/" in services[name]["environment"]["MLCHESS_DATABASE_URL"]
         )

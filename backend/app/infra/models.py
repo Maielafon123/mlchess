@@ -17,6 +17,7 @@ from sqlalchemy import (
     String,
     Uuid,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -64,10 +65,19 @@ class Session(Base):
 
 class Game(Base):
     __tablename__ = "games"
+    __table_args__ = (
+        Index(
+            "ix_games_clock_deadline",
+            "clock_deadline_at",
+            postgresql_where=text("clock_deadline_at IS NOT NULL"),
+            sqlite_where=text("clock_deadline_at IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
     mode: Mapped[str] = mapped_column(String(16), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="waiting")
+    clock_deadline_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     version: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     revision: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     fen: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -242,6 +252,7 @@ class GameState(Base):
     domain: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     config: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     clock: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    clock_observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     event_seq: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
 
 

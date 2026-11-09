@@ -362,3 +362,36 @@ Surface preflight still blocks on two matchmaking routes; no full release signof
 Final A-I12 local targets: realtime durable21 PASS (including real ready-result
 references, undo replay and deleted user); web56 PASS; production build/lint PASS.
 The main event+host target previously22 PASS. Await exact-head PG/Compose CI.
+
+
+## A-I12 public acceptance
+
+PR43 merged e20f85923aabf7361658e63c940f14a03d246e59 after all six jobs PASS in
+42537721404 on2ecd6788172db896c7dde6ed6f71cc470f10e977; exact merge42538048417
+also PASS. The real PG gated snapshot/replay race passed. All four tested images
+2ecd678 deployed with matching host overlay; all health checks PASS. Private
+pre-realtime application pg_dump retained. Public trusted HTTPS13/13 PASS in34.7s
+at6 workers, including actual WSS event exchange on Android and iPhone, held poll
+reload, learning, coach and AI. No host/VPN network inspection or changes.
+
+## A-I14 server clock scheduler (CI acceptance pending)
+
+Base e20f85923aabf7361658e63c940f14a03d246e59. Expand-only0006 adds a partial
+index over active deadlines and a persisted monotonic clock observation. Existing
+clock JSON remains rollback-compatible; a legacy migration test checks white,
+black, waiting and stopped clocks byte-for-byte. The deadline worker and HTTP/
+engine commands share one atomic timeout transition and outbox write. The worker
+claims due games with SKIP LOCKED and rechecks the current board/clock under lock;
+a corrupt projection is isolated without inventing a result or starving other games.
+
+Friend invitations offer untimed and four clock presets. Clocks pause before
+acceptance, display server time with monotonic browser projection and use fresh
+snapshots after reconnect. AI/coach timed games also refresh while idle. A delayed
+same-version read cannot rewind the displayed clock. No new clock/event wire shape.
+Clock worker uses the API image and explicit loopback-only host overlay.
+
+Full local backend559 PASS/23 SKIP, clock migration/scheduler6 PASS, Compose host
+and probes5 PASS, web57 PASS, build/lint/Ruff PASS. New real PG double scheduler/
+late move race and actual idle timeout on both browser participants added to CI.
+The public deployment still runs tested A-I12 until this stage passes acceptance.
+Matchmaking and rated settlement next; existing draw command authority retained.
