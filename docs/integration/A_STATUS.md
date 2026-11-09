@@ -395,3 +395,32 @@ and probes5 PASS, web57 PASS, build/lint/Ruff PASS. New real PG double scheduler
 late move race and actual idle timeout on both browser participants added to CI.
 The public deployment still runs tested A-I12 until this stage passes acceptance.
 Matchmaking and rated settlement next; existing draw command authority retained.
+
+## A-I14 public acceptance
+
+PR44 merged 30320f3d68a3dda76f90df872232d18667cd2e44 after six PASS jobs in
+42539923548 on 97960c9502c77f61ab49162750781a6d8c1fc72f. Exact merge CI
+42540384978 passed. PostgreSQL scheduler races, expand migration 0006 and all
+nine application health checks passed. The public trusted HTTPS suite passed
+16/16 in 39.9s, including idle flagfall over real WSS on desktop, Android and
+iPhone, persisted across refresh. The application-only pre-migration dump was
+retained privately.
+
+## A-I15 durable rated matchmaking
+
+Base 30320f3d68a3dda76f90df872232d18667cd2e44. Migration 0007 adds tickets,
+command receipts and one settlement per rated game. An account can hold one
+live ticket or active rated game; matchmaking pairs the oldest compatible
+ticket in a fixed pool. A terminal result, event, outbox row and both Elo changes
+commit together. Guests, strangers, active rated analysis and takebacks are
+denied by the server. See CCR-A-I15-RATED.md for policy and ownership.
+
+The frontend resumes the ticket across reloads, receives gameplay through the
+same WebSocket as friend games and shows the server's settled rating. Local
+production React + Uvicorn verified two real test accounts, cancellation,
+resumption, private tickets, touch move, WS delivery, draw offer, resignation
+and persisted Elo on a 320px viewport. Rated HTTP integration 4 PASS, web unit
+58 PASS, build/lint PASS, demo browser 3 PASS and 55 contract fixtures PASS.
+The route preflight reports surface-present. Real PostgreSQL pairing and
+flagfall races and live Compose browser acceptance are separate CI checks.
+Google OAuth is not configured on the public IP.

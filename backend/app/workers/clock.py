@@ -61,7 +61,7 @@ class ClockScheduler:
                 # The durable board and clock are retained for repair and audit.
                 game.clock_deadline_at = None
                 return "quarantined"
-            if deadline is not None and DurableGameService.expire(
+            if deadline is not None and await DurableGameService.expire(
                 session, game, state, domain, clock, current_time
             ):
                 return "expired"

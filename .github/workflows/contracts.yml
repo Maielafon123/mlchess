@@ -101,7 +101,7 @@ jobs:
       - run: python -m infra.recovery_drill --container "$POSTGRES_CONTAINER" --user mlchess
         env:
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-      - run: python -m pytest backend/tests/games/test_postgres_commands.py backend/tests/games/test_postgres_worker.py backend/tests/games/test_postgres_invitations.py backend/tests/games/test_postgres_analysis.py backend/tests/games/test_postgres_coach.py backend/tests/games/test_postgres_learning.py backend/tests/games/test_postgres_realtime.py backend/tests/games/test_postgres_clock_scheduler.py -q
+      - run: python -m pytest backend/tests/games/test_postgres_commands.py backend/tests/games/test_postgres_worker.py backend/tests/games/test_postgres_invitations.py backend/tests/games/test_postgres_analysis.py backend/tests/games/test_postgres_coach.py backend/tests/games/test_postgres_learning.py backend/tests/games/test_postgres_realtime.py backend/tests/games/test_postgres_clock_scheduler.py backend/tests/games/test_postgres_matchmaking.py -q
         env:
           MLCHESS_TEST_DATABASE_URL: postgresql+asyncpg://mlchess:disposable_ci_only@127.0.0.1:5432/mlchess
 

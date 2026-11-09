@@ -330,14 +330,8 @@ class GameDomain:
         self._command(actor, expected_version)
         if actor != self.side_to_move:
             raise NotYourTurn("Only the player to move can claim a draw")
-        # can_claim_* also accepts a hypothetical next move, but this v1 command
-        # has no intended-move field. Only the current position is claimable.
-        board = self.board
-        if board.is_repetition(3):
-            reason = EndReason.THREEFOLD_CLAIM
-        elif board.is_fifty_moves():
-            reason = EndReason.FIFTY_MOVES_CLAIM
-        else:
+        reason = self.draw_claim_reason()
+        if reason is None:
             raise DrawNotClaimable("The current position does not permit a draw claim")
         return replace(
             self,
@@ -346,6 +340,14 @@ class GameDomain:
             termination=reason,
             draw_offer=None,
         )
+
+    def draw_claim_reason(self) -> EndReason | None:
+        # can_claim_* also accepts a hypothetical next move, but this v1 command
+        # has no intended-move field. Only the current position is claimable.
+        board = self.board
+        if board.is_repetition(3):
+            return EndReason.THREEFOLD_CLAIM
+        return EndReason.FIFTY_MOVES_CLAIM if board.is_fifty_moves() else None
 
     def timeout(self, *, loser: chess.Color) -> GameDomain:
         """Internal server-clock command, never based on a client time value."""

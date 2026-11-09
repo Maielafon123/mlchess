@@ -1,16 +1,23 @@
-import { ApiClient } from "./client";
+import { ApiClient, createIdempotencyKey } from "./client";
+import type { components } from "../../../../contracts/generated/api";
 
-/** Temporary B-017 boundary until A-020/A-021 contracts are generated. */
-export type MatchmakingStatus = "queued" | "matched" | "cancelled" | "expired";
-export type MatchTicket = { ticket_id: string; status: MatchmakingStatus; game_id: string | null; pool: string; rating_range: [number, number]; queued_at: string };
-export type RatedGame = { game_id: string; status: "active" | "finished"; result: "win" | "loss" | "draw" | null; opponent: { display_name: string; rating: number }; clocks: { white_ms: number; black_ms: number; server_timestamp: string } };
+type Schemas = components["schemas"];
+export type MatchTicket = Schemas["MatchTicketV1"];
+export type RatedGame = Schemas["RatedGameV1"];
+export type RatingPool = Schemas["RatingPoolV1"];
+export type MatchPool = Schemas["MatchPoolV1"];
+const path = (id: string) => `/api/v1/matchmaking/tickets/${encodeURIComponent(id)}`;
 
 export class MatchmakingApi {
   constructor(private readonly client: ApiClient = new ApiClient()) {}
-  join(pool: string) { return this.client.post<MatchTicket>("/api/v1/matchmaking/tickets", { time_control: pool, rating_pool: pool }); }
-  get(ticketId: string) { return this.client.get<MatchTicket>(`/api/v1/matchmaking/tickets/${encodeURIComponent(ticketId)}`); }
-  cancel(ticketId: string) { return this.client.delete<MatchTicket>(`/api/v1/matchmaking/tickets/${encodeURIComponent(ticketId)}`); }
-  game(gameId: string) { return this.client.get<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}`); }
-  resign(gameId: string) { return this.client.post<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}/resign`, {}); }
-  offerDraw(gameId: string) { return this.client.post<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}/draw-offers`, {}); }
+  pools(signal?: AbortSignal) { return this.client.get<Schemas["MatchPoolsV1"]>("/api/v1/matchmaking/pools", { signal }); }
+  current(signal?: AbortSignal) { return this.client.get<Schemas["CurrentMatchV1"]>("/api/v1/matchmaking/current", { signal }); }
+  join(pool: RatingPool, idempotencyKey = createIdempotencyKey()) {
+    return this.client.post<MatchTicket>("/api/v1/matchmaking/tickets", { schema_version: 1, pool }, { idempotencyKey });
+  }
+  get(ticketId: string, signal?: AbortSignal) { return this.client.get<MatchTicket>(path(ticketId), { signal }); }
+  cancel(ticketId: string, idempotencyKey = createIdempotencyKey()) {
+    return this.client.delete<MatchTicket>(path(ticketId), { headers: { "Idempotency-Key": idempotencyKey } });
+  }
+  game(gameId: string, signal?: AbortSignal) { return this.client.get<RatedGame>(`/api/v1/games/${encodeURIComponent(gameId)}/rating`, { signal }); }
 }

@@ -20,7 +20,11 @@ from backend.app.games.domain import (
     Mode,
     MoveRecord,
 )
-from backend.app.infra.generated.contracts import GameEventV1, GameSnapshotV1
+from backend.app.infra.generated.contracts import (
+    GameActionsV1,
+    GameEventV1,
+    GameSnapshotV1,
+)
 from backend.app.infra.models import (
     CommandReceipt,
     Game,
@@ -33,6 +37,7 @@ from backend.app.infra.models import (
     WorkerJob,
 )
 from backend.app.infra.problems import PublicProblem
+from backend.app.matchmaking.settlement import settle_rated
 
 
 def iso(value: datetime) -> str:
@@ -308,7 +313,7 @@ class DurableGameService:
             cls.clock_projection(game, state, clock, now)
 
     @classmethod
-    def expire(cls, session, game, state, domain, clock, now):
+    async def expire(cls, session, game, state, domain, clock, now):
         if game.status != "active" or clock is None or clock.deadline is None:
             return False
         now = clock.effective_time(now)
@@ -318,6 +323,7 @@ class DurableGameService:
             raise PublicProblem(503)
         stopped = clock.stop(now)
         cls.save(game, state, domain.timeout(loser=clock.running_side), stopped, now)
+        await settle_rated(session, game, state, now)
         cls.status_event(session, game, state, stopped, now)
         return True
 
@@ -519,6 +525,38 @@ class DurableGameService:
             self.observe_clock(game, state, now)
             return self.snapshot(game, state, players, actor_id, now)
 
+    async def actions(self, game_id: UUID, actor_id: UUID) -> dict:
+        async with self.factory() as session, session.begin():
+            game, state, players = await self.load(
+                session, game_id, actor_id, lock=True
+            )
+            domain = decode_domain(state.domain)
+            side = next(
+                player.side == "white"
+                for player in players
+                if player.user_id == actor_id
+            )
+            active = game.status == "active"
+            pvp = active and game.mode in {"friend", "rated"}
+            offer = domain.draw_offer if pvp else None
+            return GameActionsV1.model_validate(
+                {
+                    "schema_version": 1,
+                    "game_id": str(game_id),
+                    "version": game.version,
+                    "offer_side": None
+                    if offer is None
+                    else "white"
+                    if offer
+                    else "black",
+                    "can_offer_draw": pvp and offer is None,
+                    "can_accept_draw": pvp and offer is not None and offer != side,
+                    "can_claim_draw": active
+                    and side == domain.side_to_move
+                    and domain.draw_claim_reason() is not None,
+                }
+            ).model_dump(mode="json")
+
     async def command(
         self, game_id: UUID, actor_id: UUID, key: UUID, operation: str, payload: dict
     ) -> dict:
@@ -544,7 +582,7 @@ class DurableGameService:
             if clock:
                 now = clock.effective_time(now)
             color = next(p.side == "white" for p in players if p.user_id == actor_id)
-            if self.expire(session, game, state, domain, clock, now):
+            if await self.expire(session, game, state, domain, clock, now):
                 timed_out = True
             else:
                 try:
@@ -610,6 +648,8 @@ class DurableGameService:
                     clock = clock.stop(now)
                 state.config = config
                 self.save(game, state, updated, clock, now)
+                if updated.result is not None:
+                    await settle_rated(session, game, state, now)
                 common = {
                     "version": updated.version,
                     "fen": updated.fen,

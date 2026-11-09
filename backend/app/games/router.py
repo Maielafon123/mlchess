@@ -13,6 +13,7 @@ from backend.app.auth.service import SessionRecord
 from backend.app.infra.generated.contracts import (
     CreateGameV1,
     GameActionV1,
+    GameActionsV1,
     GameSnapshotV1,
     MoveAcceptedV1,
     SubmitMoveV1,
@@ -123,6 +124,17 @@ async def get_game(
     record: Annotated[SessionRecord, Depends(current_session)],
 ):
     return await service(request).get(UUID(id), record.user.id)
+
+
+@router.get(
+    "/{id}/actions", response_model=GameActionsV1, operation_id="getGameActions"
+)
+async def game_actions(
+    id: GameId,
+    request: Request,
+    record: Annotated[SessionRecord, Depends(current_session)],
+):
+    return await service(request).actions(UUID(id), record.user.id)
 
 
 @router.post("/{id}/moves", response_model=MoveAcceptedV1, operation_id="submitMove")

@@ -198,5 +198,25 @@
   {
     "path": "events/subscribe.json",
     "schema": "https://mlchess.local/contracts/game/subscription.v1.yaml#/$defs/GameSubscribeV1"
+  },
+  {
+    "path": "matchmaking/join.json",
+    "schema": "https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/JoinMatchV1"
+  },
+  {
+    "path": "matchmaking/searching.json",
+    "schema": "https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchTicketV1"
+  },
+  {
+    "path": "matchmaking/matched.json",
+    "schema": "https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchTicketV1"
+  },
+  {
+    "path": "matchmaking/rated-finished.json",
+    "schema": "https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatedGameV1"
+  },
+  {
+    "path": "matchmaking/actions.json",
+    "schema": "https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/GameActionsV1"
   }
 ]

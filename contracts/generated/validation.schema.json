@@ -970,6 +970,30 @@
         }
       }
     },
+    "CurrentMatchV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "ticket"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "ticket": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/MatchTicketV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
     "CurrentUserV1": {
       "type": "object",
       "additionalProperties": false,
@@ -1155,6 +1179,52 @@
         }
       },
       "description": "Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required."
+    },
+    "GameActionsV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "game_id",
+        "version",
+        "offer_side",
+        "can_offer_draw",
+        "can_accept_draw",
+        "can_claim_draw"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "offer_side": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SideV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "can_offer_draw": {
+          "type": "boolean"
+        },
+        "can_accept_draw": {
+          "type": "boolean"
+        },
+        "can_claim_draw": {
+          "type": "boolean"
+        }
+      }
     },
     "GameClockSyncEventV1": {
       "type": "object",
@@ -2395,6 +2465,23 @@
         }
       }
     },
+    "JoinMatchV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "pool"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "pool": {
+          "$ref": "#/$defs/RatingPoolV1"
+        }
+      }
+    },
     "LearningContextV1": {
       "type": "object",
       "additionalProperties": false,
@@ -2693,6 +2780,150 @@
           "maxItems": 16
         }
       }
+    },
+    "MatchPoolV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pool",
+        "time_control",
+        "your_rating"
+      ],
+      "properties": {
+        "pool": {
+          "$ref": "#/$defs/RatingPoolV1"
+        },
+        "time_control": {
+          "$ref": "#/$defs/TimeControlV1"
+        },
+        "your_rating": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 4000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "MatchPoolsV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "items"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/MatchPoolV1"
+          }
+        }
+      }
+    },
+    "MatchTicketV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "ticket_id",
+        "pool",
+        "status",
+        "queued_at",
+        "expires_at",
+        "game_id",
+        "rating",
+        "rating_min",
+        "rating_max"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "ticket_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "pool": {
+          "$ref": "#/$defs/RatingPoolV1"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "searching",
+            "matched",
+            "cancelled",
+            "expired"
+          ]
+        },
+        "queued_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        },
+        "game_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/UUIDv4"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rating": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        },
+        "rating_min": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        },
+        "rating_max": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "matched"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "game_id": {
+                "$ref": "#/$defs/UUIDv4"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "game_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     },
     "MoveAcceptedV1": {
       "type": "object",
@@ -3454,6 +3685,142 @@
           "maxLength": 120
         }
       }
+    },
+    "RatedGameV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "game_id",
+        "version",
+        "status",
+        "pool",
+        "side",
+        "opponent_name",
+        "your_rating",
+        "opponent_rating",
+        "rating_change"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "game_id": {
+          "$ref": "#/$defs/UUIDv4"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "finished"
+          ]
+        },
+        "pool": {
+          "$ref": "#/$defs/RatingPoolV1"
+        },
+        "side": {
+          "$ref": "#/$defs/SideV1"
+        },
+        "opponent_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "your_rating": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        },
+        "opponent_rating": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        },
+        "rating_change": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RatingChangeV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "finished"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "rating_change": {
+                "$ref": "#/$defs/RatingChangeV1"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "rating_change": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RatingChangeV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after",
+        "delta",
+        "games_count",
+        "settled_at"
+      ],
+      "properties": {
+        "before": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        },
+        "after": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 4000
+        },
+        "delta": {
+          "type": "integer",
+          "minimum": -32,
+          "maximum": 32
+        },
+        "games_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "settled_at": {
+          "$ref": "#/$defs/UTCDateTime"
+        }
+      }
+    },
+    "RatingPoolV1": {
+      "type": "string",
+      "enum": [
+        "rapid-10+0",
+        "blitz-5+0"
+      ]
     },
     "ResyncRequiredEventV1": {
       "type": "object",

@@ -200,6 +200,92 @@ class Rating(Base):
     )
 
 
+class MatchTicketRow(Base):
+    __tablename__ = "matchmaking_tickets"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('searching','matched','cancelled','expired')",
+            name="ck_match_ticket_status",
+        ),
+        CheckConstraint(
+            "(status = 'matched' AND game_id IS NOT NULL) OR (status <> 'matched' AND game_id IS NULL)",
+            name="ck_match_ticket_game",
+        ),
+        CheckConstraint(
+            "rating BETWEEN 100 AND 4000 AND expires_at > queued_at",
+            name="ck_match_ticket_values",
+        ),
+        UniqueConstraint("user_id", "game_id", name="uq_match_ticket_user_game"),
+        Index(
+            "uq_match_ticket_live_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status = 'searching'"),
+            sqlite_where=text("status = 'searching'"),
+        ),
+        Index("ix_match_ticket_pool_queue", "pool", "status", "queued_at"),
+        Index("ix_match_ticket_user_queue", "user_id", "queued_at"),
+    )
+    id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    game_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("games.id", ondelete="CASCADE")
+    )
+    pool: Mapped[str] = mapped_column(String(32), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class MatchReceiptRow(Base):
+    __tablename__ = "matchmaking_receipts"
+    __table_args__ = (Index("ix_match_receipt_user_time", "user_id", "created_at"),)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    command_key: Mapped[UUID] = mapped_column(UUIDType, primary_key=True)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    response: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class RatingSettlementRow(Base):
+    __tablename__ = "rating_settlements"
+    __table_args__ = (
+        CheckConstraint(
+            "result IN ('white','black','draw') AND white_id <> black_id",
+            name="ck_rating_settlement_result",
+        ),
+        CheckConstraint(
+            "white_before BETWEEN 100 AND 4000 AND black_before BETWEEN 100 AND 4000 AND white_after BETWEEN 100 AND 4000 AND black_after BETWEEN 100 AND 4000 AND white_before + black_before = white_after + black_after AND white_games >= 1 AND black_games >= 1",
+            name="ck_rating_settlement_values",
+        ),
+    )
+    game_id: Mapped[UUID] = mapped_column(
+        ForeignKey("games.id", ondelete="CASCADE"), primary_key=True
+    )
+    pool: Mapped[str] = mapped_column(String(32), nullable=False)
+    result: Mapped[str] = mapped_column(String(8), nullable=False)
+    white_id: Mapped[UUID] = mapped_column(UUIDType, nullable=False)
+    black_id: Mapped[UUID] = mapped_column(UUIDType, nullable=False)
+    white_before: Mapped[int] = mapped_column(Integer, nullable=False)
+    black_before: Mapped[int] = mapped_column(Integer, nullable=False)
+    white_after: Mapped[int] = mapped_column(Integer, nullable=False)
+    black_after: Mapped[int] = mapped_column(Integer, nullable=False)
+    white_games: Mapped[int] = mapped_column(Integer, nullable=False)
+    black_games: Mapped[int] = mapped_column(Integer, nullable=False)
+    settled_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
 class Analysis(Base):
     __tablename__ = "analyses"
     __table_args__ = (

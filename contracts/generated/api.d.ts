@@ -36,6 +36,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/games/{game_id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getGameActions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/{game_id}/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getRatedGame"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/games/{id}": {
         parameters: {
             query?: never;
@@ -512,6 +544,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/matchmaking/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCurrentMatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/matchmaking/pools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRatingPools"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/matchmaking/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["joinMatchmaking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/matchmaking/tickets/{ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMatchTicket"];
+        put?: never;
+        post?: never;
+        delete: operations["cancelMatchTicket"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -736,6 +832,11 @@ export interface components {
         CreateInvitationV1: {
             game_id: components["schemas"]["UUIDv4"];
         };
+        CurrentMatchV1: {
+            /** @constant */
+            schema_version: 1;
+            ticket: components["schemas"]["MatchTicketV1"] | null;
+        };
         CurrentUserV1: {
             /** @constant */
             schema_version: 1;
@@ -776,6 +877,16 @@ export interface components {
         /** @description Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required. */
         GameActionV1: {
             expected_version: number;
+        };
+        GameActionsV1: {
+            /** @constant */
+            schema_version: 1;
+            game_id: components["schemas"]["UUIDv4"];
+            version: number;
+            offer_side: components["schemas"]["SideV1"] | null;
+            can_offer_draw: boolean;
+            can_accept_draw: boolean;
+            can_claim_draw: boolean;
         };
         /** @description Durable event: seq is allocated atomically with game state/outbox. Publish only after commit. */
         GameClockSyncEventV1: {
@@ -914,6 +1025,11 @@ export interface components {
             created_by_current_user: boolean;
             invite_url: string | null;
         };
+        JoinMatchV1: {
+            /** @constant */
+            schema_version: 1;
+            pool: components["schemas"]["RatingPoolV1"];
+        };
         LearningContextV1: {
             /** @constant */
             schema_version: 1;
@@ -980,6 +1096,30 @@ export interface components {
             license: string;
             tags: string[];
         };
+        MatchPoolV1: {
+            pool: components["schemas"]["RatingPoolV1"];
+            time_control: components["schemas"]["TimeControlV1"];
+            your_rating: number | null;
+        };
+        MatchPoolsV1: {
+            /** @constant */
+            schema_version: 1;
+            items: components["schemas"]["MatchPoolV1"][];
+        };
+        MatchTicketV1: {
+            /** @constant */
+            schema_version: 1;
+            ticket_id: components["schemas"]["UUIDv4"];
+            pool: components["schemas"]["RatingPoolV1"];
+            /** @enum {string} */
+            status: "searching" | "matched" | "cancelled" | "expired";
+            queued_at: components["schemas"]["UTCDateTime"];
+            expires_at: components["schemas"]["UTCDateTime"];
+            game_id: components["schemas"]["UUIDv4"] | null;
+            rating: number;
+            rating_min: number;
+            rating_max: number;
+        } & unknown;
         /** @description Persisted response returned identically on retry with the same actor/client_move_id and payload. snapshot.version = expected_version + 1. The move equals the last snapshot.moves item. Reuse with another payload gives 409 IDEMPOTENCY_CONFLICT. */
         MoveAcceptedV1: {
             /** @constant */
@@ -1079,6 +1219,29 @@ export interface components {
             source_url: string;
             license: string;
         };
+        RatedGameV1: {
+            /** @constant */
+            schema_version: 1;
+            game_id: components["schemas"]["UUIDv4"];
+            version: number;
+            /** @enum {string} */
+            status: "active" | "finished";
+            pool: components["schemas"]["RatingPoolV1"];
+            side: components["schemas"]["SideV1"];
+            opponent_name: string;
+            your_rating: number;
+            opponent_rating: number;
+            rating_change: components["schemas"]["RatingChangeV1"] | null;
+        } & unknown;
+        RatingChangeV1: {
+            before: number;
+            after: number;
+            delta: number;
+            games_count: number;
+            settled_at: components["schemas"]["UTCDateTime"];
+        };
+        /** @enum {string} */
+        RatingPoolV1: "rapid-10+0" | "blitz-5+0";
         /** @description Control frame: seq is the current committed game cursor; does not allocate a durable event sequence. */
         ResyncRequiredEventV1: {
             /** @constant */
@@ -1395,6 +1558,194 @@ export interface operations {
                 };
             };
             /** @description Sanitized problem response */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    getGameActions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameActionsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    getRatedGame: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatedGameV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -4098,6 +4449,480 @@ export interface operations {
                 };
             };
             /** @description Sanitized problem response */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    getCurrentMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentMatchV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    listRatingPools: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchPoolsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    joinMatchmaking: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+                "X-CSRF-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinMatchV1"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchTicketV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    getMatchTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchTicketV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+        };
+    };
+    cancelMatchTicket: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": components["schemas"]["UUIDv4"];
+                "X-CSRF-Token": string;
+            };
+            path: {
+                ticket_id: components["schemas"]["UUIDv4"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchTicketV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsV1"];
+                };
+            };
+            /** @description Sanitized problem */
             503: {
                 headers: {
                     [name: string]: unknown;

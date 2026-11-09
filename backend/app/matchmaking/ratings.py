@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
+from backend.app.matchmaking.policy import elo_delta
 
 
 class Outcome(StrEnum):
@@ -40,11 +41,7 @@ class RatingService:
             return self.ratings[(white_id, pool)], self.ratings[(black_id, pool)]
         white = self.ratings.setdefault((white_id, pool), Rating(white_id, pool))
         black = self.ratings.setdefault((black_id, pool), Rating(black_id, pool))
-        expected_white = 1 / (1 + 10 ** ((black.value - white.value) / 400))
-        actual_white = {Outcome.WHITE: 1.0, Outcome.BLACK: 0.0, Outcome.DRAW: 0.5}[
-            outcome
-        ]
-        delta = round(self.k_factor * (actual_white - expected_white))
+        delta = elo_delta(white.value, black.value, outcome, k=self.k_factor)
         white.value += delta
         black.value -= delta
         white.games_count += 1

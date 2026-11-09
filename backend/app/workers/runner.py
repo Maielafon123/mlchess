@@ -132,7 +132,9 @@ class GameplayWorker(LeasedWorker):
             domain, clock = decode_domain(state.domain), read_clock(state)
             if clock:
                 now = clock.effective_time(now)
-            if DurableGameService.expire(session, game, state, domain, clock, now):
+            if await DurableGameService.expire(
+                session, game, state, domain, clock, now
+            ):
                 job.status, job.failure_code = "stale", "CLOCK_EXPIRED"
             else:
                 updated = domain.play(

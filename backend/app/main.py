@@ -39,6 +39,9 @@ from backend.app.learning.router import create_durable_router as learning_router
 from backend.app.learning.durable import DurableLearningService
 from backend.app.realtime.durable import DurableEventStream
 from backend.app.realtime.router import Connections, create_router as realtime_router
+from backend.app.matchmaking.durable import DurableMatchmaking
+from backend.app.matchmaking.router import router as matchmaking_router
+from backend.app.infra.models import MatchTicketRow, RatingSettlementRow
 from backend.app.infra.models import LearningProfileRow, LessonRow
 from backend.app.infra.generated.contracts import HealthV1
 from backend.app.infra.http import SafeHTTPMiddleware, default_request_logger
@@ -72,6 +75,8 @@ def create_app(
             await session.execute(select(CoachExplanation.id).limit(1))
             await session.execute(select(LearningProfileRow.student_id).limit(1))
             await session.execute(select(LessonRow.id).limit(1))
+            await session.execute(select(MatchTicketRow.id).limit(1))
+            await session.execute(select(RatingSettlementRow.game_id).limit(1))
 
     async def persistence_required():
         raise RuntimeError("Deployed API persistence is not configured")
@@ -119,6 +124,7 @@ def create_app(
     app.state.learning_service = DurableLearningService(factory) if factory else None
     app.state.event_stream = DurableEventStream(factory) if factory else None
     app.state.ws_connections = Connections()
+    app.state.matchmaking_service = DurableMatchmaking(factory) if factory else None
     app.state.invitation_service = (
         InvitationService(
             factory,
@@ -136,6 +142,7 @@ def create_app(
     app.include_router(create_durable_router())
     app.include_router(learning_router())
     app.include_router(realtime_router())
+    app.include_router(matchmaking_router)
     app.add_middleware(
         SafeHTTPMiddleware,
         settings=settings,

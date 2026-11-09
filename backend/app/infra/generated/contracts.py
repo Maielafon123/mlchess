@@ -253,6 +253,10 @@ class LessonV1(BaseModel):
     tags: list[Tag] = Field(..., max_length=16)
 
 
+class YourRating(RootModel[int]):
+    root: int = Field(..., ge=100, le=4000)
+
+
 class PuzzleAttemptV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -301,6 +305,10 @@ class PuzzleV1(BaseModel):
     source_name: str = Field(..., max_length=200)
     source_url: str = Field(..., pattern="^https://")
     license: str = Field(..., max_length=120)
+
+
+class RatingPoolV1(RootModel[Literal["rapid-10+0", "blitz-5+0"]]):
+    root: Literal["rapid-10+0", "blitz-5+0"]
 
 
 class Payload6(BaseModel):
@@ -562,6 +570,19 @@ class CurrentUserV1(BaseModel):
     expires_at: UTCDateTime
 
 
+class GameActionsV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    game_id: UUIDv4
+    version: int = Field(..., ge=0, le=9007199254740991)
+    offer_side: SideV1 | None = None
+    can_offer_draw: bool
+    can_accept_draw: bool
+    can_claim_draw: bool
+
+
 class Payload2(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -673,6 +694,14 @@ class InviteSnapshotV1(BaseModel):
     invite_url: InviteUrl | None = None
 
 
+class JoinMatchV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    pool: RatingPoolV1
+
+
 class LearningExportAttemptV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -695,6 +724,39 @@ class LessonListV1(BaseModel):
     items: list[LessonV1] = Field(..., max_length=24)
     page: int = Field(..., ge=1, le=9007199254740991)
     total_pages: int = Field(..., ge=1, le=9007199254740991)
+
+
+class MatchPoolV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    pool: RatingPoolV1
+    time_control: TimeControlV1
+    your_rating: YourRating | None = None
+
+
+class MatchPoolsV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    items: list[MatchPoolV1] = Field(..., max_length=2, min_length=2)
+
+
+class MatchTicketV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    ticket_id: UUIDv4
+    pool: RatingPoolV1
+    status: Literal["searching", "matched", "cancelled", "expired"]
+    queued_at: UTCDateTime
+    expires_at: UTCDateTime
+    game_id: UUIDv4 | None = None
+    rating: int = Field(..., ge=100, le=4000)
+    rating_min: int = Field(..., ge=100, le=4000)
+    rating_max: int = Field(..., ge=100, le=4000)
 
 
 class MoveV1(BaseModel):
@@ -790,6 +852,17 @@ class PuzzleStateV1(BaseModel):
     solution: list[PuzzleReplayMoveV1] | None = Field(None, max_length=128)
 
 
+class RatingChangeV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    before: int = Field(..., ge=100, le=4000)
+    after: int = Field(..., ge=100, le=4000)
+    delta: int = Field(..., ge=-32, le=32)
+    games_count: int = Field(..., ge=1, le=9007199254740991)
+    settled_at: UTCDateTime
+
+
 class ResyncRequiredEventV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -871,6 +944,14 @@ class AnalysisResultV1(BaseModel):
     engine: EngineMetadataV1
     facts: AnalysisFactsV1
     created_at: UTCDateTime
+
+
+class CurrentMatchV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    ticket: MatchTicketV1 | None = None
 
 
 class Payload3(BaseModel):
@@ -957,6 +1038,22 @@ class MoveAcceptedV1(BaseModel):
     client_move_id: UUIDv4
     move: MoveV1
     snapshot: GameSnapshotV1
+
+
+class RatedGameV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    game_id: UUIDv4
+    version: int = Field(..., ge=0, le=9007199254740991)
+    status: Literal["active", "finished"]
+    pool: RatingPoolV1
+    side: SideV1
+    opponent_name: str = Field(..., max_length=120, min_length=1)
+    your_rating: int = Field(..., ge=100, le=4000)
+    opponent_rating: int = Field(..., ge=100, le=4000)
+    rating_change: RatingChangeV1 | None = None
 
 
 class GameSnapshotEventV1(BaseModel):

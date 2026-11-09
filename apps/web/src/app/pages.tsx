@@ -3,6 +3,7 @@ import { lazy } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { CoachPrivacyNotice } from "../components/CoachPrivacyNotice";
 import { useI18n } from "../i18n/I18nProvider";
+import { useAuth } from "../auth/AuthProvider";
 
 const AiGameScreen = lazy(() => import("../features/ai/AiGameScreen").then((module) => ({ default: module.AiGameScreen })));
 const CoachGameScreen = lazy(() => import("../features/coach/CoachGameScreen").then((module) => ({ default: module.CoachGameScreen })));
@@ -48,6 +49,8 @@ export function PlayPage() {
       <div className="card-grid catalog-grid">
         <SectionCard title="С другом"><p>Отправьте ссылку и играйте без регистрации с любого устройства.</p><Link className="button button-primary" to="/play/friend">Создать вызов</Link></SectionCard>
         <SectionCard title="С компьютером"><p>Выберите сторону и силу соперника. Партия сохраняется автоматически.</p><Link className="button button-secondary" to="/play/ai">Играть с компьютером</Link></SectionCard>
+        <SectionCard title="С тренером"><p>Разбирайте свои ходы во время партии с компьютером.</p><Link className="button button-secondary" to="/play/coach">Играть с тренером</Link></SectionCard>
+        <SectionCard title="На рейтинг"><p>Найдите соперника в рапид или блиц. Нужен аккаунт.</p><Link className="button button-secondary" to="/play/matchmaking">Рейтинговая игра</Link></SectionCard>
       </div>
     </div>
   );
@@ -73,7 +76,8 @@ export function FriendPage() {
 }
 
 export function MatchmakingPage() {
-  return <div className="page"><section className="page-heading"><div className="eyebrow">Rated play</div><h1>Find an opponent</h1><p>Matchmaking, clocks and results are controlled by the server.</p></section><MatchmakingScreen /></div>;
+  const { user, status } = useAuth();
+  return <div className="page"><section className="page-heading"><h1>Найти соперника</h1><p>Выберите рапид или блиц. Рейтинг меняется после завершения партии.</p></section>{status === "loading" ? <p role="status">Проверяем аккаунт…</p> : <MatchmakingScreen key={user?.id ?? "guest"} eligible={user?.kind === "account"} userId={user?.id} />}</div>;
 }
 
 export function PuzzlePage() {
