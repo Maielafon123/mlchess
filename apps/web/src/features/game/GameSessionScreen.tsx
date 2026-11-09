@@ -1,4 +1,5 @@
 import { GameBoard } from "../../components/GameBoard";
+import { PlayerClocks } from "../../components/PlayerClocks";
 import { type GameApi, type GameSnapshot } from "../../api/gameApi";
 import { useGameSession } from "./useGameSession";
 import { useEffect } from "react";
@@ -16,6 +17,8 @@ export function GameSessionScreen({ api, onAcceptedMove, onSnapshot, mode = "ai"
     <div className="game-session" aria-busy={session.pending}>
       {session.pending && <div className="pending-overlay" role="status">Waiting for server…</div>}
       {session.error && <div className="error-banner" role="alert">{session.error}</div>}
+      {snapshot.termination === "timeout" && <p role="status">Партия завершена: время вышло.</p>}
+      <PlayerClocks clock={snapshot.clock} />
       <GameBoard
         fen={snapshot.fen}
         moves={snapshot.moves}
@@ -23,7 +26,6 @@ export function GameSessionScreen({ api, onAcceptedMove, onSnapshot, mode = "ai"
         onMoveAttempt={session.move}
       />
       <div className="game-actions">
-        <span className="status-chip">Version {snapshot.version}</span>
         <button className="button button-secondary" type="button" onClick={() => void session.resign()} disabled={session.pending || snapshot.status !== "active"}>Resign</button>
       </div>
     </div>

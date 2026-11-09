@@ -16,7 +16,9 @@ describe("FriendInviteScreen", () => {
     const user = userEvent.setup();
     render(<FriendInviteScreen api={inviteApi as never} gameApi={gameApi as never} />);
     await screen.findByRole("button", { name: "Создать вызов" });
+    await user.selectOptions(screen.getByRole("combobox", { name: "Контроль времени" }), "3+2");
     await user.click(screen.getByRole("button", { name: "Создать вызов" }));
+    expect(inviteApi.create).toHaveBeenCalledWith({ initial_ms: 180000, increment_ms: 2000 });
     await waitFor(() => expect(gameApi.get).toHaveBeenCalledWith("g"));
     expect(await screen.findByRole("region", { name: "Game board" })).toBeInTheDocument();
   });

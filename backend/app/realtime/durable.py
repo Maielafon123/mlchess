@@ -48,6 +48,7 @@ class DurableEventStream:
             now = await DurableGameService.now(session)
             head = state.event_seq
             if bootstrap:
+                DurableGameService.observe_clock(game, state, now)
                 snapshot = DurableGameService.snapshot(
                     game, state, players, actor_id, now
                 )

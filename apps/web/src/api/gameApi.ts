@@ -7,6 +7,14 @@ export type GameSnapshot = GameSnapshotV1;
 export type MoveCommand = SubmitMoveV1;
 export type GameCreateOptions = CreateGameV1;
 
+export function canAdoptSnapshot(current: GameSnapshot | null, next: GameSnapshot) {
+  if (!current) return true;
+  if (next.id !== current.id) return false;
+  if (next.version !== current.version) return next.version > current.version;
+  // A delayed read with the same game version must not rewind the displayed clock.
+  return !current.clock || !next.clock || Date.parse(next.clock.server_now) >= Date.parse(current.clock.server_now);
+}
+
 export class GameApi {
   constructor(protected readonly client: ApiClient = new ApiClient()) {}
 

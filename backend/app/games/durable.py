@@ -70,7 +70,9 @@ def decode_domain(payload: dict) -> GameDomain:
     )
 
 
-def decode_clock(payload: dict | None) -> ServerClock | None:
+def decode_clock(
+    payload: dict | None, observed_at: datetime | None = None
+) -> ServerClock | None:
     if payload is None:
         return None
     return ServerClock(
@@ -79,16 +81,28 @@ def decode_clock(payload: dict | None) -> ServerClock | None:
             "anchor": datetime.fromisoformat(payload["anchor"])
             if payload["anchor"]
             else None,
+            "observed_at": observed_at.replace(tzinfo=timezone.utc)
+            if observed_at is not None and observed_at.tzinfo is None
+            else observed_at,
         }
     )
 
 
 def encode_clock(clock: ServerClock | None) -> dict | None:
-    return (
-        None
-        if clock is None
-        else {**asdict(clock), "anchor": iso(clock.anchor) if clock.anchor else None}
-    )
+    if clock is None:
+        return None
+    # Keep the pre-migration clock JSON shape for rollback and archived lines.
+    return {
+        "white_remaining_ms": clock.white_remaining_ms,
+        "black_remaining_ms": clock.black_remaining_ms,
+        "increment_ms": clock.increment_ms,
+        "running_side": clock.running_side,
+        "anchor": iso(clock.anchor) if clock.anchor else None,
+    }
+
+
+def read_clock(state: GameState) -> ServerClock | None:
+    return decode_clock(state.clock, state.clock_observed_at)
 
 
 def public_clock(clock: ServerClock | None, now: datetime) -> dict | None:
@@ -101,7 +115,7 @@ def public_clock(clock: ServerClock | None, now: datetime) -> dict | None:
             "running_side": None
             if clock.running_side is None
             else ("white" if clock.running_side else "black"),
-            "server_now": iso(now),
+            "server_now": iso(clock.effective_time(now)),
         }
     )
 
@@ -189,6 +203,11 @@ class DurableGameService:
         if actor_id not in {p.user_id for p in players}:
             raise PublicProblem(403)
         state = await session.get(GameState, game_id)
+        DurableGameService.checked_domain(game, state)
+        return game, state, players
+
+    @staticmethod
+    def checked_domain(game, state):
         if state is None:
             # Legacy baseline rows need an audited import, never infer lost history from FEN.
             raise PublicProblem(503)
@@ -200,7 +219,7 @@ class DurableGameService:
             game.fen,
         ):
             raise PublicProblem(503)
-        return game, state, players
+        return domain
 
     @staticmethod
     def snapshot(
@@ -234,7 +253,7 @@ class DurableGameService:
             ],
             "moves": [asdict(m) for m in domain.moves],
             "time_control": state.config["time_control"],
-            "clock": public_clock(decode_clock(state.clock), now),
+            "clock": public_clock(read_clock(state), now),
             "capabilities": {
                 "can_move": active and own_side == side,
                 "can_takeback": active
@@ -271,6 +290,36 @@ class DurableGameService:
             now,
         )
         game.status = domain.status
+        DurableGameService.clock_projection(game, state, clock, now)
+
+    @staticmethod
+    def clock_projection(game, state, clock, now):
+        game.clock_deadline_at = (
+            clock.deadline if clock and game.status == "active" else None
+        )
+        state.clock_observed_at = clock.effective_time(now) if clock else None
+
+    @classmethod
+    def observe_clock(cls, game, state, now):
+        clock = read_clock(state)
+        if clock is not None and game.status == "active":
+            if clock.running_side != (game.side_to_move == "white"):
+                raise PublicProblem(503)
+            cls.clock_projection(game, state, clock, now)
+
+    @classmethod
+    def expire(cls, session, game, state, domain, clock, now):
+        if game.status != "active" or clock is None or clock.deadline is None:
+            return False
+        now = clock.effective_time(now)
+        if now < clock.deadline:
+            return False
+        if clock.running_side != domain.side_to_move:
+            raise PublicProblem(503)
+        stopped = clock.stop(now)
+        cls.save(game, state, domain.timeout(loser=clock.running_side), stopped, now)
+        cls.status_event(session, game, state, stopped, now)
+        return True
 
     @staticmethod
     def event(
@@ -317,6 +366,7 @@ class DurableGameService:
 
     @classmethod
     def status_event(cls, session, game, state, clock, now):
+        cls.clock_projection(game, state, clock, now)
         cls.event(
             session,
             game,
@@ -461,13 +511,13 @@ class DurableGameService:
         return response
 
     async def get(self, game_id: UUID, actor_id: UUID) -> dict:
-        async with self.factory() as session:
+        async with self.factory() as session, session.begin():
             game, state, players = await self.load(
                 session, game_id, actor_id, lock=True
             )
-            return self.snapshot(
-                game, state, players, actor_id, await self.now(session)
-            )
+            now = await self.now(session)
+            self.observe_clock(game, state, now)
+            return self.snapshot(game, state, players, actor_id, now)
 
     async def command(
         self, game_id: UUID, actor_id: UUID, key: UUID, operation: str, payload: dict
@@ -490,21 +540,11 @@ class DurableGameService:
                 raise PublicProblem(409)
             now = await self.now(session)
             domain = decode_domain(state.domain)
-            clock = decode_clock(state.clock)
+            clock = read_clock(state)
+            if clock:
+                now = clock.effective_time(now)
             color = next(p.side == "white" for p in players if p.user_id == actor_id)
-            if (
-                clock
-                and clock.running_side is not None
-                and clock.remaining(clock.running_side, now=now) == 0
-            ):
-                domain = domain.timeout(loser=clock.running_side)
-                clock = ServerClock(
-                    clock.remaining(True, now=now),
-                    clock.remaining(False, now=now),
-                    clock.increment_ms,
-                )
-                self.save(game, state, domain, clock, now)
-                self.status_event(session, game, state, clock, now)
+            if self.expire(session, game, state, domain, clock, now):
                 timed_out = True
             else:
                 try:
@@ -567,11 +607,7 @@ class DurableGameService:
                             clock, running_side=updated.side_to_move, anchor=now
                         )
                 if updated.result is not None and clock:
-                    clock = ServerClock(
-                        clock.remaining(True, now=now),
-                        clock.remaining(False, now=now),
-                        clock.increment_ms,
-                    )
+                    clock = clock.stop(now)
                 state.config = config
                 self.save(game, state, updated, clock, now)
                 common = {

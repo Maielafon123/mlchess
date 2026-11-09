@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError } from "../../api/errors";
-import { GameApi, type GameSnapshot } from "../../api/gameApi";
+import { GameApi, canAdoptSnapshot, type GameSnapshot } from "../../api/gameApi";
 import { createIdempotencyKey } from "../../api/client";
 import { ensurePublicSession } from "../../auth/guestSession";
 
@@ -41,16 +41,17 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
   }, [resolvedApi, mode, creationKey, resume]);
 
   const gameId = state.snapshot?.id;
+  const timedActive = state.snapshot?.status === "active" && !!state.snapshot.clock;
   const enginePending = state.snapshot?.status === "active" && state.snapshot.players.some(
     (player) => player.kind === "engine" && player.side === state.snapshot?.side_to_move);
   useEffect(() => {
-    if (!gameId || !enginePending || state.pending) return;
+    if (!gameId || (!enginePending && !timedActive) || state.pending) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
         const next = await resolvedApi.get(gameId);
-        if (!cancelled) setState((current) => current.snapshot?.id === gameId && next.version >= current.snapshot.version
+        if (!cancelled) setState((current) => current.snapshot?.id === gameId && canAdoptSnapshot(current.snapshot, next)
           ? { ...current, snapshot: next, error: null } : current);
       } catch (error: unknown) {
         if (!cancelled) setState((current) => ({ ...current, error: error instanceof Error ? error.message : "Unable to refresh game" }));
@@ -60,7 +61,7 @@ export function useGameSession(api?: GameApi, onAcceptedMove?: (snapshot: GameSn
     };
     timer = setTimeout(poll, 500);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [enginePending, gameId, resolvedApi, state.pending]);
+  }, [enginePending, gameId, resolvedApi, state.pending, timedActive]);
 
   const move = useCallback(async (uci: string) => {
     const snapshot = state.snapshot;
