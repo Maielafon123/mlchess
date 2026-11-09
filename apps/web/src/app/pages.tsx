@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { lazy } from "react";
+import { lazy, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { CoachPrivacyNotice } from "../components/CoachPrivacyNotice";
 import { useI18n } from "../i18n/I18nProvider";
@@ -16,27 +16,20 @@ const ProgressDashboard = lazy(() => import("../features/learning/ProgressDashbo
 
 export function HomePage() {
   const { t } = useI18n();
+  const [timeControl, setTimeControl] = useState("3+2");
 
   return (
-    <div className="page page-home">
-      <section className="hero" aria-labelledby="home-title">
-        <div className="eyebrow">{t.home.eyebrow}</div>
-        <h1 id="home-title">{t.home.title}</h1>
-        <p className="hero-description">{t.home.description}</p>
-        <div className="hero-actions">
-          <Link className="button button-primary" to="/play">{t.home.openPlay}</Link>
-          <Link className="button button-secondary" to="/play/friend">Позвать друга</Link>
-          <Link className="button button-secondary" to="/learn">{t.home.openLearn}</Link>
-        </div>
+    <div className="page page-home dashboard-home">
+      <section className="home-main" aria-labelledby="home-title">
+        <div className="section-kicker"><span>01 / ИГРА</span><span>ОНЛАЙН · ПОИСК ПАРТИИ</span></div>
+        <div className="home-intro"><div><div className="eyebrow">{t.home.eyebrow}</div><h1 id="home-title"><span className="sr-only">{t.home.title}</span><span aria-hidden="true">Играй.<br /><em>Понимай.</em></span></h1><p className="hero-description">Становись сильнее с каждой партией.<br />Шахматы, анализ и обучение — в одном месте.</p></div><div className="hero-knight" aria-hidden="true">♞</div></div>
+        <Link className="play-cta" to="/play"><span>{t.home.openPlay}</span><span aria-hidden="true">→</span></Link>
+        <div className="time-heading"><span>КОНТРОЛЬ ВРЕМЕНИ</span><span>ВЫБЕРИТЕ РЕЖИМ</span></div>
+        <div className="time-controls" role="group" aria-label="Контроль времени">{["1+0", "3+2", "5+0", "10+5", "15+10"].map((value) => <button key={value} className={timeControl === value ? "active" : ""} type="button" onClick={() => setTimeControl(value)}>{value}</button>)}</div>
+        <div className="mode-list"><Link to="/play/ai"><span>02</span><strong>{t.home.aiTitle}</strong><span aria-hidden="true">↗</span></Link><Link to="/learn" aria-label={t.home.openLearn}><span>03</span><strong>{t.home.learnTitle}</strong><span aria-hidden="true">↗</span></Link><Link to="/play/coach"><span>04</span><strong>{t.home.coachTitle}</strong><span aria-hidden="true">↗</span></Link></div>
+        <div className="dashboard-note"><span>ML / 26</span><em>Уважение к партии. Внимание к каждому ходу.</em></div>
       </section>
-      <section className="section" aria-labelledby="modes-title">
-        <div className="section-heading"><div className="eyebrow">MLChess</div><h2 id="modes-title">{t.home.modesTitle}</h2></div>
-        <div className="card-grid card-grid-3">
-          <SectionCard title={t.home.aiTitle}><p>{t.home.aiDescription}</p><Link className="button button-secondary" to="/play/ai">{t.home.aiTitle}</Link></SectionCard>
-          <SectionCard title={t.home.coachTitle}><p>{t.home.coachDescription}</p><Link className="button button-secondary" to="/play/coach">{t.home.coachTitle}</Link></SectionCard>
-          <SectionCard title={t.home.learnTitle}><p>{t.home.learnDescription}</p><Link className="button button-secondary" to="/learn">{t.home.learnTitle}</Link></SectionCard>
-        </div>
-      </section>
+      <aside className="home-side" aria-label="Ваш прогресс"><div className="side-heading"><span>ВАШ ПРОГРЕСС</span><span>РАПИД</span></div><div className="rating-block"><strong>1847</strong><span>РЕЙТИНГ<br /><b>+12 за 7 дней</b></span></div><div className="trend-chart" aria-label="Динамика рейтинга"><svg viewBox="0 0 320 72" role="img"><polyline points="0,55 22,61 46,44 72,49 96,39 122,45 149,28 172,35 198,20 225,28 248,14 272,21 297,8 320,13" /></svg></div><div className="metric-row"><div><strong>327</strong><span>партий</span></div><div><strong>54%</strong><span>побед</span></div><div><strong>08</strong><span>серия</span></div></div><div className="coach-card"><div className="side-heading"><span>РЕКОМЕНДАЦИЯ ТРЕНЕРА</span><span>№ 018</span></div><div className="coach-number">01 <strong>Позиционное<br />мышление</strong></div><p>Учись распознавать слабые поля до того, как они станут проблемой.</p><div className="progress-line"><span style={{ width: "58%" }} /></div><small>Урок 3 из 7 · 8 минут</small><Link to="/learn">Продолжить урок <span aria-hidden="true">→</span></Link></div></aside>
     </div>
   );
 }
@@ -44,9 +37,10 @@ export function HomePage() {
 export function PlayPage() {
   const { t } = useI18n();
   return (
-    <div className="page">
-      <section className="page-heading"><div className="eyebrow">{t.play.eyebrow}</div><h1>{t.play.title}</h1><p>{t.play.description}</p></section>
-      <div className="card-grid catalog-grid">
+    <div className="page game-page">
+      <div className="section-kicker"><span>01 / ИГРА</span><span>ВЫБЕРИТЕ ФОРМАТ</span></div>
+      <section className="page-heading"><div className="eyebrow">{t.play.eyebrow}</div><h1>Играй.<br /><em>Понимай.</em></h1><p>{t.play.description}</p></section>
+      <div className="card-grid catalog-grid concept-mode-grid">
         <SectionCard title="С другом"><p>Отправьте ссылку и играйте без регистрации с любого устройства.</p><Link className="button button-primary" to="/play/friend">Создать вызов</Link></SectionCard>
         <SectionCard title="С компьютером"><p>Выберите сторону и силу соперника. Партия сохраняется автоматически.</p><Link className="button button-secondary" to="/play/ai">Играть с компьютером</Link></SectionCard>
         <SectionCard title="С тренером"><p>Разбирайте свои ходы во время партии с компьютером.</p><Link className="button button-secondary" to="/play/coach">Играть с тренером</Link></SectionCard>

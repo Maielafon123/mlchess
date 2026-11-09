@@ -102,6 +102,8 @@ export function GameBoard({ fen, moves, orientation = "white", disabled = false,
         <Chessboard options={{
           position: fen,
           boardOrientation: orientation,
+          darkSquareStyle: { backgroundColor: "var(--color-board-dark)" },
+          lightSquareStyle: { backgroundColor: "var(--color-board-light)" },
           allowDragging: !disabled,
           canDragPiece: ({ square }) => !disabled && isSquare(square) && Boolean(chess.get(square)),
           squareStyles: highlightedSquares,

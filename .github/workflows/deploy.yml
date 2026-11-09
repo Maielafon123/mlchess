@@ -1,0 +1,121 @@
+name: Deploy production
+
+on:
+  workflow_run:
+    workflows: [Contracts]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_ROOT: ${{ secrets.DEPLOY_ROOT }}
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Checkout reviewed revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build immutable production images
+        run: |
+          set -eu
+          docker build --pull --target api -t "mlchess-api:$RELEASE_SHA" -f infra/Dockerfile.backend .
+          docker build --pull --target worker -t "mlchess-worker:$RELEASE_SHA" -f infra/Dockerfile.backend .
+          docker build --pull --target static -t "mlchess-web:$RELEASE_SHA" -f infra/Dockerfile.web .
+          docker build --pull -t "mlchess-gateway:$RELEASE_SHA" -f infra/Dockerfile.gateway .
+          docker save \
+            "mlchess-api:$RELEASE_SHA" \
+            "mlchess-worker:$RELEASE_SHA" \
+            "mlchess-web:$RELEASE_SHA" \
+            "mlchess-gateway:$RELEASE_SHA" \
+            | gzip -1 > /tmp/mlchess-images.tar.gz
+          sha256sum /tmp/mlchess-images.tar.gz > /tmp/mlchess-images.tar.gz.sha256
+
+      - name: Configure pinned SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -eu
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_PORT"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_ROOT"
+          test -n "$DEPLOY_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+
+      - name: Upload source and images
+        run: |
+          set -eu
+          release="$DEPLOY_ROOT/releases/$RELEASE_SHA"
+          tar \
+            --exclude=.git \
+            --exclude=.codex \
+            --exclude=node_modules \
+            --exclude=dist \
+            --exclude=.env \
+            --exclude='*.local' \
+            --exclude='*.log' \
+            -czf - . \
+            | ssh -i "$HOME/.ssh/deploy_key" -p "$DEPLOY_PORT" \
+                "$DEPLOY_USER@$DEPLOY_HOST" \
+                "mkdir -p '$release' && tar -xzf - -C '$release'"
+          scp -q -i "$HOME/.ssh/deploy_key" -P "$DEPLOY_PORT" \
+            /tmp/mlchess-images.tar.gz /tmp/mlchess-images.tar.gz.sha256 \
+            "$DEPLOY_USER@$DEPLOY_HOST:$release/"
+
+      - name: Activate release with migration and rollback guard
+        run: |
+          set -eu
+          release="$DEPLOY_ROOT/releases/$RELEASE_SHA"
+          ssh -i "$HOME/.ssh/deploy_key" -p "$DEPLOY_PORT" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "set -eu; \
+             test -f '$DEPLOY_ROOT/shared/.env.server.local'; \
+             test -f '$DEPLOY_ROOT/shared/.env.learning.local'; \
+             test -f '$DEPLOY_ROOT/shared/.env.relay.local'; \
+             cd '$release'; \
+             sha256sum -c mlchess-images.tar.gz.sha256; \
+             docker load --input mlchess-images.tar.gz; \
+             rm -f mlchess-images.tar.gz mlchess-images.tar.gz.sha256; \
+             compose='docker compose --env-file $DEPLOY_ROOT/shared/.env.server.local --env-file $DEPLOY_ROOT/shared/.env.learning.local --env-file $DEPLOY_ROOT/shared/.env.relay.local -f $release/infra/compose.server.yml -f $release/infra/compose.vps-host.yml'; \
+             previous=\$(docker inspect --format '{{.Config.Image}}' mlchess-api-1 2>/dev/null | sed 's/^mlchess-api://' || true); \
+             export MLCHESS_IMAGE_TAG='$RELEASE_SHA'; \
+             \$compose config --quiet; \
+             mkdir -p '$DEPLOY_ROOT/shared/backups'; \
+             \$compose exec -T postgres pg_dump -U mlchess -d mlchess | gzip > '$DEPLOY_ROOT/shared/backups/pre-deploy-$RELEASE_SHA.sql.gz'; \
+             if ! \$compose up -d --no-build --wait; then \
+               if test -n \"\$previous\"; then export MLCHESS_IMAGE_TAG=\"\$previous\"; \$compose up -d --no-build --wait || true; fi; \
+               exit 1; \
+             fi; \
+             ln -sfn '$release' '$DEPLOY_ROOT/current'; \
+             \$compose ps"
+
+      - name: Prune old source releases
+        run: |
+          set -eu
+          ssh -i "$HOME/.ssh/deploy_key" -p "$DEPLOY_PORT" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "set -eu; find '$DEPLOY_ROOT/releases' -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr | tail -n +6 | cut -d' ' -f2- | while IFS= read -r path; do test \"\$path\" = '$DEPLOY_ROOT/releases/$RELEASE_SHA' || rm -rf -- \"\$path\"; done"
