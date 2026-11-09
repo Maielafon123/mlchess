@@ -32,5 +32,6 @@ the loopback harness may use it. An application rollback can restore the
 previous gateway and inline API while retaining the additive migration.
 
 The core still owns auth, matchmaking and game commands, with independent
-gameplay, clock, analysis and coach worker processes. This boundary does not
-claim separate PostgreSQL servers or a production event broker.
+gameplay, clock, analysis and coach worker processes. The [outbox relay](outbox-relay.md)
+handles Redis notification hints. The services share the PostgreSQL cluster
+with explicit runtime permissions.

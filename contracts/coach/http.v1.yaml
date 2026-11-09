@@ -1,4 +1,16 @@
 paths:
+  /api/v1/coach/provider:
+    get:
+      operationId: getCoachProvider
+      security: []
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: Whether this installation uses an external coach provider.
+          content:
+            application/json:
+              schema:
+                $ref: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachProviderStatusV1
   /api/v1/games/{id}/coach-requests:
     parameters:
     - &id002

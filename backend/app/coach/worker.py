@@ -11,6 +11,7 @@ from backend.app.coach.analysis_reader import grounded_request, read_verified
 from backend.app.coach.durable import domain_request
 from backend.app.coach.execution import execute
 from backend.app.coach.providers.rules import RulesCoachProvider
+from backend.app.coach.providers.responses import ResponsesCoachProvider
 from backend.app.coach.service import CoachJob
 from backend.app.games.durable import DurableGameService
 from backend.app.infra.db import create_engine, session_factory
@@ -22,6 +23,10 @@ from backend.app.workers.leases import LeasedWorker
 
 class CoachWorker(LeasedWorker):
     queue = "coach"
+
+    def __init__(self, factory, *, cloud=None):
+        super().__init__(factory)
+        self.cloud = cloud
 
     @staticmethod
     async def current(session, lease):
@@ -58,7 +63,7 @@ class CoachWorker(LeasedWorker):
             current = await self.current(session, lease)
             if current is None:
                 return None
-            return current[3], current[4]
+            return current[3], current[4], current[0].model_id
 
     async def apply(self, lease, explanation, failure_code):
         async with self.factory() as session, session.begin():
@@ -87,7 +92,9 @@ class CoachWorker(LeasedWorker):
                 row, game, state, request, facts = current
                 checked = validate_explanation(explanation, request, facts)
                 row.payload_json, row.status = checked.explanation, "ready"
-                row.fallback_used = checked.explanation["fallback_used"]
+                if failure_code:
+                    row.payload_json = {**row.payload_json, "fallback_used": True}
+                row.fallback_used = row.payload_json["fallback_used"]
                 row.error_code = (
                     "PROVIDER_UNAVAILABLE"
                     if failure_code or checked.failure_code
@@ -118,13 +125,20 @@ class CoachWorker(LeasedWorker):
             position = await self.position(lease)
             if position is None:
                 return await self.fail(lease, "STALE_REVISION", stale=True)
-            request, facts = position
+            request, facts, model_id = position
+            provider = (
+                self.cloud
+                if self.cloud and self.cloud.model_id == model_id
+                else RulesCoachProvider()
+            )
             explanation, code = await asyncio.to_thread(
                 execute,
-                RulesCoachProvider(),
+                provider,
                 CoachJob(id=str(lease.id), request=request, cache_key="durable"),
                 facts,
             )
+            if model_id != provider.model_id:
+                code = code or "PROVIDER_UNAVAILABLE"
             return await self.apply(lease, explanation, code)
         except Exception:
             return await self.fail(lease, "COACH_FAILURE")
@@ -139,10 +153,14 @@ def main():
         "postgresql+asyncpg://"
     ):
         parser.error("Coach worker requires migrated PostgreSQL")
+    key = settings.coach_openai_api_key.get_secret_value()
+    if bool(key) != bool(settings.coach_openai_model):
+        parser.error("Set both OpenAI coach settings or leave both empty")
+    cloud = ResponsesCoachProvider(settings.coach_openai_model, key) if key else None
 
     async def run():
         engine = create_engine(settings.database_url)
-        worker = CoachWorker(session_factory(engine))
+        worker = CoachWorker(session_factory(engine), cloud=cloud)
         try:
             while True:
                 status = await worker.run_one()

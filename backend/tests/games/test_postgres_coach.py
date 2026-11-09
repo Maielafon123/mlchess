@@ -49,7 +49,7 @@ def test_concurrent_coach_requests_share_one_job_and_commit_once(pg_app):
         async def exercise():
             worker = CoachWorker(factory)
             lease = await worker.claim()
-            request_, facts = await worker.position(lease)
+            request_, facts, _model = await worker.position(lease)
             explanation = RulesCoachProvider().explain(request_)
             assert await worker.apply(lease, explanation, None) == "done"
             assert await worker.apply(lease, explanation, None) == "lost"

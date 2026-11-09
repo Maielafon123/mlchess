@@ -77,6 +77,7 @@ services:
       <<: *backend-env
       MLCHESS_GOOGLE_CLIENT_ID: ${MLCHESS_GOOGLE_CLIENT_ID:-}
       MLCHESS_GOOGLE_CLIENT_SECRET: ${MLCHESS_GOOGLE_CLIENT_SECRET:-}
+      MLCHESS_COACH_OPENAI_MODEL: ${MLCHESS_COACH_OPENAI_MODEL:-}
       MLCHESS_LEARNING_SPLIT: "true"
       MLCHESS_REDIS_URL: redis://:${REDIS_PASSWORD:?Required}@redis:6379/0
     command: [uvicorn, backend.app.main:create_app, --factory, --host, 0.0.0.0, --port, "8000", --no-proxy-headers, --no-access-log, --log-level, warning, --ws, websockets, --ws-max-size, "2048", --ws-max-queue, "4", --ws-per-message-deflate, "false", --limit-concurrency, "64", --backlog, "64", --timeout-keep-alive, "5"]
@@ -165,7 +166,10 @@ services:
     command: [python, -m, backend.app.coach.worker]
     mem_limit: 256m
     cpus: 0.4
-    environment: *backend-env
+    environment:
+      <<: *backend-env
+      MLCHESS_COACH_OPENAI_MODEL: ${MLCHESS_COACH_OPENAI_MODEL:-}
+      MLCHESS_COACH_OPENAI_API_KEY: ${MLCHESS_COACH_OPENAI_API_KEY:-}
     networks: [data]
     depends_on:
       migrate: {condition: service_completed_successfully}

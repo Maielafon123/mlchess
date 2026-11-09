@@ -474,3 +474,21 @@ The separate CI WAL rehearsal recovered to its exact named point in 1.61 s
 and excluded a subsequent commit. See infra/recovery-runbook.md for scope and
 the remaining production continuous WAL and key-escrow requirements.
 See A_SIGNOFF.md for external Google/LLM and full-release limitations.
+
+## Independent learning and Redis relay
+
+PR48 merged 987ba0cf8289a007031e519226eacdab1f8738f7; PR CI 42545504437
+and exact merge 42545893200 passed. Migration 0009, restricted learning
+credentials and real VPS learning requests worked. Public HTTPS guest
+acceptance passed 18/18, including the new finished-game review and its
+participant ACL. The five-second Docker health subprocess timeout proved
+too short under VPS CPU limits; the gateway was started after an explicit
+service probe succeeded. The relay release carries the lighter probe and
+longer timeout as a tested overlay change.
+
+PR49 merged fbf89dd1d483e2341f210783332c083c8850fa56 after all seven jobs
+passed on db39b2d10ba6d5dd8198514a5a9be66b05143f88 in 42546470390. Compose
+passed 21 live browser cases and the extra two-phone game with Redis
+stopped. Five pending SQL events survived the outage and drained to Redis
+after restart; recent acknowledged IDs matched the broker stream. These
+checks ran against disposable Redis, not the VPS.

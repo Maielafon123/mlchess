@@ -25,6 +25,7 @@ from backend.app.games.invitation_router import router as invitation_router
 from backend.app.games.invitation_service import InvitationService
 from backend.app.infra.application import ReadinessCheck, create_http_app
 from backend.app.infra.db import create_engine, session_factory
+from backend.app.infra.generated.contracts import CoachProviderStatusV1
 from backend.app.infra.models import (
     Game,
     GameState,
@@ -35,6 +36,7 @@ from backend.app.infra.models import (
 )
 from backend.app.coach.router import create_durable_router
 from backend.app.coach.durable import DurableCoachService
+from backend.app.coach.providers.rules import RulesCoachProvider
 from backend.app.learning.router import create_durable_router as learning_router
 from backend.app.learning.durable import DurableLearningService
 from backend.app.realtime.durable import DurableEventStream
@@ -117,7 +119,25 @@ def create_app(
     )
     app.state.game_service = DurableGameService(factory) if factory else None
     app.state.analysis_service = DurableAnalysisService(factory) if factory else None
-    app.state.coach_service = DurableCoachService(factory) if factory else None
+    model_id = (
+        "openai:" + settings.coach_openai_model
+        if settings.coach_openai_model
+        else RulesCoachProvider.model_id
+    )
+    app.state.coach_service = (
+        DurableCoachService(factory, model_id=model_id) if factory else None
+    )
+
+    @app.get(
+        "/api/v1/coach/provider",
+        response_model=CoachProviderStatusV1,
+        operation_id="getCoachProvider",
+    )
+    async def coach_provider():
+        return CoachProviderStatusV1(
+            schema_version=1, external=bool(settings.coach_openai_model)
+        )
+
     app.state.learning_service = (
         DurableLearningService(factory)
         if factory and not settings.learning_split
