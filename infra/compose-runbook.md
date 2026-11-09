@@ -20,7 +20,8 @@ production forbids development/fake auth. Named volumes retain games and jobs.
 The API and worker run separately with non-root UID, bounded CPU/RAM, read-only
 root filesystems and no capabilities. Learning runs separately with a restricted
 PostgreSQL role. If upgrading an older local env file, add a unique random
-URL-safe `MLCHESS_LEARNING_PASSWORD` (at least 43 characters) before startup.
+URL-safe `MLCHESS_LEARNING_PASSWORD` and `MLCHESS_RELAY_PASSWORD`
+(each at least 43 characters) before startup.
 PostgreSQL/Redis have no published ports.
 Only the gateway publishes a loopback port. Network subnets can be overridden
 with MLCHESS_EDGE_SUBNET and MLCHESS_DATA_SUBNET after checking host routes.

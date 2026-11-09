@@ -26,6 +26,7 @@ async def database(kind: str = "worker") -> None:
         query = {
             "worker": "SELECT id FROM worker_jobs LIMIT 1",
             "clock": "SELECT clock_deadline_at FROM games LIMIT 1",
+            "outbox": "SELECT id FROM outbox_events WHERE published_at IS NULL LIMIT 1",
         }[kind]
         await connection.fetchval(query)
     finally:
@@ -38,6 +39,8 @@ def main() -> int:
             asyncio.run(database())
         elif sys.argv[1:] == ["clock"]:
             asyncio.run(database("clock"))
+        elif sys.argv[1:] == ["outbox"]:
+            asyncio.run(database("outbox"))
         else:
             origin = os.environ["MLCHESS_PUBLIC_ORIGIN"]
             port = int(os.environ.get("MLCHESS_PROBE_PORT", "8000"))

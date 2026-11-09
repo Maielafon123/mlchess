@@ -29,6 +29,7 @@ services:
       MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
       MLCHESS_TRUST_LOOPBACK_GATEWAY: "true"
       MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess:${POSTGRES_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+      MLCHESS_REDIS_URL: redis://:${REDIS_PASSWORD:?Required}@127.0.0.1:56379/0
     command: [uvicorn, backend.app.main:create_app, --factory, --host, 127.0.0.1, --port, "58000", --no-proxy-headers, --no-access-log, --log-level, warning, --ws, websockets, --ws-max-size, "2048", --ws-max-queue, "4", --ws-per-message-deflate, "false", --limit-concurrency, "64", --backlog, "64", --timeout-keep-alive, "5"]
     volumes: [./host_api_probe.py:/app/infra/host_api_probe.py:ro]
     healthcheck:
@@ -48,6 +49,13 @@ services:
       MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess_learning:${MLCHESS_LEARNING_PASSWORD:?Required}@127.0.0.1:55432/mlchess
       MLCHESS_PROBE_PORT: "58120"
     command: [uvicorn, backend.app.learning.app:create_app, --factory, --host, 127.0.0.1, --port, "58120", --no-access-log, --no-proxy-headers, --log-level, warning, --limit-concurrency, "32", --timeout-keep-alive, "5"]
+  relay:
+    network_mode: host
+    networks: !reset []
+    environment:
+      MLCHESS_ENVIRONMENT: ${MLCHESS_RUNTIME_ENVIRONMENT:-production}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess_relay:${MLCHESS_RELAY_PASSWORD:?Required}@127.0.0.1:55432/mlchess
+      MLCHESS_REDIS_URL: redis://:${REDIS_PASSWORD:?Required}@127.0.0.1:56379/0
   analysis-worker:
     network_mode: host
     networks: !reset []

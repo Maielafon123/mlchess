@@ -146,6 +146,8 @@ def create_router():
             await close(1013)
             return
         receiver = None
+        wakeups = socket.app.state.wakeups
+        wake = None
         try:
             await socket.accept()
             try:
@@ -172,6 +174,8 @@ def create_router():
             # Consume disconnects concurrently with bounded SQL tailing. No second
             # subscription or write message is permitted on this read-only stream.
             receiver = asyncio.create_task(socket.receive())
+            if wakeups is not None:
+                wake = wakeups.register(game_id)
             while True:
                 if receiver.done():
                     incoming = receiver.result()
@@ -198,6 +202,8 @@ def create_router():
                             else 1006
                         )
                     return
+                if wake is not None:
+                    wake.clear()
                 async with bounded_sql():
                     current = await auth.authenticate(token)
                     batch = (
@@ -218,7 +224,20 @@ def create_router():
                     await close(1012)
                     return
                 # Wait for a disconnect or the next durable poll; no per-client buffer.
-                await asyncio.wait({receiver}, timeout=0 if batch.more else 0.5)
+                if batch.more or wake is None:
+                    await asyncio.wait({receiver}, timeout=0 if batch.more else 0.5)
+                else:
+                    hint = asyncio.create_task(wake.wait())
+                    try:
+                        await asyncio.wait(
+                            {receiver, hint},
+                            timeout=0.5,
+                            return_when=asyncio.FIRST_COMPLETED,
+                        )
+                    finally:
+                        hint.cancel()
+                        with suppress(asyncio.CancelledError):
+                            await hint
         except PublicProblem as exc:
             await close(4403 if exc.status in {403, 404} else 1011)
         except TimeoutError:
@@ -238,6 +257,8 @@ def create_router():
                     ):
                         await receiver
             finally:
+                if wake is not None:
+                    wakeups.remove(game_id, wake)
                 connections.release(record.user.id)
                 record_close(1000)
 

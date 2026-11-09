@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     google_client_secret: SecretStr = Field(default=SecretStr(""), repr=False)
     trust_loopback_gateway: bool = False
     learning_split: bool = False
+    redis_url: str | None = Field(default=None, repr=False)
 
     @field_validator("public_origin")
     @classmethod
@@ -72,6 +73,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def production_guards(self):
+        if self.redis_url and not self.redis_url.startswith(("redis://", "rediss://")):
+            raise ValueError("Redis requires an explicit redis:// or rediss:// URL")
         google_secret = self.google_client_secret.get_secret_value()
         if bool(self.google_client_id) != bool(google_secret):
             raise ValueError("Set both Google OAuth credentials or neither")

@@ -142,6 +142,17 @@ jobs:
           docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml up -d --no-deps --wait learning
           restored_status="$(curl --silent --show-error --max-time 5 --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/v1/learning/context)"
           test "$restored_status" = 401
+      - name: Verify live WebSockets during Redis outage and drain after recovery
+        env:
+          MLCHESS_LIVE_BASE_URL: http://localhost:8080
+        run: |
+          compose=(docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml)
+          "${compose[@]}" exec -T relay python -m backend.app.realtime.relay --check drained
+          "${compose[@]}" stop redis
+          pnpm --dir apps/web test:e2e:live --project android-chromium --grep 'guest challenge works'
+          "${compose[@]}" exec -T relay python -m backend.app.realtime.relay --check pending
+          "${compose[@]}" start redis
+          "${compose[@]}" exec -T relay python -m backend.app.realtime.relay --check drained
       - if: always()
         run: docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml down
 

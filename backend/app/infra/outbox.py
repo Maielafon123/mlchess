@@ -16,7 +16,12 @@ def utcnow() -> datetime:
 
 class QueuePublisher(Protocol):
     async def publish(
-        self, *, event_id: UUID, event_type: str, payload: dict
+        self,
+        *,
+        event_id: UUID,
+        event_type: str,
+        aggregate_type: str,
+        aggregate_id: UUID,
     ) -> None: ...
 
 
@@ -28,6 +33,7 @@ class OutboxDispatcher:
     ):
         self.factory = factory
         self.publisher = publisher
+        self.transport_failed = False
 
     @staticmethod
     def validate_batch_limit(limit: int) -> None:
@@ -36,28 +42,47 @@ class OutboxDispatcher:
 
     async def dispatch_batch(self, *, limit: int = 50) -> int:
         self.validate_batch_limit(limit)
+        self.transport_failed = False
         async with self.factory() as session:
             result = await session.execute(
-                select(OutboxEvent)
+                select(
+                    OutboxEvent.id,
+                    OutboxEvent.event_type,
+                    OutboxEvent.aggregate_type,
+                    OutboxEvent.aggregate_id,
+                    OutboxEvent.attempts,
+                )
                 .where(OutboxEvent.published_at.is_(None))
                 .order_by(OutboxEvent.created_at, OutboxEvent.id)
                 .limit(limit)
                 .with_for_update(skip_locked=True)
             )
-            events = list(result.scalars())
+            events = result.all()
             count = 0
             for event in events:
-                event.attempts += 1
+                values = {"attempts": min(event.attempts + 1, 2147483647)}
                 try:
                     await self.publisher.publish(
                         event_id=event.id,
                         event_type=event.event_type,
-                        payload=event.payload,
+                        aggregate_type=event.aggregate_type,
+                        aggregate_id=event.aggregate_id,
                     )
                 except Exception:
-                    continue
-                event.published_at = utcnow()
-                count += 1
+                    # A transport outage should not run a failed network call
+                    # for every queued row while holding their locks.
+                    self.transport_failed = True
+                else:
+                    values["published_at"] = utcnow()
+                    count += 1
+                await session.execute(
+                    update(OutboxEvent)
+                    .where(OutboxEvent.id == event.id)
+                    .values(**values)
+                    .execution_options(synchronize_session=False)
+                )
+                if "published_at" not in values:
+                    break
             await session.commit()
             return count
 
