@@ -1300,3 +1300,68 @@ export const fixture49 = {
   "game_id": "00000000-0000-4000-8000-000000000001",
   "after_seq": 0
 } satisfies components["schemas"]["GameSubscribeV1"];
+
+// matchmaking/join.json
+export const fixture50 = {
+  "schema_version": 1,
+  "pool": "rapid-10+0"
+} satisfies components["schemas"]["JoinMatchV1"];
+
+// matchmaking/searching.json
+export const fixture51 = {
+  "schema_version": 1,
+  "ticket_id": "00000000-0000-4000-8000-000000000001",
+  "pool": "rapid-10+0",
+  "status": "searching",
+  "queued_at": "2026-11-09T00:00:00Z",
+  "expires_at": "2026-11-09T00:02:00Z",
+  "game_id": null,
+  "rating": 1200,
+  "rating_min": 800,
+  "rating_max": 1600
+} satisfies components["schemas"]["MatchTicketV1"];
+
+// matchmaking/matched.json
+export const fixture52 = {
+  "schema_version": 1,
+  "ticket_id": "00000000-0000-4000-8000-000000000001",
+  "pool": "rapid-10+0",
+  "status": "matched",
+  "queued_at": "2026-11-09T00:00:00Z",
+  "expires_at": "2026-11-09T00:02:00Z",
+  "game_id": "00000000-0000-4000-8000-000000000002",
+  "rating": 1200,
+  "rating_min": 800,
+  "rating_max": 1600
+} satisfies components["schemas"]["MatchTicketV1"];
+
+// matchmaking/rated-finished.json
+export const fixture53 = {
+  "schema_version": 1,
+  "game_id": "00000000-0000-4000-8000-000000000002",
+  "version": 4,
+  "status": "finished",
+  "pool": "rapid-10+0",
+  "side": "white",
+  "opponent_name": "Opponent",
+  "your_rating": 1200,
+  "opponent_rating": 1200,
+  "rating_change": {
+    "before": 1200,
+    "after": 1216,
+    "delta": 16,
+    "games_count": 1,
+    "settled_at": "2026-11-09T00:02:00Z"
+  }
+} satisfies components["schemas"]["RatedGameV1"];
+
+// matchmaking/actions.json
+export const fixture54 = {
+  "schema_version": 1,
+  "game_id": "00000000-0000-4000-8000-000000000002",
+  "version": 2,
+  "offer_side": "black",
+  "can_offer_draw": false,
+  "can_accept_draw": true,
+  "can_claim_draw": false
+} satisfies components["schemas"]["GameActionsV1"];

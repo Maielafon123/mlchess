@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ticket_id": "00000000-0000-4000-8000-000000000001",
+  "pool": "rapid-10+0",
+  "status": "matched",
+  "queued_at": "2026-11-09T00:00:00Z",
+  "expires_at": "2026-11-09T00:02:00Z",
+  "game_id": "00000000-0000-4000-8000-000000000002",
+  "rating": 1200,
+  "rating_min": 800,
+  "rating_max": 1600
+}

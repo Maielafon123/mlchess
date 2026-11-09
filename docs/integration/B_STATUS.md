@@ -92,3 +92,13 @@ races and Android/iPhone real learning acceptance await CI/public deployment.
 Actual deployed coach uses verified-rules-v1, not a remote LLM; Google credentials
 remain absent. TLS and existing games/coach were already verified publicly.
 No complete B backlog or full product release signoff is implied.
+
+## Integrated A-I15 frontend handoff (base 30320f3)
+
+The Play page links all four modes. Rated matchmaking uses the generated
+contracts, account session and real API; queues and games resume after refresh.
+Friend and rated games share live snapshots and server-authorized human actions.
+The two-account Android Chromium test exercised cancellation, pairing, touch
+move, real WebSocket frames, draw offer and both persisted Elo changes at
+320px. Guest mode points to the existing sign-in-free challenge flow and
+cannot join a rated queue.

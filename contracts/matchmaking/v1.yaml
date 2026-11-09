@@ -1,0 +1,224 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://mlchess.local/contracts/matchmaking/v1.yaml
+$defs:
+  RatingPoolV1:
+    type: string
+    enum:
+    - rapid-10+0
+    - blitz-5+0
+  MatchPoolV1:
+    type: object
+    additionalProperties: false
+    required:
+    - pool
+    - time_control
+    - your_rating
+    properties:
+      pool:
+        $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingPoolV1
+      time_control:
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/TimeControlV1
+      your_rating:
+        oneOf:
+        - &id003
+          type: integer
+          minimum: 100
+          maximum: 4000
+        - type: 'null'
+  MatchPoolsV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - items
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      items:
+        type: array
+        minItems: 2
+        maxItems: 2
+        items:
+          $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchPoolV1
+  JoinMatchV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - pool
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      pool:
+        $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingPoolV1
+  MatchTicketV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - ticket_id
+    - pool
+    - status
+    - queued_at
+    - expires_at
+    - game_id
+    - rating
+    - rating_min
+    - rating_max
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      ticket_id: &id002
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UUIDv4
+      pool:
+        $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingPoolV1
+      status:
+        type: string
+        enum:
+        - searching
+        - matched
+        - cancelled
+        - expired
+      queued_at: &id001
+        $ref: https://mlchess.local/contracts/common/v1.yaml#/$defs/UTCDateTime
+      expires_at: *id001
+      game_id:
+        oneOf:
+        - *id002
+        - type: 'null'
+      rating: *id003
+      rating_min: *id003
+      rating_max: *id003
+    allOf:
+    - if:
+        properties:
+          status:
+            const: matched
+      then:
+        properties:
+          game_id: *id002
+      else:
+        properties:
+          game_id:
+            type: 'null'
+  CurrentMatchV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - ticket
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      ticket:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchTicketV1
+        - type: 'null'
+  RatingChangeV1:
+    type: object
+    additionalProperties: false
+    required:
+    - before
+    - after
+    - delta
+    - games_count
+    - settled_at
+    properties:
+      before: *id003
+      after: *id003
+      delta:
+        type: integer
+        minimum: -32
+        maximum: 32
+      games_count:
+        type: integer
+        minimum: 1
+        maximum: 9007199254740991
+      settled_at: *id001
+  RatedGameV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - game_id
+    - version
+    - status
+    - pool
+    - side
+    - opponent_name
+    - your_rating
+    - opponent_rating
+    - rating_change
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      game_id: *id002
+      version:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      status:
+        type: string
+        enum:
+        - active
+        - finished
+      pool:
+        $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingPoolV1
+      side: &id004
+        $ref: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1
+      opponent_name:
+        type: string
+        minLength: 1
+        maxLength: 120
+      your_rating: *id003
+      opponent_rating: *id003
+      rating_change:
+        oneOf:
+        - $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingChangeV1
+        - type: 'null'
+    allOf:
+    - if:
+        properties:
+          status:
+            const: finished
+      then:
+        properties:
+          rating_change:
+            $ref: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingChangeV1
+      else:
+        properties:
+          rating_change:
+            type: 'null'
+  GameActionsV1:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - game_id
+    - version
+    - offer_side
+    - can_offer_draw
+    - can_accept_draw
+    - can_claim_draw
+    properties:
+      schema_version:
+        type: integer
+        const: 1
+      game_id: *id002
+      version:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      offer_side:
+        oneOf:
+        - *id004
+        - type: 'null'
+      can_offer_draw: &id005
+        type: boolean
+      can_accept_draw: *id005
+      can_claim_draw: *id005

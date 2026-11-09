@@ -161,6 +161,136 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateGameV1'
+  /api/v1/games/{game_id}/actions:
+    get:
+      operationId: getGameActions
+      x-implementation-status: implemented
+      parameters:
+      - name: game_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameActionsV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/games/{game_id}/rating:
+    get:
+      operationId: getRatedGame
+      x-implementation-status: implemented
+      parameters:
+      - name: game_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatedGameV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
   /api/v1/games/{id}:
     parameters:
     - name: id
@@ -2289,6 +2419,345 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/matchmaking/current:
+    get:
+      operationId: getCurrentMatch
+      x-implementation-status: implemented
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentMatchV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/matchmaking/pools:
+    get:
+      operationId: listRatingPools
+      x-implementation-status: implemented
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchPoolsV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+  /api/v1/matchmaking/tickets:
+    post:
+      operationId: joinMatchmaking
+      x-implementation-status: implemented
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchTicketV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinMatchV1'
+  /api/v1/matchmaking/tickets/{ticket_id}:
+    get:
+      operationId: getMatchTicket
+      x-implementation-status: implemented
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchTicketV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+    delete:
+      operationId: cancelMatchTicket
+      x-implementation-status: implemented
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUIDv4'
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchTicketV1'
+        '401':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '403':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '404':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '409':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '422':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '429':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '500':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
+        '503':
+          description: Sanitized problem
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsV1'
   /api/v1/me:
     get:
       operationId: getCurrentUser
@@ -3078,6 +3547,20 @@ components:
       properties:
         game_id:
           $ref: '#/components/schemas/UUIDv4'
+    CurrentMatchV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - ticket
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        ticket:
+          oneOf:
+          - $ref: '#/components/schemas/MatchTicketV1'
+          - type: 'null'
     CurrentUserV1:
       type: object
       additionalProperties: false
@@ -3202,6 +3685,37 @@ components:
           minimum: 0
           maximum: 9007199254740991
       description: Versioned resign or draw action. Idempotency-Key UUIDv4 and CSRF headers are required.
+    GameActionsV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - game_id
+      - version
+      - offer_side
+      - can_offer_draw
+      - can_accept_draw
+      - can_claim_draw
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        game_id:
+          $ref: '#/components/schemas/UUIDv4'
+        version:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        offer_side:
+          oneOf:
+          - $ref: '#/components/schemas/SideV1'
+          - type: 'null'
+        can_offer_draw:
+          type: boolean
+        can_accept_draw:
+          type: boolean
+        can_claim_draw:
+          type: boolean
     GameClockSyncEventV1:
       type: object
       additionalProperties: false
@@ -3999,6 +4513,18 @@ components:
             format: uri
             maxLength: 2048
           - type: 'null'
+    JoinMatchV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - pool
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        pool:
+          $ref: '#/components/schemas/RatingPoolV1'
     LearningContextV1:
       type: object
       additionalProperties: false
@@ -4226,6 +4752,102 @@ components:
             type: string
             maxLength: 80
           maxItems: 16
+    MatchPoolV1:
+      type: object
+      additionalProperties: false
+      required:
+      - pool
+      - time_control
+      - your_rating
+      properties:
+        pool:
+          $ref: '#/components/schemas/RatingPoolV1'
+        time_control:
+          $ref: '#/components/schemas/TimeControlV1'
+        your_rating:
+          oneOf:
+          - type: integer
+            minimum: 100
+            maximum: 4000
+          - type: 'null'
+    MatchPoolsV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - items
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        items:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/MatchPoolV1'
+    MatchTicketV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - ticket_id
+      - pool
+      - status
+      - queued_at
+      - expires_at
+      - game_id
+      - rating
+      - rating_min
+      - rating_max
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        ticket_id:
+          $ref: '#/components/schemas/UUIDv4'
+        pool:
+          $ref: '#/components/schemas/RatingPoolV1'
+        status:
+          type: string
+          enum:
+          - searching
+          - matched
+          - cancelled
+          - expired
+        queued_at:
+          $ref: '#/components/schemas/UTCDateTime'
+        expires_at:
+          $ref: '#/components/schemas/UTCDateTime'
+        game_id:
+          oneOf:
+          - $ref: '#/components/schemas/UUIDv4'
+          - type: 'null'
+        rating:
+          type: integer
+          minimum: 100
+          maximum: 4000
+        rating_min:
+          type: integer
+          minimum: 100
+          maximum: 4000
+        rating_max:
+          type: integer
+          minimum: 100
+          maximum: 4000
+      allOf:
+      - if:
+          properties:
+            status:
+              const: matched
+        then:
+          properties:
+            game_id:
+              $ref: '#/components/schemas/UUIDv4'
+        else:
+          properties:
+            game_id:
+              type: 'null'
     MoveAcceptedV1:
       type: object
       additionalProperties: false
@@ -4745,6 +5367,101 @@ components:
         license:
           type: string
           maxLength: 120
+    RatedGameV1:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - game_id
+      - version
+      - status
+      - pool
+      - side
+      - opponent_name
+      - your_rating
+      - opponent_rating
+      - rating_change
+      properties:
+        schema_version:
+          type: integer
+          const: 1
+        game_id:
+          $ref: '#/components/schemas/UUIDv4'
+        version:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        status:
+          type: string
+          enum:
+          - active
+          - finished
+        pool:
+          $ref: '#/components/schemas/RatingPoolV1'
+        side:
+          $ref: '#/components/schemas/SideV1'
+        opponent_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        your_rating:
+          type: integer
+          minimum: 100
+          maximum: 4000
+        opponent_rating:
+          type: integer
+          minimum: 100
+          maximum: 4000
+        rating_change:
+          oneOf:
+          - $ref: '#/components/schemas/RatingChangeV1'
+          - type: 'null'
+      allOf:
+      - if:
+          properties:
+            status:
+              const: finished
+        then:
+          properties:
+            rating_change:
+              $ref: '#/components/schemas/RatingChangeV1'
+        else:
+          properties:
+            rating_change:
+              type: 'null'
+    RatingChangeV1:
+      type: object
+      additionalProperties: false
+      required:
+      - before
+      - after
+      - delta
+      - games_count
+      - settled_at
+      properties:
+        before:
+          type: integer
+          minimum: 100
+          maximum: 4000
+        after:
+          type: integer
+          minimum: 100
+          maximum: 4000
+        delta:
+          type: integer
+          minimum: -32
+          maximum: 32
+        games_count:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        settled_at:
+          $ref: '#/components/schemas/UTCDateTime'
+    RatingPoolV1:
+      type: string
+      enum:
+      - rapid-10+0
+      - blitz-5+0
     ResyncRequiredEventV1:
       type: object
       additionalProperties: false
@@ -5102,11 +5819,13 @@ x-source-schemas:
   CoachRequestV1: https://mlchess.local/contracts/coach/v1.yaml#/$defs/CoachRequestV1
   CreateGameV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/CreateGameV1
   CreateInvitationV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/CreateInvitationV1
+  CurrentMatchV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/CurrentMatchV1
   CurrentUserV1: https://mlchess.local/contracts/common/v1.yaml#/$defs/CurrentUserV1
   EngineLimitsV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineLimitsV1
   EngineMetadataV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/EngineMetadataV1
   FenV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/FenV1
   GameActionV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameActionV1
+  GameActionsV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/GameActionsV1
   GameClockSyncEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameClockSyncEventV1
   GameEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1
   GameModeV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/GameModeV1
@@ -5120,6 +5839,7 @@ x-source-schemas:
   GuestSessionRequestV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/GuestSessionRequestV1
   HealthV1: https://mlchess.local/contracts/common/v1.yaml#/$defs/HealthV1
   InviteSnapshotV1: https://mlchess.local/contracts/invitations/v1.yaml#/$defs/InviteSnapshotV1
+  JoinMatchV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/JoinMatchV1
   LearningContextV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/LearningContextV1
   LearningExportAttemptV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/LearningExportAttemptV1
   LearningExportV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/LearningExportV1
@@ -5127,6 +5847,9 @@ x-source-schemas:
   LessonListV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/LessonListV1
   LessonStatusRequestV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/LessonStatusRequestV1
   LessonV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/LessonV1
+  MatchPoolV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchPoolV1
+  MatchPoolsV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchPoolsV1
+  MatchTicketV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/MatchTicketV1
   MoveAcceptedV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveAcceptedV1
   MoveV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/MoveV1
   PlayerV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/PlayerV1
@@ -5139,6 +5862,9 @@ x-source-schemas:
   PuzzleSessionRequestV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/PuzzleSessionRequestV1
   PuzzleStateV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/PuzzleStateV1
   PuzzleV1: https://mlchess.local/contracts/learning/v1.yaml#/$defs/PuzzleV1
+  RatedGameV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatedGameV1
+  RatingChangeV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingChangeV1
+  RatingPoolV1: https://mlchess.local/contracts/matchmaking/v1.yaml#/$defs/RatingPoolV1
   ResyncRequiredEventV1: https://mlchess.local/contracts/game/events.v1.yaml#/$defs/ResyncRequiredEventV1
   ScoreV1: https://mlchess.local/contracts/analysis/v1.yaml#/$defs/ScoreV1
   SideV1: https://mlchess.local/contracts/game/v1.yaml#/$defs/SideV1

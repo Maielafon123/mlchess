@@ -1,11 +1,14 @@
 import { ApiClient } from "./client";
 import type { CreateGameV1, GameSnapshotV1, MoveAcceptedV1, SubmitMoveV1 } from "./contracts";
+import type { components } from "../../../../contracts/generated/api";
 
 /** Temporary B-008 boundary. Replace with generated A-008 GameSnapshotV1 types. */
 export type GameSnapshot = GameSnapshotV1;
 
 export type MoveCommand = SubmitMoveV1;
 export type GameCreateOptions = CreateGameV1;
+export type GameActions = components["schemas"]["GameActionsV1"];
+export type HumanAction = "resign" | "draw-offers" | "draw-offers/accept" | "claim-draw";
 
 export function canAdoptSnapshot(current: GameSnapshot | null, next: GameSnapshot) {
   if (!current) return true;
@@ -31,6 +34,14 @@ export class GameApi {
   }
 
   resign(gameId: string, expectedVersion: number) {
-    return this.client.post<GameSnapshot>(`/api/v1/games/${encodeURIComponent(gameId)}/resign`, { expected_version: expectedVersion });
+    return this.action(gameId, "resign", expectedVersion);
+  }
+
+  actions(gameId: string, signal?: AbortSignal) {
+    return this.client.get<GameActions>(`/api/v1/games/${encodeURIComponent(gameId)}/actions`, { signal });
+  }
+
+  action(gameId: string, action: HumanAction, expectedVersion: number, idempotencyKey?: string) {
+    return this.client.post<GameSnapshot>(`/api/v1/games/${encodeURIComponent(gameId)}/${action}`, { expected_version: expectedVersion }, { idempotencyKey });
   }
 }

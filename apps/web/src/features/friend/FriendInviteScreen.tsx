@@ -5,8 +5,10 @@ import { createIdempotencyKey } from "../../api/client";
 import { ApiError } from "../../api/errors";
 import { ensurePublicSession } from "../../auth/guestSession";
 import { GameBoard } from "../../components/GameBoard";
-import { useGameRealtime } from "./useGameRealtime";
+import { useGameRealtime } from "../game/useGameRealtime";
+import { useHumanGameActions } from "../game/useHumanGameActions";
 import { PlayerClocks } from "../../components/PlayerClocks";
+import { GameActionControls } from "../../components/GameActionControls";
 
 const controls: Record<string, TimeControl | null> = {
   untimed: null, "1+0": { initial_ms: 60000, increment_ms: 0 },
@@ -76,6 +78,7 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
     setGame((current) => canAdoptSnapshot(current, next) ? next : current);
   }, []);
   const connected = useGameRealtime(finished ? undefined : gameId, resolvedGameApi, adoptSnapshot);
+  const actions = useHumanGameActions(game, resolvedGameApi, adoptSnapshot, pending);
   useEffect(() => {
     if (!gameId || finished || expired) return;
     let cancelled = false;
@@ -120,30 +123,11 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
       setCopied(true);
     } catch { setError("Выделите и скопируйте ссылку из поля ниже."); }
   };
-  const move = async (uci: string) => {
-    if (!game?.capabilities.can_move || pending) return;
-    setPending(true);
-    setError(null);
-    try {
-      const next = await resolvedGameApi.move(game.id, { uci, client_move_id: createIdempotencyKey(), expected_version: game.version });
-      adoptSnapshot(next);
-    } catch (value: unknown) {
-      setError(value instanceof Error ? value.message : "Ход не принят. Обновляем позицию…");
-      try { adoptSnapshot(await resolvedGameApi.get(game.id)); } catch { /* polling retries */ }
-    } finally { setPending(false); }
-  };
-  const resign = async () => {
-    if (!game || pending) return;
-    setPending(true);
-    try { adoptSnapshot(await resolvedGameApi.resign(game.id, game.version)); }
-    catch (value: unknown) { setError(value instanceof Error ? value.message : "Не удалось завершить партию."); }
-    finally { setPending(false); }
-  };
   const waiting = game?.status === "waiting" && snapshot?.state !== "expired";
   return <section className="friend-screen" aria-label="Friend game">
     <div className="analysis-header"><h1>Игра с другом</h1><span className="status-chip">Без регистрации</span></div>
     <p className="friend-description">{game?.status === "active" ? "Нажмите фигуру, затем поле для хода. Партия сохраняется автоматически." : "Отправьте ссылку другу. Он сразу займёт второе место; партия сохранится в ваших браузерах."}</p>
-    {error && <div className="error-banner" role="alert">{error}</div>}
+    {(error || actions.error) && <div className="error-banner" role="alert">{error ?? actions.error}</div>}
     {!snapshot && !game && !entry.invite && !entry.game && <div className="friend-create"><label>Контроль времени<select value={timeControl} disabled={pending} onChange={(event) => setTimeControl(event.target.value)}><option value="untimed">Без часов</option>{Object.keys(controls).filter((name) => name !== "untimed").map((name) => <option key={name} value={name}>{name.replace("+", " мин + ")} сек</option>)}</select></label><button className="button button-primary" type="button" disabled={pending} onClick={() => void create()}>Создать вызов</button></div>}
     {pending && <div className="status-banner" role="status">Подключаемся…</div>}
     {snapshot?.invite_url && waiting && <div className="invite-row">
@@ -157,8 +141,8 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
       {!finished && <span className="coach-status" role="status">{connected ? "Связь установлена" : "Проверяем соединение…"}</span>}
       <div className="friend-game-status" role="status">{finished ? "Партия завершена: " + (game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : "победили чёрные") + (game.termination === "timeout" ? " · время вышло" : "") : game.status === "active" ? game.capabilities.can_move ? "Ваш ход" : "Ход соперника" : "Партия ещё не началась"}</div>
       <PlayerClocks clock={game.clock} />
-      <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || !game.capabilities.can_move} onMoveAttempt={(uci) => void move(uci)} />
-      {game.status === "active" && <button className="button button-secondary" type="button" disabled={pending} onClick={() => void resign()}>Сдаться</button>}
+      <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || actions.pending || !game.capabilities.can_move} onMoveAttempt={(uci) => { setError(null); actions.move(uci); }} />
+      {game.status === "active" && <GameActionControls actions={actions.capabilities} disabled={pending || actions.pending} onAction={(kind) => { setError(null); actions.action(kind); }} />}
       {finished && <a className="button button-primary" href="/play/friend">Новая партия</a>}
     </>}
     <p className="friend-description">В этой партии нет подсказок тренера или анализа.</p>
