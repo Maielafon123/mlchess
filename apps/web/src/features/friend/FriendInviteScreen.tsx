@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { InviteApi, type InviteSnapshot } from "../../api/inviteApi";
 import { GameApi, type GameSnapshot } from "../../api/gameApi";
 import { createIdempotencyKey } from "../../api/client";
 import { ApiError } from "../../api/errors";
 import { ensurePublicSession } from "../../auth/guestSession";
 import { GameBoard } from "../../components/GameBoard";
+import { useGameRealtime } from "./useGameRealtime";
 
 function rememberGame(gameId: string, inviteId: string) {
   const query = new URLSearchParams({ game: gameId, invite: inviteId });
@@ -62,6 +63,10 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
   const finished = game?.status === "finished";
   const expired = snapshot?.state === "expired";
   const invitationId = snapshot?.invite_id;
+  const adoptSnapshot = useCallback((next: GameSnapshot) => {
+    setGame((current) => !current || next.id === current.id && next.version >= current.version ? next : current);
+  }, []);
+  const connected = useGameRealtime(finished ? undefined : gameId, resolvedGameApi, adoptSnapshot);
   useEffect(() => {
     if (!gameId || finished || expired) return;
     let cancelled = false;
@@ -78,12 +83,12 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
       } catch (value: unknown) {
         if (!cancelled) setError(value instanceof Error ? value.message : "Проверяем соединение…");
       } finally {
-        if (!cancelled) timer = setTimeout(poll, document.hidden ? 5000 : 1000);
+        if (!cancelled) timer = setTimeout(poll, document.hidden || connected ? 5000 : 1000);
       }
     };
     timer = setTimeout(poll, 1000);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [expired, finished, gameId, invitationId, resolvedApi, resolvedGameApi]);
+  }, [connected, expired, finished, gameId, invitationId, resolvedApi, resolvedGameApi]);
 
   const create = async () => {
     if (pending) return;
@@ -140,6 +145,7 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
     {waiting && <div className="status-banner" role="status">Ожидаем друга… Ссылка действует 24 часа.</div>}
     {snapshot?.state === "expired" && <div className="error-banner">Срок ссылки истёк. <a href="/play/friend">Создать новый вызов</a></div>}
     {game && <>
+      {!finished && <span className="coach-status" role="status">{connected ? "Связь установлена" : "Проверяем соединение…"}</span>}
       <div className="friend-game-status" role="status">{finished ? "Партия завершена: " + (game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : "победили чёрные") : game.status === "active" ? game.capabilities.can_move ? "Ваш ход" : "Ход соперника" : "Партия ещё не началась"}</div>
       <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || !game.capabilities.can_move} onMoveAttempt={(uci) => void move(uci)} />
       {game.status === "active" && <button className="button button-secondary" type="button" disabled={pending} onClick={() => void resign()}>Сдаться</button>}

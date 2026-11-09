@@ -31,6 +31,8 @@ from backend.app.coach.router import create_durable_router
 from backend.app.coach.durable import DurableCoachService
 from backend.app.learning.router import create_durable_router as learning_router
 from backend.app.learning.durable import DurableLearningService
+from backend.app.realtime.durable import DurableEventStream
+from backend.app.realtime.router import Connections, create_router as realtime_router
 from backend.app.infra.models import LearningProfileRow, LessonRow
 from backend.app.infra.generated.contracts import HealthV1
 from backend.app.infra.http import SafeHTTPMiddleware, default_request_logger
@@ -108,6 +110,8 @@ def create_app(
     app.state.analysis_service = DurableAnalysisService(factory) if factory else None
     app.state.coach_service = DurableCoachService(factory) if factory else None
     app.state.learning_service = DurableLearningService(factory) if factory else None
+    app.state.event_stream = DurableEventStream(factory) if factory else None
+    app.state.ws_connections = Connections()
     app.state.invitation_service = (
         InvitationService(
             factory,
@@ -124,6 +128,7 @@ def create_app(
     app.include_router(invitation_router)
     app.include_router(create_durable_router())
     app.include_router(learning_router())
+    app.include_router(realtime_router())
     app.add_middleware(
         SafeHTTPMiddleware,
         settings=settings,

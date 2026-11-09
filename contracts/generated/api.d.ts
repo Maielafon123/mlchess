@@ -870,6 +870,12 @@ export interface components {
         };
         /** @enum {string} */
         GameStatusV1: "waiting" | "active" | "finished" | "aborted";
+        GameSubscribeV1: {
+            /** @constant */
+            type: "subscribe";
+            game_id: components["schemas"]["UUIDv4"];
+            after_seq: number;
+        };
         /** @description Durable event: seq is allocated atomically with game state/outbox. Publish only after commit. */
         GameTakebackAppliedEventV1: {
             /** @constant */

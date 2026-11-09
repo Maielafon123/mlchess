@@ -87,7 +87,7 @@ def assemble(root: Path = ROOT) -> dict:
         "info": {
             "title": "MLChess API contract review candidate",
             "version": "1.0.0",
-            "description": "Schema-first review candidate. Only routes marked implemented-scaffold have runtime handlers; proposed routes are documentation.",
+            "description": "Versioned API contracts. Operation implementation markers describe their integration stage; schema presence alone is not a production release signoff.",
         },
         "servers": [{"url": "/"}],
         "security": [{"SessionCookie": []}],
@@ -105,6 +105,11 @@ def assemble(root: Path = ROOT) -> dict:
         },
         "x-source-schemas": dict(sorted(names.items())),
         "x-websocket-schema": "https://mlchess.local/contracts/game/events.v1.yaml#/$defs/GameEventV1",
+        "x-websocket-subscription": {
+            "path": "/ws/v1/games/{game_id}",
+            "request_schema": "https://mlchess.local/contracts/game/subscription.v1.yaml#/$defs/GameSubscribeV1",
+            "authentication": "same-origin session cookie; Origin and participant ACL required",
+        },
     }
     validate_openapi(spec)
     return spec

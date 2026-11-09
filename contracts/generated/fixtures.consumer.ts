@@ -1293,3 +1293,10 @@ export const fixture48 = {
   "student_id": "0fc9a92e-5eab-4d93-aea5-f33cfef168fd",
   "skills": []
 } satisfies components["schemas"]["StudentProgressV1"];
+
+// events/subscribe.json
+export const fixture49 = {
+  "type": "subscribe",
+  "game_id": "00000000-0000-4000-8000-000000000001",
+  "after_seq": 0
+} satisfies components["schemas"]["GameSubscribeV1"];

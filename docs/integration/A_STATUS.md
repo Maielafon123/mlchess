@@ -310,3 +310,55 @@ new learning action/navigation rows; grading, hint persistence and lesson flows
 passed before the layout assertion. Corrected action wrapping and added a local
 320px browser regression; demo3 PASS. Final local learning target28 PASS. Public
 learning is not deployed while either Compose acceptance remains red.
+
+
+## A-I11 public acceptance
+
+PR42 merged fdad44bf5329b03cc1441ac9f2878aef681a4a31 after all six jobs PASS in
+42535741410 on02943b3d550041a2f7879fde56ddef68313984b9. Exact merge CI42536048721
+also PASS. Both real PostgreSQL learning races PASS. All four tested images02943b3
+deployed with matching infrastructure;0005 migration and all health checks PASS.
+Pre-learning private application pg_dump retained; no host/VPN networking touched.
+
+Public trusted HTTPS acceptance13/13 PASS in32.9s at6 workers: desktop, Android
+Chromium and iPhone WebKit learning/hints/completion/progress/reload; existing
+friend/two-phone/AI/coach/analysis cases stay green. Manual browser additionally
+accepted f7f8r as an alternative mate and retained that exact solution on refresh.
+Public learning screenshots retained locally. No full release tag created.
+Proceed with A-I12; matchmaking, clock scheduler, Google/remote LLM and offsite
+PITR remain separate work, not implied by this acceptance.
+
+
+## A-I12 durable read-only WebSocket implementation (CI acceptance pending)
+
+Base fdad44bf5329b03cc1441ac9f2878aef681a4a31. WS `/ws/v1/games/{game_id}` is
+mounted behind mandatory Origin, actual opaque session and participant guards.
+A fresh snapshot/cursor pair is captured under the game lock; subsequent SQL
+batches replay/tail the same durable log, without a volatile handoff or invented
+Redis delivery claim. Every batch reauthorizes; private/stale/PvP result references
+cause safe resync instead of leaking identifiers or skipping a sequence.
+
+Admission32 per process/4 per actor, bounded reads/sends/messages and generated
+subscription schema are enforced. Commands remain HTTP+CSRF. Explicit pinned
+websockets17.4 and Uvicorn protocol/size/queue settings enable actual WS transport.
+Protocol logs that include raw URI/query are suppressed; allowlisted close-code,
+request-id/duration logs and bounded metrics retain application observability.
+
+Friend UI adopts atomic controls before sequence checks, reconnects with zero
+on gaps, drops detached socket callbacks, bounds failures and keeps slower REST
+polling as fallback. Real two-phone E2E now requires actual WS frames and connected
+state. Local production frontend + actual Uvicorn + disposable SQLite accepted
+both Android and iPhone scenarios (2 PASS); PG races remain separate CI evidence.
+The initial parallel development/SQLite harness hit a StrictMode command race;
+production-build serial harness avoids claiming SQLite row-lock concurrency.
+
+Full local backend551 PASS/22 SKIP before final delete/ready-reference additions;
+web55 PASS before the final snapshot-hook case, final hook/transport4 PASS;
+50 contract goldens/generation and structural compatibility PASS; build/lint and
+UI-only demo3 PASS. New real PG gated snapshot/replay vs writer regression added.
+Surface preflight still blocks on two matchmaking routes; no full release signoff.
+
+
+Final A-I12 local targets: realtime durable21 PASS (including real ready-result
+references, undo replay and deleted user); web56 PASS; production build/lint PASS.
+The main event+host target previously22 PASS. Await exact-head PG/Compose CI.
