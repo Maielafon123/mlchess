@@ -83,6 +83,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
     learning = services["learning"]
     assert learning["command"][learning["command"].index("--host") + 1] == "127.0.0.1"
     assert learning["command"][learning["command"].index("--port") + 1] == "58120"
+    assert learning["healthcheck"]["timeout"] == "15s"
     assert learning["environment"]["MLCHESS_DATABASE_URL"].startswith(
         "postgresql+asyncpg://mlchess_learning:"
     )
