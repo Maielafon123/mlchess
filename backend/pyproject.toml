@@ -12,7 +12,7 @@ dependencies = [
   "pydantic-settings==2.16.2", "uvicorn==0.38.0", "chess==1.11.2",
   "SQLAlchemy==2.0.44", "asyncpg==0.30.0", "alembic==1.17.2",
   "jsonschema==4.25.1",
-  "websockets==17.4", "httpx==0.28.1", "PyJWT[crypto]==2.15.1",
+  "websockets==17.4", "httpx==0.28.1", "PyJWT[crypto]==2.15.1", "redis==8.1.0",
 ]
 
 [project.optional-dependencies]

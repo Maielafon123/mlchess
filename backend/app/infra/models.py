@@ -329,6 +329,15 @@ class Analysis(Base):
 
 class OutboxEvent(Base):
     __tablename__ = "outbox_events"
+    __table_args__ = (
+        Index(
+            "ix_outbox_pending",
+            "created_at",
+            "id",
+            postgresql_where=text("published_at IS NULL"),
+            sqlite_where=text("published_at IS NULL"),
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
     aggregate_type: Mapped[str] = mapped_column(String(32), nullable=False)

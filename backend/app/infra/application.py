@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Sequence
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 import logging
 
 from fastapi import FastAPI, Request
@@ -30,6 +30,7 @@ def create_http_app(
     owns_engine: bool = False,
     readiness_checks: Sequence[ReadinessCheck] = (),
     logger: logging.Logger | None = None,
+    runtime=None,
 ) -> FastAPI:
     checks = tuple(readiness_checks)
     if len(checks) > 8:
@@ -40,8 +41,9 @@ def create_http_app(
         try:
             if engine is not None and settings.database_auto_create:
                 await create_schema(engine)
-            app.state.started = True
-            yield
+            async with runtime(app) if runtime else nullcontext():
+                app.state.started = True
+                yield
         finally:
             app.state.started = False
             if engine is not None and owns_engine:

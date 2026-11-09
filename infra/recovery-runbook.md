@@ -28,6 +28,9 @@ chosen snapshot into an isolated disposable PostgreSQL 16 instance with no
 network or ports and verifies application schema and aggregate counts. It never
 restores into the live DB. Use a trusted restore host with the pinned
 PostgreSQL image available; the drill is sized for this small installation.
+When bringing up a restored application on a new installation, provision the
+restricted service roles again with the private deployment settings before
+exposing the gateway. Do not expose a scratch restore to application traffic.
 
 Measured on 2026-11-09 UTC: production PostgreSQL snapshot window
 01:02:08.611–01:02:12.488, about 3.9 s to encrypt and transfer 230,969 bytes;

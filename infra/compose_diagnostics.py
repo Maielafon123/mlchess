@@ -45,6 +45,7 @@ def main() -> int:
             "postgres",
             "api",
             "learning",
+            "relay",
             "worker",
             "analysis-worker",
             "coach-worker",

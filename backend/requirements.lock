@@ -33,6 +33,7 @@ Pygments==2.21.0
 PyJWT==2.15.1
 pytest==9.2.0
 referencing==0.36.2
+redis==8.1.0
 rpds-py==2026.9.1
 python-dotenv==1.2.4
 ruff==0.15.0

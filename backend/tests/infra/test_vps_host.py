@@ -43,6 +43,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
             "MLCHESS_BIND_ADDRESS": "203.0.113.10" if domain else "",
             "MLCHESS_INVITATION_SECRET": "x" * 43,
             "MLCHESS_LEARNING_PASSWORD": "y" * 43,
+            "MLCHESS_RELAY_PASSWORD": "z" * 43,
             "POSTGRES_PASSWORD": "disposable_config_only",
             "REDIS_PASSWORD": "disposable_config_only",
         },
@@ -57,6 +58,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
     assert set(services) == {
         "api",
         "learning",
+        "relay",
         "worker",
         "analysis-worker",
         "coach-worker",
@@ -81,11 +83,17 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
     learning = services["learning"]
     assert learning["command"][learning["command"].index("--host") + 1] == "127.0.0.1"
     assert learning["command"][learning["command"].index("--port") + 1] == "58120"
+    assert learning["healthcheck"]["timeout"] == "15s"
     assert learning["environment"]["MLCHESS_DATABASE_URL"].startswith(
         "postgresql+asyncpg://mlchess_learning:"
     )
     assert "MLCHESS_INVITATION_SECRET" not in learning["environment"]
     assert "MLCHESS_GOOGLE_CLIENT_SECRET" not in learning["environment"]
+    relay = services["relay"]["environment"]
+    assert relay["MLCHESS_DATABASE_URL"].startswith(
+        "postgresql+asyncpg://mlchess_relay:"
+    )
+    assert "@127.0.0.1:56379/0" in relay["MLCHESS_REDIS_URL"]
     tls_mounts = [
         mount for mount in services["gateway"]["volumes"] if mount["type"] == "volume"
     ]

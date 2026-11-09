@@ -84,6 +84,13 @@ file as a second `--env-file` after the existing server env. Preserve both
 files across releases. Learning never receives the primary DB or Google
 credential. See [service boundary](../docs/architecture/learning-service.md).
 
+The outbox relay also requires a separate `MLCHESS_RELAY_PASSWORD`. New
+settings include both role passwords; for an upgrade keep the relay password
+in a private env file and include it when invoking Compose. Core and relay
+use Redis only on the application network or loopback. Redis can be restarted
+independently; the socket falls back to SQL and the relay drains pending events
+after Redis is available. See [outbox relay](../docs/architecture/outbox-relay.md).
+
 Before upgrades, back up PostgreSQL and record current SHA/image IDs. Migrations
 are expand-only; rollback compatible application images while retaining schema
 and ALL named volumes. Never use down --volumes, prune or destructive downgrade.

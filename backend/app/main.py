@@ -38,6 +38,7 @@ from backend.app.coach.durable import DurableCoachService
 from backend.app.learning.router import create_durable_router as learning_router
 from backend.app.learning.durable import DurableLearningService
 from backend.app.realtime.durable import DurableEventStream
+from backend.app.realtime.broker import broker_runtime
 from backend.app.realtime.router import Connections, create_router as realtime_router
 from backend.app.matchmaking.durable import DurableMatchmaking
 from backend.app.matchmaking.router import router as matchmaking_router
@@ -88,7 +89,9 @@ def create_app(
         owns_engine=database_engine is None,
         readiness_checks=checks,
         logger=logger,
+        runtime=broker_runtime(settings.redis_url),
     )
+    app.state.wakeups = None
     app.state.dev_login_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
     app.state.guest_login_limiter = SlidingWindowLimiter(limit=120, window_seconds=600)
     app.state.oidc_ip_limiter = SlidingWindowLimiter(limit=30, window_seconds=600)
