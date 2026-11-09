@@ -267,6 +267,121 @@ h1 em { color: var(--color-accent-strong); font-style: italic; }
 .status-chip { border-radius: 0; background: var(--color-accent-soft); color: var(--color-accent-strong); }
 .button { border-radius: 0; }
 .button-primary { background: var(--color-accent); }
+.training-page { gap: 22px; }
+.training-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: end; }
+.training-header .game-actions { margin: 0; justify-content: flex-start; }
+.training-page .page-heading h1 { margin-top: 0; font-size: clamp(2.3rem, 5vw, 4rem); }
+.training-page .page-heading p { margin-top: 12px; }
+.academy-plan, .post-game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+.academy-plan > aside, .puzzle-side, .post-game-tools {
+  border-inline-start: 1px solid var(--color-border);
+  padding-inline-start: clamp(20px, 3vw, 38px);
+  min-width: 0;
+}
+.academy-plan h2 { margin-top: 20px; }
+.academy-plan p, .puzzle-side > p { line-height: 1.5; color: var(--color-muted); }
+.academy-plan .button-primary { gap: 22px; margin-block-start: 10px; }
+.academy-plan progress { width: 100%; height: 7px; display: block; accent-color: var(--color-accent); }
+.academy-tally { margin-block: 14px; }
+.academy-tally strong, .conclusion-score { color: var(--color-ink); font: 400 clamp(3rem, 6vw, 5.5rem)/1 var(--font-display); }
+.academy-topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.academy-topics [aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent-soft); }
+.academy-plan + .academy-topics { margin-block: 24px 12px; }
+.academy-lessons { border-top: 1px solid var(--color-border); }
+.academy-lessons .lesson-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 0;
+}
+.academy-lessons .lesson-card > :not(button) { grid-column: 1; }
+.academy-lessons .lesson-card > button { grid-area: 1 / 2 / span 3; align-self: center; }
+.academy-lessons .lesson-card h2 { font-size: 1.65rem; }
+.coach-voice { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: start; padding-block: 14px; }
+.coach-voice p { margin: 4px 0 0; color: var(--color-muted); line-height: 1.45; }
+.coach-avatar { display: grid; place-items: center; height: 44px; border: 1px solid var(--color-border); color: var(--color-accent-strong); font-size: 1.75rem; }
+.puzzle-screen { padding: 0; border: 0; }
+.puzzle-screen select, .personal-practice select, .post-game-tools select { color: var(--color-ink); background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px; max-width: 100%; }
+.puzzle-screen > label { max-width: 480px; }
+.puzzle-layout { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); grid-template-areas: "board coach" "board side"; gap: clamp(20px, 4vw, 54px); }
+.puzzle-layout > .game-board { grid-area: board; min-width: 0; }
+.puzzle-coach { grid-area: coach; min-width: 0; }
+.puzzle-side { grid-area: side; }
+.puzzle-layout .board-frame { width: min(100%, clamp(500px, calc(100svh - 310px), 720px)); }
+.personal-practice { display: grid; gap: 16px; }
+.puzzle-side { align-content: start; }
+.puzzle-side h2, .puzzle-side > p { margin: 0; }
+.puzzle-side .puzzle-message { border-inline-start: 2px solid var(--color-accent); border-radius: 0; }
+.puzzle-side .hint-stack > button { justify-self: start; }
+.board-frame { width: min(100%, 720px); touch-action: none; }
+.board-frame, .board-frame * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.friend-screen, .matchmaking-screen { padding-inline: 0; border-inline: 0; }
+.coach-game-layout { grid-template-columns: minmax(0, 1.65fr) minmax(270px, .9fr); grid-template-rows: auto 1fr; }
+.coach-intro { grid-area: 1 / 2; }
+.coach-board { grid-area: 1 / 1 / span 2; }
+.coach-tools { grid-area: 2 / 2; min-width: 0; }
+.coach-game-finished { grid-template-columns: minmax(0, 1fr); }
+.game-conclusion {
+  display: grid;
+  gap: 16px;
+  border-block: 1px solid var(--color-border);
+  padding: 18px 0 26px;
+  animation: conclusion-enter 520ms cubic-bezier(.2,.7,.2,1) both;
+}
+.game-conclusion > p { margin: 0; }
+.conclusion-score { padding-top: 20px; }
+.conclusion-metrics { display: flex; flex-wrap: wrap; gap: 16px 28px; color: var(--color-muted); }
+.conclusion-metrics strong { color: var(--color-ink); }
+.post-game-tools, .post-game-tools .report-filters { display: grid; gap: 14px; align-content: start; }
+.post-game-tools .report-filters .button { justify-self: start; }
+.conclusion-content { grid-column: 1 / -1; min-width: 0; }
+.conclusion-with-coach { grid-template-columns: minmax(0, 1.55fr) minmax(260px, .9fr); grid-template-areas: "kicker kicker" "tabs coach" "content coach"; }
+.conclusion-with-coach > .section-kicker { grid-area: kicker; }
+.conclusion-with-coach > .academy-topics { grid-area: tabs; }
+.conclusion-with-coach > .conclusion-coach { grid-area: coach; border-inline-start: 1px solid var(--color-border); padding-inline-start: clamp(20px, 3vw, 38px); }
+.conclusion-with-coach > .conclusion-content { grid-area: content; }
+.conclusion-content > .post-game-layout { grid-template-columns: minmax(0, 1fr); }
+.conclusion-content > .post-game-layout > .game-board .board-frame { width: min(100%, 640px); }
+.lesson-practice-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, .9fr); grid-template-areas: "board coach"; gap: clamp(20px, 4vw, 48px); align-items: start; }
+.lesson-board-column { grid-area: board; min-width: 0; }
+.lesson-coach { grid-area: coach; min-width: 0; border-inline-start: 1px solid var(--color-border); padding-inline-start: clamp(20px, 3vw, 38px); }
+.lesson-board-column .board-frame { width: min(100%, 720px); }
+.lesson-board-actions { justify-content: flex-start; margin-block: 0 12px; }
+@keyframes conclusion-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .game-conclusion { animation: none; } }
+@media (min-width: 801px) {
+  .page-content:has(.page-puzzles) { padding-top: 24px; }
+  .page-puzzles { gap: 14px; }
+  .page-puzzles .page-heading h1 { font-size: clamp(2.5rem, 4vw, 3.5rem); }
+  .page-puzzles .page-heading p { margin-top: 6px; font-size: 1rem; line-height: 1.4; }
+}
+@media (max-width: 800px) {
+  .academy-plan, .post-game-layout, .puzzle-layout, .coach-game-layout { grid-template-columns: minmax(0, 1fr); }
+  .puzzle-layout { grid-template-areas: "coach" "board" "side"; }
+  .academy-plan > aside, .puzzle-side, .post-game-tools { border-inline-start: 0; padding-inline-start: 0; }
+  .coach-intro, .coach-board, .coach-tools { grid-area: auto; }
+  .conclusion-with-coach { grid-template-columns: minmax(0, 1fr); grid-template-areas: "kicker" "coach" "tabs" "content"; }
+  .conclusion-with-coach > .conclusion-coach { border-inline-start: 0; border-bottom: 1px solid var(--color-border); padding-inline-start: 0; padding-bottom: 10px; }
+  .conclusion-content > .post-game-layout { grid-template-columns: minmax(0, 1fr); }
+  .lesson-practice-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "coach" "board"; }
+  .lesson-coach { border-inline-start: 0; padding-inline-start: 0; }
+}
+@media (max-width: 480px) {
+  .training-page { gap: 16px; }
+  .academy-lessons .lesson-card { grid-template-columns: minmax(0, 1fr); }
+  .academy-lessons .lesson-card > button { grid-area: auto; justify-self: start; }
+  .page-content:has(.training-page, .game-board) { padding-inline: max(10px, env(safe-area-inset-left), env(safe-area-inset-right)); }
+  .ai-game-screen { padding-inline: 0; }
+}
 @media (max-width: 900px) {
   .dashboard-home { grid-template-columns: 1fr; }
   .home-main { padding-right: 0; border-right: 0; }

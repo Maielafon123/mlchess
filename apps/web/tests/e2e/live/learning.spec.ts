@@ -5,12 +5,17 @@ test("guest learning saves lessons, hints and real server-graded progress @guest
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/learn");
+  const touch = testInfo.project.use.hasTouch;
+  const playSquare = (square: string) => {
+    const cell = page.locator(`.board-frame [data-square="${square}"]`);
+    return touch ? cell.tap() : cell.click();
+  };
   const lesson = page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Мат по последней горизонтали" }) });
   await lesson.getByRole("button", { name: "Открыть урок" }).click();
   const practice = page.getByRole("region", { name: "Практика на доске" });
   await expect(practice.getByRole("region", { name: "Game board" })).toBeVisible();
-  await practice.locator('[data-square="d1"]').click();
-  await practice.locator('[data-square="d2"]').click();
+  await playSquare("d1");
+  await playSquare("d2");
   await expect(practice.locator(".move-history li")).toHaveText(/Rd2/);
   await practice.getByRole("button", { name: "Показать пример" }).click();
   await expect(practice.locator(".move-history li")).toHaveText(/Rd8#/);
@@ -31,8 +36,8 @@ test("guest learning saves lessons, hints and real server-graded progress @guest
   await expect(page.locator(".hint-stack p")).toHaveCount(1);
   await page.reload();
   await expect(page.locator(".hint-stack p")).toHaveCount(1);
-  await page.locator('.board-frame [data-square="d1"]').click();
-  await page.locator('.board-frame [data-square="d8"]').click();
+  await playSquare("d1");
+  await playSquare("d8");
   await expect(page.getByRole("heading", { name: "Ваше решение" })).toBeVisible();
   await expect(page.getByLabel("UCI move")).toBeDisabled();
   await page.reload();

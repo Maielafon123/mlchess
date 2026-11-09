@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LessonCatalog } from "../features/learning/LessonCatalog";
 import { learningTransport } from "../test/learningFixtures";
@@ -31,6 +31,19 @@ describe("LessonCatalog", () => {
     expect(screen.getByRole("button", { name: "Mark completed" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Back to lessons" }));
     expect(screen.getByRole("button", { name: "Open lesson" })).toHaveFocus();
+    expect(fetchImpl.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(2);
+  });
+
+  it("finishes and saves an exercise when the learner finds the lesson move", async () => {
+    const { learning, fetchImpl } = learningTransport();
+    render(<LessonCatalog api={learning} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open lesson" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Show example" })).not.toBeDisabled());
+    fireEvent.click(screen.getByText("Ввести ход с клавиатуры"));
+    fireEvent.change(screen.getByLabelText("UCI move"), { target: { value: "e2e4" } });
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(await within(screen.getByRole("article", { name: "Lesson detail" })).findByText("completed")).toBeVisible();
+    expect(screen.getByText("Lesson complete. You can replay the variation on the board.")).toBeVisible();
     expect(fetchImpl.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(2);
   });
 });

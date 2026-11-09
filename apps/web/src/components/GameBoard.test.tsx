@@ -18,7 +18,9 @@ describe("GameBoard", () => {
 
     expect(within(screen.getByLabelText("Move history")).getByText("e4")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "e2" }));
-    expect(screen.getByTestId("chessboard")).toHaveAttribute("data-highlighted", "e3,e4");
+    expect(screen.getByTestId("chessboard").dataset.highlighted?.split(",").sort()).toEqual(["e2", "e3", "e4"]);
+    fireEvent.click(screen.getByRole("button", { name: "e4" }));
+    expect(onMoveAttempt).toHaveBeenCalledWith("e2e4");
   });
 
   it("accepts keyboard UCI input for a legal move", () => {

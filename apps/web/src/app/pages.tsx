@@ -81,7 +81,15 @@ export function MatchmakingPage() {
 
 export function PuzzlePage() {
   const { locale } = useI18n();
-  return <div className="page"><LearningNav /><section className="page-heading"><h1>{locale === "ru" ? "Шахматные задачи" : "Solve a chess puzzle"}</h1><p>{locale === "ru" ? "Найдите матующий ход. Если трудно, откройте подсказку." : "Find the mating move. Request a hint if you get stuck."}</p></section><PuzzleScreen key={locale} language={locale} /></div>;
+  const ru = locale === "ru";
+  return <div className="page training-page page-puzzles">
+    <div className="section-kicker"><span>{ru ? "03 / Задачи" : "03 / Puzzles"}</span><span>{ru ? "Тактическая тренировка" : "Tactics practice"}</span></div>
+    <div className="training-header">
+      <section className="page-heading"><h1>{ru ? "Шахматные задачи" : "Chess puzzles"}</h1><p>{ru ? "Найдите идею и сделайте ход на доске." : "Find the idea and play your move on the board."}</p></section>
+      <LearningNav />
+    </div>
+    <PuzzleScreen key={locale} language={locale} />
+  </div>;
 }
 
 export function ProgressPage() {
@@ -95,12 +103,16 @@ function LearningNav() {
 }
 
 export function LearnPage() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
+  const ru = locale === "ru";
   return (
-    <div className="page">
-      <section className="page-heading"><div className="eyebrow">{t.learn.eyebrow}</div><h1>{t.learn.title}</h1><p>{t.learn.description}</p></section>
-      <LearningNav />
-      <LessonCatalog key={locale} language={locale} />
+    <div className="page training-page">
+      <div className="section-kicker"><span>{ru ? "02 / Обучение" : "02 / Learning"}</span><span>{ru ? "Шахматная академия" : "Chess academy"}</span></div>
+      <div className="training-header">
+        <section className="page-heading"><h1>{ru ? "Твоя академия" : "Your academy"}</h1><p>{ru ? "Продолжай с последнего урока и возвращайся к темам, в которых ошибался в партиях." : "Pick up your last lesson and revisit the topics where you made mistakes in games."}</p></section>
+        <LearningNav />
+      </div>
+      <LessonCatalog key={locale} language={locale} academy />
     </div>
   );
 }

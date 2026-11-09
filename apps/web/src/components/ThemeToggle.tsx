@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 function initialTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem("mlchess-theme");
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  try {
+    if (window.localStorage.getItem("mlchess-theme") === "light") return "light";
+  } catch { /* Storage may be unavailable in private browsing. */ }
+  return "dark";
 }
 
 export function ThemeToggle() {
@@ -14,7 +14,7 @@ export function ThemeToggle() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("mlchess-theme", theme);
+    try { window.localStorage.setItem("mlchess-theme", theme); } catch { /* Keep the in-memory preference. */ }
   }, [theme]);
 
   return (

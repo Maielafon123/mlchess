@@ -9,6 +9,8 @@ import { useGameRealtime } from "../game/useGameRealtime";
 import { useHumanGameActions } from "../game/useHumanGameActions";
 import { PlayerClocks } from "../../components/PlayerClocks";
 import { GameReviewLink } from "../../components/GameReviewLink";
+import { GameConclusion } from "../game/PostGameReview";
+import { useTurnVibration } from "../game/useTurnVibration";
 import { GameActionControls } from "../../components/GameActionControls";
 
 const controls: Record<string, TimeControl | null> = {
@@ -73,6 +75,7 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
 
   const gameId = game?.id ?? snapshot?.game_id;
   const finished = game?.status === "finished";
+  useTurnVibration(game);
   const expired = snapshot?.state === "expired";
   const invitationId = snapshot?.invite_id;
   const adoptSnapshot = useCallback((next: GameSnapshot) => {
@@ -140,10 +143,12 @@ export function FriendInviteScreen({ api, gameApi }: { api?: InviteApi; gameApi?
     {snapshot?.state === "expired" && <div className="error-banner">Срок ссылки истёк. <a href="/play/friend">Создать новый вызов</a></div>}
     {game && <>
       {!finished && <span className="coach-status" role="status">{connected ? "Связь установлена" : "Проверяем соединение…"}</span>}
-      <div className="friend-game-status" role="status">{finished ? "Партия завершена: " + (game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : "победили чёрные") + (game.termination === "timeout" ? " · время вышло" : "") : game.status === "active" ? game.capabilities.can_move ? "Ваш ход" : "Ход соперника" : "Партия ещё не началась"}</div>
+      {finished ? <GameConclusion key={game.id} game={game} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} /> : <>
+      <div className="friend-game-status" role="status">{game.status === "active" ? game.capabilities.can_move ? "Ваш ход" : "Ход соперника" : "Партия ещё не началась"}</div>
       <PlayerClocks clock={game.clock} />
       {game.status === "active" && <GameActionControls actions={actions.capabilities} disabled={pending || actions.pending} onAction={(kind) => { setError(null); actions.action(kind); }} />}
       <GameBoard fen={game.fen} moves={game.moves} orientation={snapshot?.created_by_current_user === false ? "black" : "white"} disabled={pending || actions.pending || !game.capabilities.can_move} onMoveAttempt={(uci) => { setError(null); actions.move(uci); }} />
+      </>}
       {finished && <div className="game-actions"><a className="button button-primary" href="/play/friend">Новая партия</a><GameReviewLink game={game} /></div>}
     </>}
     <p className="friend-description">В этой партии нет подсказок тренера или анализа.</p>

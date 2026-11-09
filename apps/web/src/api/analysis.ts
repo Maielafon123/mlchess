@@ -5,6 +5,15 @@ import type { AnalysisResult } from "./analysisApi";
 export type EngineAnalysis = AnalysisResult;
 export type EngineScore = components["schemas"]["ScoreV1"] | null;
 
+export const moveQuality = {
+  best: ["Лучший ход", "Best move"],
+  good: ["Хороший ход", "Good move"],
+  inaccuracy: ["Неточность", "Inaccuracy"],
+  mistake: ["Ошибка", "Mistake"],
+  blunder: ["Грубая ошибка", "Blunder"],
+  unclassified: ["Ход оценён без категории", "Move evaluated without a grade"],
+} satisfies Record<AnalysisResult["quality"], [string, string]>;
+
 /** The v1 score is always White POV; never relabel a score as Black POV. */
 export function formatScore(score: EngineScore) {
   if (!score) return "Evaluation unavailable";

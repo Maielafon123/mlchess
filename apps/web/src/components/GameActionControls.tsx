@@ -19,7 +19,7 @@ export function GameActionControls({ actions, disabled, onAction }: { actions: G
 
 export function SoloGameResult({ game }: { game: GameSnapshot }) {
   if (game.status !== "finished") return null;
-  const result = game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : "победили чёрные";
+  const result = game.result === "draw" ? "ничья" : game.result === "white" ? "победили белые" : game.result === "black" ? "победили чёрные" : "без результата";
   const reason = game.termination === "timeout" ? " · время вышло" : game.termination === "resignation" ? " · игрок сдался" : "";
   return <p role="status">Партия завершена: {result}{reason}</p>;
 }

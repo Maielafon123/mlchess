@@ -10,5 +10,5 @@ test("navigation reaches play and learning routes", async ({ page }) => {
 
   await page.getByRole("link", { name: "Обучение" }).click();
   await expect(page).toHaveURL(/\/learn$/);
-  await expect(page.getByRole("heading", { name: "Обучение" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Твоя академия" })).toBeVisible();
 });

@@ -7,6 +7,8 @@ import { GameBoard } from "../../components/GameBoard";
 import { PlayerClocks } from "../../components/PlayerClocks";
 import { GameActionControls } from "../../components/GameActionControls";
 import { GameReviewLink } from "../../components/GameReviewLink";
+import { GameConclusion } from "../game/PostGameReview";
+import { useTurnVibration } from "../game/useTurnVibration";
 import { useGameRealtime } from "../game/useGameRealtime";
 import { useHumanGameActions } from "../game/useHumanGameActions";
 
@@ -92,6 +94,7 @@ export function MatchmakingScreen({ api, gameApi, eligible = false, userId }: { 
   }, [eligible, gameId, resolvedGameApi]);
 
   const snapshot = game?.id === gameId ? game : null;
+  useTurnVibration(snapshot);
   const active = snapshot?.status === "active";
   const version = snapshot?.version;
   const connected = useGameRealtime(active ? gameId : undefined, resolvedGameApi, adopt);
@@ -141,7 +144,6 @@ export function MatchmakingScreen({ api, gameApi, eligible = false, userId }: { 
   const details = rating?.game_id === gameId ? rating : null;
   const side = snapshot?.players.find((player) => player.user_id === userId)?.side ?? details?.side ?? "white";
   const settled = snapshot?.status === "finished" && details && details.version === version ? details.rating_change : null;
-  const outcome = snapshot?.result === "draw" ? "Ничья" : snapshot?.result === side ? "Победа" : "Поражение";
 
   return <section className="matchmaking-screen" aria-label="Rated matchmaking">
     <div className="analysis-header"><h2>Рейтинговая игра</h2><span className="status-chip">Без подсказок</span></div>
@@ -160,11 +162,12 @@ export function MatchmakingScreen({ api, gameApi, eligible = false, userId }: { 
       {snapshot && <div className="rated-game">
         {details && <div className="opponent-row"><strong>{details.opponent_name}</strong><span>Рейтинг {details.opponent_rating}</span></div>}
         {active && <><span className="coach-status" role="status">{connected ? "Связь установлена" : "Проверяем соединение…"}</span><p role="status">{snapshot.capabilities.can_move ? "Ваш ход" : "Ход соперника"}</p></>}
-        {snapshot.status === "finished" && <p role="status">Партия завершена: {outcome}{snapshot.termination === "timeout" ? " · время вышло" : ""}</p>}
         {settled && <p className="rating-result" role="status">Рейтинг {settled.before} → {settled.after} ({settled.delta > 0 ? "+" : ""}{settled.delta})</p>}
+        {snapshot.status === "finished" ? <GameConclusion key={snapshot.id} game={snapshot} orientation={side} /> : <>
         <PlayerClocks clock={snapshot.clock} />
         {active && <GameActionControls actions={actions.capabilities} disabled={actions.pending} onAction={actions.action} />}
         <GameBoard fen={snapshot.fen} moves={snapshot.moves} orientation={side} disabled={actions.pending || !snapshot.capabilities.can_move} onMoveAttempt={actions.move} />
+        </>}
         {snapshot.status === "finished" && <div className="game-actions"><button className="button button-primary" type="button" disabled={actions.pending} onClick={another}>Новый поиск</button><GameReviewLink game={snapshot} /></div>}
       </div>}
     </>}
