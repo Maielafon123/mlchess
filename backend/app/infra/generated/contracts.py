@@ -144,9 +144,9 @@ class EngineLimitsV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    time_ms: TimeMs | None = None
-    nodes: Nodes | None = None
-    depth: Depth | None = None
+    time_ms: TimeMs | None
+    nodes: Nodes | None
+    depth: Depth | None
 
 
 class EngineMetadataV1(BaseModel):
@@ -200,7 +200,6 @@ class GoogleLoginStartV1(BaseModel):
 
 
 class GuestSessionRequestV1(BaseModel):
-    pass
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -378,7 +377,7 @@ class Skill(BaseModel):
     correct: int = Field(..., ge=0)
     hints_used: int = Field(..., ge=0)
     streak: int = Field(..., ge=0)
-    due_at: str | None = None
+    due_at: str | None
 
 
 class StudentProgressV1(BaseModel):
@@ -535,7 +534,7 @@ class ClockV1(BaseModel):
     )
     white_remaining_ms: int = Field(..., ge=0, le=9007199254740991)
     black_remaining_ms: int = Field(..., ge=0, le=9007199254740991)
-    running_side: SideV1 | None = None
+    running_side: SideV1 | None
     server_now: UTCDateTime
 
 
@@ -567,7 +566,7 @@ class CreateGameV1(BaseModel):
         extra="forbid",
     )
     mode: Literal["friend", "ai", "coach"]
-    time_control: TimeControlV1 | None = None
+    time_control: TimeControlV1 | None
     human_color: SideV1 | None = None
     ai_profile: Literal["beginner", "casual", "club", "strong"] | None = None
 
@@ -586,7 +585,7 @@ class CurrentUserV1(BaseModel):
     schema_version: Literal[1]
     id: UUIDv4
     kind: Literal["account", "guest"]
-    display_name: DisplayName | None = None
+    display_name: DisplayName | None
     expires_at: UTCDateTime
 
 
@@ -597,7 +596,7 @@ class GameActionsV1(BaseModel):
     schema_version: Literal[1]
     game_id: UUIDv4
     version: int = Field(..., ge=0, le=9007199254740991)
-    offer_side: SideV1 | None = None
+    offer_side: SideV1 | None
     can_offer_draw: bool
     can_accept_draw: bool
     can_claim_draw: bool
@@ -633,7 +632,7 @@ class Payload4(BaseModel):
     version: int = Field(..., ge=0, le=9007199254740991)
     revision: int = Field(..., ge=0, le=9007199254740991)
     status: GameStatusV1
-    result: Literal["white", "black", "draw"] | None = None
+    result: Literal["white", "black", "draw"] | None
     termination: (
         Literal[
             "checkmate",
@@ -649,8 +648,8 @@ class Payload4(BaseModel):
             "aborted",
         ]
         | None
-    ) = None
-    clock: ClockV1 | None = None
+    )
+    clock: ClockV1 | None
 
 
 class GameStatusChangedEventV1(BaseModel):
@@ -685,7 +684,7 @@ class Payload5(BaseModel):
     new_revision: int = Field(..., ge=1, le=9007199254740991)
     fen: FenV1
     side_to_move: SideV1
-    clock: ClockV1 | None = None
+    clock: ClockV1 | None
 
 
 class GameTakebackAppliedEventV1(BaseModel):
@@ -711,7 +710,7 @@ class InviteSnapshotV1(BaseModel):
     state: Literal["waiting", "active", "expired", "full"]
     expires_at: UTCDateTime
     created_by_current_user: bool
-    invite_url: InviteUrl | None = None
+    invite_url: InviteUrl | None
 
 
 class JoinMatchV1(BaseModel):
@@ -752,7 +751,7 @@ class MatchPoolV1(BaseModel):
     )
     pool: RatingPoolV1
     time_control: TimeControlV1
-    your_rating: YourRating | None = None
+    your_rating: YourRating | None
 
 
 class MatchPoolsV1(BaseModel):
@@ -773,7 +772,7 @@ class MatchTicketV1(BaseModel):
     status: Literal["searching", "matched", "cancelled", "expired"]
     queued_at: UTCDateTime
     expires_at: UTCDateTime
-    game_id: UUIDv4 | None = None
+    game_id: UUIDv4 | None
     rating: int = Field(..., ge=100, le=4000)
     rating_min: int = Field(..., ge=100, le=4000)
     rating_max: int = Field(..., ge=100, le=4000)
@@ -794,7 +793,7 @@ class PlayerV1(BaseModel):
     )
     side: SideV1
     kind: Literal["human", "engine"]
-    user_id: UUIDv4 | None = None
+    user_id: UUIDv4 | None
 
 
 class ProblemDetailsV1(BaseModel):
@@ -935,8 +934,8 @@ class AnalysisJobV1(BaseModel):
     ply: int = Field(..., ge=1, le=9007199254740991)
     position_key: str = Field(..., pattern="^[0-9a-f]{64}$")
     status: Literal["pending", "running", "done", "failed"]
-    analysis_id: UUIDv4 | None = None
-    error: ProblemDetailsV1 | None = None
+    analysis_id: UUIDv4 | None
+    error: ProblemDetailsV1 | None
     created_at: UTCDateTime
     updated_at: UTCDateTime
 
@@ -960,7 +959,7 @@ class AnalysisResultV1(BaseModel):
     score_after: ScoreV1
     quality: Literal["best", "good", "inaccuracy", "mistake", "blunder", "unclassified"]
     quality_method: Literal["cp-loss-v1", "mate-score-v1"]
-    cp_loss: CpLoss | None = None
+    cp_loss: CpLoss | None
     engine: EngineMetadataV1
     facts: AnalysisFactsV1
     created_at: UTCDateTime
@@ -971,7 +970,7 @@ class CurrentMatchV1(BaseModel):
         extra="forbid",
     )
     schema_version: Literal[1]
-    ticket: MatchTicketV1 | None = None
+    ticket: MatchTicketV1 | None
 
 
 class Payload3(BaseModel):
@@ -983,7 +982,7 @@ class Payload3(BaseModel):
     move: MoveV1
     fen: FenV1
     side_to_move: SideV1
-    clock: ClockV1 | None = None
+    clock: ClockV1 | None
 
 
 class GameMoveCommittedEventV1(BaseModel):
@@ -1014,10 +1013,10 @@ class GameSnapshotV1(BaseModel):
     side_to_move: SideV1
     players: list[PlayerV1] = Field(..., max_length=2, min_length=1)
     moves: list[MoveV1]
-    time_control: TimeControlV1 | None = None
-    clock: ClockV1 | None = None
+    time_control: TimeControlV1 | None
+    clock: ClockV1 | None
     capabilities: CapabilitiesV1
-    result: Literal["white", "black", "draw"] | None = None
+    result: Literal["white", "black", "draw"] | None
     termination: (
         Literal[
             "checkmate",
@@ -1033,7 +1032,7 @@ class GameSnapshotV1(BaseModel):
             "aborted",
         ]
         | None
-    ) = None
+    )
 
 
 class LearningExportV1(BaseModel):
@@ -1073,7 +1072,7 @@ class RatedGameV1(BaseModel):
     opponent_name: str = Field(..., max_length=120, min_length=1)
     your_rating: int = Field(..., ge=100, le=4000)
     opponent_rating: int = Field(..., ge=100, le=4000)
-    rating_change: RatingChangeV1 | None = None
+    rating_change: RatingChangeV1 | None
 
 
 class GameSnapshotEventV1(BaseModel):

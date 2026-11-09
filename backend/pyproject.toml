@@ -8,15 +8,15 @@ version = "0.1.0"
 description = "Server-authoritative MLChess web backend"
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi==0.121.3", "starlette==0.49.3", "pydantic==2.12.5",
-  "pydantic-settings==2.12.0", "uvicorn==0.38.0", "chess==1.11.2",
+  "fastapi==0.162.2", "starlette==1.10.0", "pydantic==2.12.5",
+  "pydantic-settings==2.16.2", "uvicorn==0.38.0", "chess==1.11.2",
   "SQLAlchemy==2.0.44", "asyncpg==0.30.0", "alembic==1.17.2",
   "jsonschema==4.25.1",
   "websockets==17.4", "httpx==0.28.1", "PyJWT[crypto]==2.15.1",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==9.0.2", "ruff==0.15.0", "aiosqlite==0.21.0"]
+dev = ["pytest==9.2.0", "ruff==0.15.0", "aiosqlite==0.21.0"]
 
 [tool.setuptools]
 packages = ["backend.app", "backend.app.auth", "backend.app.infra", "backend.app.infra.generated", "backend.app.games", "backend.app.engine", "backend.app.workers", "backend.app.analysis", "backend.app.coach", "backend.app.coach.providers", "backend.app.learning", "backend.app.realtime", "backend.app.matchmaking", "contracts.coach"]

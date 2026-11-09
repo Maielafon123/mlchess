@@ -9,9 +9,10 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 
 from fastapi import FastAPI
-from starlette.routing import WebSocketRoute
+from starlette.routing import Match
 
 from backend.app.infra.settings import Settings
 from backend.app.main import create_app
@@ -19,6 +20,9 @@ from backend.app.main import create_app
 
 REQUIRED_HTTP = {
     ("GET", "/api/v1/me"),
+    ("GET", "/api/v1/auth/providers"),
+    ("POST", "/api/v1/auth/oidc/start"),
+    ("GET", "/api/v1/auth/oidc/callback"),
     ("POST", "/api/v1/games"),
     ("GET", "/api/v1/games/{game_id}"),
     ("POST", "/api/v1/games/{game_id}/moves"),
@@ -60,29 +64,34 @@ REQUIRED_WS = {"/ws/v1/games/{game_id}"}
 
 def normalize_path(path: str) -> str:
     """Parameter names differ between implementations; route structure matters."""
-    import re
-
     return re.sub(r"\{[^{}]+\}", "{}", path)
 
 
-def audit_routes(app: FastAPI) -> dict:
-    http = {
-        (method, normalize_path(route.path))
-        for route in app.routes
-        if not isinstance(route, WebSocketRoute)
-        for method in getattr(route, "methods", ())
+def has_websocket(app, path: str) -> bool:
+    scope = {
+        "type": "websocket",
+        "path": normalize_path(path).replace(
+            "{}", "00000000-0000-4000-8000-000000000001"
+        ),
+        "root_path": "",
+        "headers": [],
     }
-    ws = {
-        normalize_path(route.path)
-        for route in app.routes
-        if isinstance(route, WebSocketRoute)
+    return any(route.matches(scope)[0] is Match.FULL for route in app.routes)
+
+
+def audit_routes(app: FastAPI) -> dict:
+    # Included routers need not be flattened in FastAPI's public route list.
+    http = {
+        (method.upper(), normalize_path(path))
+        for path, operations in app.openapi()["paths"].items()
+        for method in operations
     }
     missing_http = sorted(
         f"{method} {path}"
         for method, path in REQUIRED_HTTP
         if (method, normalize_path(path)) not in http
     )
-    missing_ws = sorted(path for path in REQUIRED_WS if normalize_path(path) not in ws)
+    missing_ws = sorted(path for path in REQUIRED_WS if not has_websocket(app, path))
     return {
         "status": "blocked" if missing_http or missing_ws else "surface-present",
         "missing_http": missing_http,
