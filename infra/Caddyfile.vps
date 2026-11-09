@@ -33,6 +33,15 @@ https://{$MLCHESS_SITE_ADDRESS} {
 		-Server
 	}
 	@backend path /api/* /ws/* /health/*
+	handle /api/v1/learning/* {
+		request_body {
+			max_size 32KB
+		}
+		reverse_proxy 127.0.0.1:58120 {
+			header_up Host {http.request.host}
+			header_up -Forwarded
+		}
+	}
 	handle @backend {
 		request_body {
 			max_size 32KB

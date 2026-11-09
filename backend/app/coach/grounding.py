@@ -34,6 +34,11 @@ _INJECTION_MARKERS = (
 _UCI_PATTERN = re.compile(
     r"(?<![a-z0-9])[a-h][1-8][a-h][1-8][qrbn]?(?![a-z0-9])", re.IGNORECASE
 )
+_MATE_PATTERN = re.compile(
+    r"\b(?:checkmat(?:e[sd]?|ing)|mat(?:e[sd]?|ing)|"
+    r"мат(?:а|у|ом|е|ы|ов|ами|ах|ов(?:ый|ая|ое|ые|ого|ому|ым|ом|ой|ую|ых|ыми))?)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -136,7 +141,7 @@ def validate_explanation(
         return _fallback(request, "UNVERIFIED_HIGHLIGHT")
     if not set(raw["claim_refs"]).issubset(facts.claim_refs):
         return _fallback(request, "UNVERIFIED_CLAIM")
-    text = " ".join(str(raw[field]).lower() for field in ("summary", "why", "question"))
-    if not facts.has_mate and ("checkmate" in text or "mate" in text or "мат" in text):
+    text = " ".join(str(raw[field]) for field in ("summary", "why", "question"))
+    if not facts.has_mate and _MATE_PATTERN.search(text):
         return _fallback(request, "INVENTED_MATE")
     return GroundingResult(raw, True)

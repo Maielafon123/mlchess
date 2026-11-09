@@ -15,6 +15,7 @@ from fastapi import FastAPI
 from starlette.routing import Match
 
 from backend.app.infra.settings import Settings
+from backend.app.learning.app import create_app as create_learning_app
 from backend.app.main import create_app
 
 
@@ -79,10 +80,11 @@ def has_websocket(app, path: str) -> bool:
     return any(route.matches(scope)[0] is Match.FULL for route in app.routes)
 
 
-def audit_routes(app: FastAPI) -> dict:
+def audit_routes(*apps: FastAPI) -> dict:
     # Included routers need not be flattened in FastAPI's public route list.
     http = {
         (method.upper(), normalize_path(path))
+        for app in apps
         for path, operations in app.openapi()["paths"].items()
         for method in operations
     }
@@ -91,7 +93,11 @@ def audit_routes(app: FastAPI) -> dict:
         for method, path in REQUIRED_HTTP
         if (method, normalize_path(path)) not in http
     )
-    missing_ws = sorted(path for path in REQUIRED_WS if not has_websocket(app, path))
+    missing_ws = sorted(
+        path
+        for path in REQUIRED_WS
+        if not any(has_websocket(app, path) for app in apps)
+    )
     return {
         "status": "blocked" if missing_http or missing_ws else "surface-present",
         "missing_http": missing_http,
@@ -103,8 +109,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, help="Write a local JSON report")
     args = parser.parse_args()
-    app = create_app(Settings(environment="test", public_origin="http://testserver"))
-    report = audit_routes(app)
+    origin = "http://testserver"
+    core = create_app(
+        Settings(environment="test", public_origin=origin, learning_split=True)
+    )
+    learning = create_learning_app(
+        Settings(
+            environment="test",
+            public_origin=origin,
+            database_url="postgresql+asyncpg://mlchess_learning:unused@127.0.0.1/mlchess",
+        )
+    )
+    report = audit_routes(core, learning)
     report["scope"] = "local route preflight, not production sign-off"
     report["remaining_evidence"] = [
         "PostgreSQL transactional command races and restart durability",

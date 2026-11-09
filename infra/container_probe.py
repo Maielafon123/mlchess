@@ -40,8 +40,11 @@ def main() -> int:
             asyncio.run(database("clock"))
         else:
             origin = os.environ["MLCHESS_PUBLIC_ORIGIN"]
+            port = int(os.environ.get("MLCHESS_PROBE_PORT", "8000"))
+            if not 1 <= port <= 65535:
+                return 1
             request = Request(
-                "http://127.0.0.1:8000/health/ready",
+                f"http://127.0.0.1:{port}/health/ready",
                 headers={"Host": urlsplit(origin).netloc},
             )
             with urlopen(request, timeout=3) as response:

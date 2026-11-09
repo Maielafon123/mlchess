@@ -5,6 +5,13 @@
 http://localhost:60080 {
 	bind 127.0.0.1
 	@backend path /api/* /ws/* /health/*
-	reverse_proxy @backend 127.0.0.1:58000
-	reverse_proxy 127.0.0.1:58080
+	handle /api/v1/learning/* {
+		reverse_proxy 127.0.0.1:58120
+	}
+	handle @backend {
+		reverse_proxy 127.0.0.1:58000
+	}
+	handle {
+		reverse_proxy 127.0.0.1:58080
+	}
 }

@@ -450,3 +450,27 @@ same session selection. The host overlay takes the client IP only from the
 configured loopback Caddy gateway, which overwrites the application header.
 Public IP deployments advertise Google as unavailable. See the server runbook
 for DNS and credentials required to enable it.
+
+PR46 merged dba7751c073f0d63035a50e5928ee52ef6e55807 on signed-fixture
+and six-job CI 42543175359; exact merge 42543524432 passed. PR47 merged
+e26ed4a887393ea38168df00d6c485ee6f9266ba, head
+d0b26e4c3041008bab183ec5a93738e65eb0a33d, PR CI 42544462410 and exact
+merge 42544851682 passed all seven jobs. This image includes both the auth
+hardening and advisory fixes, and migrated the guest VPS to 0008.
+The existing guest puzzle solution survived upgrade and browser refresh.
+
+## A-I17–A-I19 release evidence
+
+Exact merge dependency scans report no known advisories for the pinned Python
+and web lockfiles. The tested application image artifact has four CycloneDX
+inventories and the Stockfish copyright and binary/model manifest. The main
+Compose run passed 20 browser tests and a burst of eight isolated guests
+(64 authenticated reads, p95 104 ms, maximum 176 ms). No production capacity
+claim is inferred from the CI runner.
+
+An encrypted off-VPS copy of the real production database was restored from
+Windows in 15.1 s to a disposable PostgreSQL container without a network.
+The separate CI WAL rehearsal recovered to its exact named point in 1.61 s
+and excluded a subsequent commit. See infra/recovery-runbook.md for scope and
+the remaining production continuous WAL and key-escrow requirements.
+See A_SIGNOFF.md for external Google/LLM and full-release limitations.

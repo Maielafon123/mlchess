@@ -14,6 +14,7 @@ from .cookies import (
     write_session,
 )
 from .google import GoogleLoginFailed
+from .dependencies import current_session, require_csrf
 
 from backend.app.infra.generated.contracts import (
     AuthProvidersV1,
@@ -81,13 +82,6 @@ async def guest_session(
     return public_user(user)
 
 
-async def current_session(request: Request):
-    record = await auth_service(request).authenticate(session_token(request))
-    if record is None:
-        raise PublicProblem(401)
-    return record
-
-
 @router.post("/auth/dev-login", response_model=CurrentUserV1, operation_id="devLogin")
 async def dev_login(payload: DevLoginRequest, response: Response, request: Request):
     if not request.app.state.settings.dev_auth_enabled:
@@ -111,10 +105,7 @@ async def me(request: Request):
 @router.post("/logout", status_code=204, operation_id="logout")
 async def logout(response: Response, request: Request):
     record = await current_session(request)
-    if not auth_service(request).valid_csrf(
-        record, request.headers.get("x-csrf-token")
-    ):
-        raise PublicProblem(403)
+    require_csrf(request, record)
     token = session_token(request)
     assert token is not None
     await auth_service(request).revoke(token)
@@ -138,10 +129,7 @@ async def start_google(request: Request):
     if provider is None:
         raise PublicProblem(404)
     record = await current_session(request)
-    if not auth_service(request).valid_csrf(
-        record, request.headers.get("x-csrf-token")
-    ):
-        raise PublicProblem(403)
+    require_csrf(request, record)
     try:
         request.app.state.oidc_ip_limiter.check(client_key(request))
         request.app.state.oidc_actor_limiter.check(str(record.user.id))

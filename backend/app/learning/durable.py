@@ -3,11 +3,11 @@
 import base64
 import binascii
 from datetime import datetime, timedelta, timezone
+from hashlib import sha256
 import json
 
-from sqlalchemy import and_, delete, func, or_, select
+from sqlalchemy import BigInteger, and_, delete, func, literal, or_, select
 
-from backend.app.games.durable import DurableGameService, fingerprint, iso
 from backend.app.infra.generated import contracts as dto
 from backend.app.infra.models import (
     LearningProfileRow,
@@ -21,6 +21,7 @@ from backend.app.infra.models import (
     ProgressEventRow,
 )
 from backend.app.infra.problems import PublicProblem
+from backend.app.infra.transactions import database_now, fingerprint, iso
 from backend.app.learning import storage
 from backend.app.learning.progress_service import (
     ProgressService,
@@ -37,6 +38,20 @@ def aware(value):
     return (
         value if value is None or value.tzinfo else value.replace(tzinfo=timezone.utc)
     )
+
+
+async def lock_student(session, student_id):
+    # Serialize learning progress independently of a user's gameplay commands.
+    # A scoped actor id comes from the session verifier, never the request body.
+    if session.bind.dialect.name == "postgresql":
+        key = sha256(b"mlchess:learning:" + student_id.bytes).digest()[:8]
+        await session.execute(
+            select(
+                func.pg_advisory_xact_lock(
+                    literal(int.from_bytes(key, "big", signed=True), type_=BigInteger)
+                )
+            )
+        )
 
 
 async def skills(session, student_id, *, due=None):
@@ -140,7 +155,7 @@ class DurableLearningService:
     ):
         async with self.factory() as session, session.begin():
             # Snapshot collections and the reset epoch together, including exports.
-            await DurableGameService.lock_actor(session, student_id)
+            await lock_student(session, student_id)
             current_epoch = await storage.epoch(session, student_id)
             if operation == "context":
                 return {"schema_version": 1, "learning_epoch": current_epoch}
@@ -200,7 +215,7 @@ class DurableLearningService:
                     return storage.puzzle_payload(puzzle)
                 state, _ = await storage.state(session, student_id, puzzle)
                 return storage.state_payload(puzzle, state, current_epoch, language)
-            now = await DurableGameService.now(session)
+            now = await database_now(session)
             if operation in {"progress", "review"}:
                 return await skills(
                     session, student_id, due=now if operation == "review" else None
@@ -217,7 +232,7 @@ class DurableLearningService:
             identity["language"] = language
         digest = fingerprint("learning." + operation, identity)
         async with self.factory() as session, session.begin():
-            await DurableGameService.lock_actor(session, student_id)
+            await lock_student(session, student_id)
             prior = await session.get(LearningReceiptRow, (student_id, key))
             if prior is not None:
                 if prior.request_hash != digest:
@@ -229,7 +244,7 @@ class DurableLearningService:
                 session.add(profile)
             if payload["learning_epoch"] != profile.epoch:
                 raise PublicProblem(409)
-            now = await DurableGameService.now(session)
+            now = await database_now(session)
             recent = await session.scalar(
                 select(func.count())
                 .select_from(LearningReceiptRow)

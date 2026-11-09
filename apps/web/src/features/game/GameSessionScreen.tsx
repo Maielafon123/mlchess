@@ -1,5 +1,6 @@
 import { GameBoard } from "../../components/GameBoard";
 import { PlayerClocks } from "../../components/PlayerClocks";
+import { GameReviewLink } from "../../components/GameReviewLink";
 import { type GameApi, type GameSnapshot } from "../../api/gameApi";
 import { useGameSession } from "./useGameSession";
 import { useEffect } from "react";
@@ -27,6 +28,7 @@ export function GameSessionScreen({ api, onAcceptedMove, onSnapshot, mode = "ai"
       />
       <div className="game-actions">
         <button className="button button-secondary" type="button" onClick={() => void session.resign()} disabled={session.pending || snapshot.status !== "active"}>Resign</button>
+        <GameReviewLink game={snapshot} />
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import hashlib
 
 import chess
 
-from backend.app.games.durable import iso
+from backend.app.infra.transactions import iso
 from backend.app.infra.generated.contracts import LessonV1, PuzzleV1, PuzzleStateV1
 from backend.app.infra.models import LearningProfileRow, PuzzleRow, PuzzleStateRow
 from backend.app.infra.problems import PublicProblem

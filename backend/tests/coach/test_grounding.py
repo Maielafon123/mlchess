@@ -38,6 +38,13 @@ def test_valid_grounded_explanation_is_accepted():
 
 
 @pytest.mark.parametrize(
+    "summary", ["Check your material balance.", "Посчитайте материал."]
+)
+def test_material_is_not_mistaken_for_a_mate_claim(summary):
+    assert validate_explanation({**VALID, "summary": summary}, REQUEST, FACTS).accepted
+
+
+@pytest.mark.parametrize(
     "mutation,code",
     [
         (lambda value: value.update(referenced_uci=["a1a8"]), "UNVERIFIED_MOVE"),
@@ -57,6 +64,10 @@ def test_valid_grounded_explanation_is_accepted():
             lambda value: value.update(
                 summary="forced mate", why="mate", question="mate?"
             ),
+            "INVENTED_MATE",
+        ),
+        (
+            lambda value: value.update(summary="У белых нет защиты от мата."),
             "INVENTED_MATE",
         ),
         (lambda value: value.update(summary=""), "SCHEMA_INVALID"),

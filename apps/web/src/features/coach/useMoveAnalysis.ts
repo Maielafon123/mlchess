@@ -4,14 +4,18 @@ import { createIdempotencyKey } from "../../api/client";
 import type { GameSnapshot } from "../../api/gameApi";
 
 export function useMoveAnalysis(snapshot: GameSnapshot | null, api?: AnalysisApi) {
+  const human = snapshot?.players.find((player) => player.kind !== "engine")?.side;
+  const latest = snapshot?.ply ?? 0;
+  const ply = human === "white" ? (latest % 2 ? latest : latest - 1) : (latest % 2 ? latest - 1 : latest);
+  return usePositionAnalysis(snapshot, ply, api);
+}
+
+export function usePositionAnalysis(snapshot: GameSnapshot | null, ply: number, api?: AnalysisApi) {
   const resolvedApi = useMemo(() => api ?? new AnalysisApi(), [api]);
   const [retry, setRetry] = useState(0);
   const [state, setState] = useState<{ result: AnalysisResult | null; pending: boolean; error: string | null }>({ result: null, pending: false, error: null });
   const gameId = snapshot?.id;
   const revision = snapshot?.revision;
-  const human = snapshot?.players.find((player) => player.kind !== "engine")?.side;
-  const latest = snapshot?.ply ?? 0;
-  const ply = human === "white" ? (latest % 2 ? latest : latest - 1) : (latest % 2 ? latest - 1 : latest);
   const commandKey = useMemo(() => ({ gameId, revision, ply, retry, key: createIdempotencyKey() }), [gameId, revision, ply, retry]).key;
   useEffect(() => {
     if (!gameId || revision === undefined || ply < 1) { setState({ result: null, pending: false, error: null }); return; }

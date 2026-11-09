@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, Path, Request
+from fastapi import APIRouter, Depends, Header, Request
 from pydantic import ConfigDict, model_validator
 
-from backend.app.auth.router import current_session
+from backend.app.auth.dependencies import GameId, current_session, key, writer
 from backend.app.auth.service import SessionRecord
 from backend.app.infra.generated.contracts import (
     CreateGameV1,
@@ -20,11 +20,8 @@ from backend.app.infra.generated.contracts import (
     TakebackV1,
 )
 from backend.app.infra.problems import PublicProblem
-from backend.app.infra.security import RateLimitExceeded
 
 router = APIRouter(prefix="/api/v1/games", tags=["games"])
-UUID_PATTERN = r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-GameId = Annotated[str, Path(pattern=UUID_PATTERN)]
 
 
 class CreateRequest(CreateGameV1):
@@ -69,36 +66,11 @@ class ActionRequest(GameActionV1):
     model_config = ConfigDict(extra="forbid", strict=True)
 
 
-async def writer(
-    request: Request, record: Annotated[SessionRecord, Depends(current_session)]
-):
-    values = request.headers.getlist("x-csrf-token")
-    if len(values) != 1 or not request.app.state.auth_service.valid_csrf(
-        record, values[0]
-    ):
-        raise PublicProblem(403)
-    try:
-        request.app.state.command_limiter.check(str(record.user.id))
-    except RateLimitExceeded:
-        raise PublicProblem(429) from None
-    return record
-
-
 def service(request: Request):
     result = request.app.state.game_service
     if result is None:
         raise PublicProblem(503)
     return result
-
-
-def key(request: Request, value: str) -> UUID:
-    import re
-
-    if len(request.headers.getlist("idempotency-key")) != 1 or not re.fullmatch(
-        UUID_PATTERN, value
-    ):
-        raise PublicProblem(422)
-    return UUID(value)
 
 
 @router.post(

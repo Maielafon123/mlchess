@@ -7,9 +7,8 @@ from fastapi import APIRouter, Depends, Header, Path, Request
 from pydantic import ConfigDict, model_validator
 from starlette.responses import JSONResponse
 
-from backend.app.auth.router import current_session
+from backend.app.auth.dependencies import GameId, current_session, key, writer
 from backend.app.auth.service import SessionRecord
-from backend.app.games.router import GameId, key, writer
 from backend.app.infra.generated.contracts import (
     AnalysisRequestV1,
     AnalysisJobV1,

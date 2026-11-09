@@ -6,9 +6,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Header, Request
 from pydantic import ConfigDict, model_validator
 
-from backend.app.auth.router import current_session
+from backend.app.auth.dependencies import GameId, current_session, key, writer
 from backend.app.auth.service import SessionRecord
-from backend.app.games.router import GameId, key, writer
 from backend.app.infra.generated import contracts as dto
 from backend.app.infra.problems import PublicProblem
 

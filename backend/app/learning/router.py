@@ -7,9 +7,8 @@ from fastapi import APIRouter, Depends, Header, Path, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from backend.app.auth.router import current_session
+from backend.app.auth.dependencies import current_session, key, writer
 from backend.app.auth.service import SessionRecord
-from backend.app.games.router import key, writer
 from backend.app.infra.generated import contracts as dto
 from backend.app.infra.problems import PublicProblem
 
