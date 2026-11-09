@@ -1,36 +1,47 @@
-# Recovery rehearsal
+# PostgreSQL backup and recovery
 
-Run from the repository root against the local PostgreSQL 16 container:
+Use the encrypted repository on a machine separate from the VPS. The Windows
+wrapper creates a random restic repository password and protects it with DPAPI
+under the current Windows user. Its default directory is
+`%LOCALAPPDATA%\MLChess\Backups`. Restic encrypts every snapshot; pg_dump streams
+through SSH and is never written as plaintext to the Windows filesystem.
+Restrict access to the directory. Recovery on a different Windows profile needs
+an independently recoverable repository password; arrange a second key in an
+approved password vault before treating this as disaster recovery for loss of
+both machines.
+
+Install an official restic version with `--stdin-from-command` support and
+verify its release checksum. With an already trusted SSH host key:
 
 ```powershell
-python -m infra.recovery_drill --container mlchess-postgres --user mlchess
+$backupTool = 'C:\path\to\restic.exe'
+$appServer = 'root@APP_HOST'
+./infra/offsite_backup.ps1 -Action init -ResticPath $backupTool -SshTarget $appServer
+./infra/offsite_backup.ps1 -Action backup -ResticPath $backupTool -SshTarget $appServer
+./infra/offsite_backup.ps1 -Action verify -ResticPath $backupTool -SshTarget $appServer -Snapshot SNAPSHOT_ID
 ```
 
-The command creates two databases with fresh generated names, applies all
-Alembic upgrade SQL, inserts a legal four-ply checkmate, backs it up using
-`pg_dump -Fc`, restores using `pg_restore --exit-on-error`, and compares the
-game result, FEN, complete move history, full domain state, exact command receipt,
-game event, users, migration head and pending outbox. It removes only its
-generated databases, including after a failure.
-It does not connect to the application database or start workers.
+Initialize only once. Take a snapshot before every migration; take regular
+additional snapshots according to the deployment's recovery objective.
+The verify command runs a full authenticated repository check, streams the
+chosen snapshot into an isolated disposable PostgreSQL 16 instance with no
+network or ports and verifies application schema and aggregate counts. It never
+restores into the live DB. Use a trusted restore host with the pinned
+PostgreSQL image available; the drill is sized for this small installation.
 
-The archive exists in process memory for this synthetic drill. It is not an
-offsite backup. For deployment, configure encrypted daily backups and continuous
-WAL archiving/PITR in the selected PostgreSQL platform, separate backup access
-from application credentials, and rehearse restoration monthly in an isolated
-environment with worker publishing disabled. Verify the latest restorable
-timestamp and measure the complete outage/recovery interval before recording
-production RPO/RTO. Record restore evidence without user data or secrets.
+Measured on 2026-11-09 UTC: production PostgreSQL snapshot window
+01:02:08.611–01:02:12.488, about 3.9 s to encrypt and transfer 230,969 bytes;
+15.1 s to launch the disposable database, restore and check migration 0007,
+82 games, 168 moves, 373 events, 510 outbox records and 13 learning profiles.
+This is a successful restore of a real off-VPS copy. The time measures the
+database drill and excludes detection, DNS, application startup and cutover.
 
-After restoring real data, reconcile durable jobs before enabling publishers.
-Pending outbox rows survive this drill, but actual Redis redispatch and worker
-dedup must be verified by the deployed job pipeline; the script explicitly
-reports that check as unverified.
-
-For rollback, first disable affected features and revert the application image
-only if it remains compatible with the database schema. Use expand/contract
-migrations: add nullable fields and compatible readers, backfill, then enforce
-constraints/remove old readers in a later release. A backup restore can lose
-writes after its recovery point and is not an automatic substitute for an
-application rollback. Rotate application/backup credentials after a compromise,
-revoke old sessions and verify access before resuming traffic.
+`python -m infra.pitr_drill` separately proves that PostgreSQL can restore a
+physical base backup and archived WAL to an exact named restore point; it
+creates only its own disposable containers and volume. Production continuous
+PITR still requires a durable encrypted WAL target and independent retention.
+Keep the archive target separate from the VPS, monitor successful archived WAL
+and backup age, and prove recovery from a fresh machine before committing to an
+RPO/RTO. Do not enable archiving to a single local disk with no remote consumer:
+an outage in the archive command can make WAL exhaust the disk. A manual
+snapshot window is evidence of snapshot age, not a continuous RPO.

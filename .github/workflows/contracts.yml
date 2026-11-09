@@ -42,8 +42,8 @@ jobs:
       - run: npm --prefix contracts run typecheck
       - run: npm --prefix contracts test
       - run: python -m pytest backend/tests -q
-      - run: ruff check backend contracts
-      - run: ruff format --check backend contracts
+      - run: ruff check backend contracts infra
+      - run: ruff format --check backend contracts infra
 
   legacy-regression:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install pytest==9.0.2 chess==1.11.2 numpy==2.4.2 zstandard==0.25.0
+      - run: python -m pip install pytest==9.2.0 chess==1.11.2 numpy==2.4.2 zstandard==0.25.0
       - run: python -m pytest tests -q
 
   web-regression:
@@ -101,6 +101,7 @@ jobs:
       - run: python -m infra.recovery_drill --container "$POSTGRES_CONTAINER" --user mlchess
         env:
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+      - run: python -m infra.pitr_drill
       - run: python -m pytest backend/tests/games/test_postgres_commands.py backend/tests/games/test_postgres_worker.py backend/tests/games/test_postgres_invitations.py backend/tests/games/test_postgres_analysis.py backend/tests/games/test_postgres_coach.py backend/tests/games/test_postgres_learning.py backend/tests/games/test_postgres_realtime.py backend/tests/games/test_postgres_clock_scheduler.py backend/tests/games/test_postgres_matchmaking.py -q
         env:
           MLCHESS_TEST_DATABASE_URL: postgresql+asyncpg://mlchess:disposable_ci_only@127.0.0.1:5432/mlchess
@@ -130,6 +131,7 @@ jobs:
       - run: pnpm --dir apps/web test:e2e:live
         env:
           MLCHESS_LIVE_BASE_URL: http://localhost:8080
+      - run: python -m infra.load_smoke --origin http://localhost:8080
       - if: always()
         run: docker compose --env-file .env.dev.local -f infra/compose.app.yml -f infra/compose.static-test.yml down
 
@@ -163,6 +165,32 @@ jobs:
       - run: pnpm --dir apps/web test:e2e:live --grep '@guest'
         env:
           MLCHESS_LIVE_BASE_URL: http://localhost:60080
+      - name: Inventory the tested images and Stockfish
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/mlchess-sbom
+          curl --fail --silent --show-error --location \
+            https://github.com/anchore/syft/releases/download/v1.57.0/syft_1.57.0_linux_amd64.tar.gz \
+            --output /tmp/mlchess-sbom/syft.tar.gz
+          echo '9c077a7d43029b3b13e98a8db720661e700c4d58db6352153a06395ae4a2a704  /tmp/mlchess-sbom/syft.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/mlchess-sbom/syft.tar.gz -C /tmp/mlchess-sbom syft
+          for image in api worker web gateway; do
+            SYFT_CHECK_FOR_APP_UPDATE=false /tmp/mlchess-sbom/syft scan "docker:mlchess-${image}:${MLCHESS_IMAGE_TAG}" \
+              -o "cyclonedx-json=/tmp/mlchess-sbom/${image}.cdx.json"
+          done
+          docker run --rm --network none --entrypoint cat "mlchess-worker:${MLCHESS_IMAGE_TAG}" \
+            /usr/share/doc/stockfish/copyright > /tmp/mlchess-sbom/stockfish-copyright.txt
+          docker run --rm --network none --entrypoint cat "mlchess-worker:${MLCHESS_IMAGE_TAG}" \
+            /app/stockfish-manifest.json > /tmp/mlchess-sbom/stockfish-manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-inventory-${{ env.MLCHESS_IMAGE_TAG }}
+          path: |
+            /tmp/mlchess-sbom/*.cdx.json
+            /tmp/mlchess-sbom/stockfish-*.txt
+            /tmp/mlchess-sbom/stockfish-*.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Export tested application images
         run: |
           docker image save "mlchess-api:$MLCHESS_IMAGE_TAG" "mlchess-worker:$MLCHESS_IMAGE_TAG" "mlchess-web:$MLCHESS_IMAGE_TAG" "mlchess-gateway:$MLCHESS_IMAGE_TAG" | gzip -1 > /tmp/mlchess-images.tar.gz
@@ -180,3 +208,20 @@ jobs:
         run: python -m infra.compose_diagnostics --env-file .env.dev.local --compose infra/compose.server.yml --compose infra/compose.vps-host.yml
       - if: always()
         run: docker compose --env-file .env.dev.local -f infra/compose.server.yml -f infra/compose.vps-host.yml down
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.25.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python -m pip install pip-audit==2.10.1
+      - run: python -m pip_audit --disable-pip --no-deps -r backend/requirements.lock -r contracts/requirements.lock
+      - run: pnpm --dir apps/web audit

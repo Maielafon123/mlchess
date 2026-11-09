@@ -1,11 +1,12 @@
 """Bounded read-only WebSockets with mandatory Origin/session/participant checks."""
 
 import asyncio
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 import json
 import time
 from uuid import UUID, uuid4
 
+from anyio import CancelScope
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ConfigDict, model_validator
 
@@ -25,6 +26,15 @@ class Subscribe(GameSubscribeV1):
         if not isinstance(data, dict) or type(data.get("after_seq")) is not int:
             raise ValueError("Integer cursor required")
         return data
+
+
+@asynccontextmanager
+async def bounded_sql():
+    # Finish releasing SQLAlchemy connections before an outer ASGI cancel scope
+    # interrupts the socket. The read retains its own hard timeout.
+    with CancelScope(shield=True):
+        async with asyncio.timeout(5):
+            yield
 
 
 def unique_fields(pairs):
@@ -109,7 +119,7 @@ def create_router():
         token = session_token(socket)
         auth = socket.app.state.auth_service
         try:
-            async with asyncio.timeout(5):
+            async with bounded_sql():
                 record = await auth.authenticate(token)
         except Exception:
             await close(1011)
@@ -123,7 +133,7 @@ def create_router():
             return
         # Check ACL before accepting, without allocating a cursor or holding a TX.
         try:
-            async with asyncio.timeout(5):
+            async with bounded_sql():
                 await service.read(game_id, record.user.id, 0, bootstrap=True)
         except PublicProblem:
             await close(4403)
@@ -188,15 +198,18 @@ def create_router():
                             else 1006
                         )
                     return
-                async with asyncio.timeout(5):
+                async with bounded_sql():
                     current = await auth.authenticate(token)
-                if current is None or current.user.id != record.user.id:
+                    batch = (
+                        await service.read(
+                            game_id, record.user.id, cursor, bootstrap=bootstrap
+                        )
+                        if current is not None and current.user.id == record.user.id
+                        else None
+                    )
+                if batch is None:
                     await close(4401)
                     return
-                async with asyncio.timeout(5):
-                    batch = await service.read(
-                        game_id, record.user.id, cursor, bootstrap=bootstrap
-                    )
                 for frame in batch.frames:
                     async with asyncio.timeout(5):
                         await socket.send_json(frame)
