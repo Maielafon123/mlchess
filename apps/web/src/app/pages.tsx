@@ -39,7 +39,7 @@ export function PlayPage() {
   return (
     <div className="page game-page">
       <div className="section-kicker"><span>01 / ИГРА</span><span>ВЫБЕРИТЕ ФОРМАТ</span></div>
-      <section className="page-heading"><div className="eyebrow">{t.play.eyebrow}</div><h1>Играй.<br /><em>Понимай.</em></h1><p>{t.play.description}</p></section>
+      <section className="page-heading"><div className="eyebrow">{t.play.eyebrow}</div><h1><span className="sr-only">{t.play.title}</span><span aria-hidden="true">Играй.<br /><em>Понимай.</em></span></h1><p>{t.play.description}</p></section>
       <div className="card-grid catalog-grid concept-mode-grid">
         <SectionCard title="С другом"><p>Отправьте ссылку и играйте без регистрации с любого устройства.</p><Link className="button button-primary" to="/play/friend">Создать вызов</Link></SectionCard>
         <SectionCard title="С компьютером"><p>Выберите сторону и силу соперника. Партия сохраняется автоматически.</p><Link className="button button-secondary" to="/play/ai">Играть с компьютером</Link></SectionCard>
