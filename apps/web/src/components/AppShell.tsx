@@ -19,7 +19,7 @@ export function AppShell() {
         <nav className="primary-nav" aria-label="Primary navigation">
           <NavLink to="/play">Играть</NavLink>
           <NavLink to="/learn">Обучение</NavLink>
-          <NavLink to="/learn/puzzles">Задачи</NavLink>
+          <NavLink to="/learn/puzzles" aria-label="Раздел задач">Задачи</NavLink>
           <NavLink to="/play/coach">ИИ-тренер</NavLink>
           <NavLink to="/play/report">Анализ</NavLink>
         </nav>
