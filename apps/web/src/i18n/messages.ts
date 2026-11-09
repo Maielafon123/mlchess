@@ -42,7 +42,7 @@ export const messages = {
     learn: {
       eyebrow: "Learning",
       title: "Обучение",
-      description: "Каталог уроков и задач подключится через versioned learning contracts.",
+      description: "Изучайте позиции на доске, решайте задачи и отслеживайте прогресс.",
       lessonTitle: "Уроки",
       lessonDescription: "Дебюты, планы и разборы типичных решений.",
       puzzleTitle: "Задачи",
@@ -98,7 +98,7 @@ export const messages = {
     learn: {
       eyebrow: "Learning",
       title: "Learning",
-      description: "Lessons and puzzles will connect through versioned learning contracts.",
+      description: "Explore positions on the board, solve puzzles, and track your progress.",
       lessonTitle: "Lessons",
       lessonDescription: "Openings, plans, and common decision reviews.",
       puzzleTitle: "Puzzles",

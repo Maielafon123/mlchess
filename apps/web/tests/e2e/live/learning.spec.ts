@@ -5,7 +5,8 @@ test("guest learning saves lessons, hints and real server-graded progress @guest
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/learn");
-  await page.getByRole("button", { name: "Открыть урок" }).first().click();
+  const centerLesson = page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Центр и развитие" }) });
+  await centerLesson.getByRole("button", { name: "Открыть урок" }).click();
   const practice = page.getByRole("region", { name: "Практика на доске" });
   await expect(practice.getByRole("region", { name: "Game board" })).toBeVisible();
   await practice.locator('[data-square="d2"]').click();
@@ -20,7 +21,7 @@ test("guest learning saves lessons, hints and real server-graded progress @guest
   await page.getByRole("button", { name: "Завершить урок" }).click();
   await expect(page.getByRole("button", { name: "Завершить урок" })).toBeDisabled();
   await page.reload();
-  await expect(page.locator(".lesson-card").first()).toContainText("Завершён");
+  await expect(centerLesson).toContainText("Завершён");
   await page.getByRole("link", { name: "Задачи", exact: true }).click();
   await expect(page.getByLabel("UCI move")).toBeEnabled();
   const before = await page.request.get("/api/v1/learning/puzzles/back-rank/state");
