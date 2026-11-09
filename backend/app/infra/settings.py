@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from ipaddress import ip_address
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -59,6 +60,9 @@ class Settings(BaseSettings):
     invitation_secret: str | None = Field(
         default=None, pattern=r"^[A-Za-z0-9_-]{43,128}$", repr=False
     )
+    google_client_id: str = Field(default="", max_length=255)
+    google_client_secret: SecretStr = Field(default=SecretStr(""), repr=False)
+    trust_loopback_gateway: bool = False
 
     @field_validator("public_origin")
     @classmethod
@@ -67,6 +71,35 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def production_guards(self):
+        google_secret = self.google_client_secret.get_secret_value()
+        if bool(self.google_client_id) != bool(google_secret):
+            raise ValueError("Set both Google OAuth credentials or neither")
+        if self.google_client_id:
+            if (
+                not self.google_client_id.endswith(".apps.googleusercontent.com")
+                or any(char.isspace() for char in self.google_client_id + google_secret)
+                or len(google_secret) > 255
+            ):
+                raise ValueError("Invalid Google OAuth client configuration")
+            origin = urlsplit(self.public_origin)
+            host = origin.hostname
+            try:
+                numeric_host = ip_address(host)
+            except ValueError:
+                numeric_host = None
+            loopback = host == "localhost" or (
+                numeric_host and numeric_host.is_loopback
+            )
+            if self.environment in {"staging", "production"} and (
+                numeric_host or loopback or "." not in host
+            ):
+                raise ValueError(
+                    "Google OAuth on staging/production requires a DNS name"
+                )
+            if origin.scheme != "https" and not loopback:
+                raise ValueError("Google OAuth requires HTTPS except on localhost")
+            if self.database_url is None and self.environment != "test":
+                raise ValueError("Google OAuth requires durable persistence")
         if self.database_url is not None and not self.database_url.startswith(
             ("postgresql+asyncpg://", "sqlite+aiosqlite://")
         ):

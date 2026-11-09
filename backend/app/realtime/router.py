@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ConfigDict, model_validator
 
+from backend.app.auth.cookies import session_token
 from backend.app.infra.problems import PublicProblem
 from backend.app.infra.settings import canonical_origin
 from backend.app.infra.http import default_request_logger
@@ -105,7 +106,7 @@ def create_router():
         if not origin_allowed(socket):
             await close(1008)
             return
-        token = socket.cookies.get("mlchess_session")
+        token = session_token(socket)
         auth = socket.app.state.auth_service
         try:
             async with asyncio.timeout(5):

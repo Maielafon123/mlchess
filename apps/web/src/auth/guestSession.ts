@@ -18,5 +18,5 @@ export function ensureGuestSession(): Promise<AuthUser> {
 }
 
 export async function ensurePublicSession() {
-  return authConfig.mode === "guest" ? ensureGuestSession() : null;
+  return authConfig.mode === "guest" || authConfig.mode === "oidc" ? ensureGuestSession() : null;
 }

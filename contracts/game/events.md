@@ -78,7 +78,8 @@ A fresh-snapshot control is not written to the durable log.
 
 Connect to `/ws/v1/games/{game_id}` on the application's same origin. Send one
 `subscription.v1.yaml#/$defs/GameSubscribeV1` JSON message within five seconds.
-Authentication is the existing HttpOnly `mlchess_session` cookie plus mandatory
+Authentication is the HttpOnly `__Host-mlchess_session` cookie on HTTPS
+(`mlchess_session` on local HTTP), plus mandatory
 Origin and participant checks. Query credentials, binary commands and extra
 subscription/write messages are rejected. Game mutations remain HTTP with CSRF.
 

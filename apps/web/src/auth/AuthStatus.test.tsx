@@ -17,11 +17,11 @@ describe("AuthStatus", () => {
     const user = userEvent.setup();
     render(<I18nProvider><AuthProvider config={fakeConfig}><AuthStatus /></AuthProvider></I18nProvider>);
 
-    expect(await screen.findByText("Гостевой режим: партии доступны, прогресс сохранится после входа.")).toBeInTheDocument();
+    expect(await screen.findByText("Партии с друзьями доступны без регистрации.")).toBeInTheDocument();
     expect(screen.queryByLabelText(/парол/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Войти" }));
     expect(screen.getByText(/Demo student/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Выйти" }));
-    expect(await screen.findByText("Гостевой режим: партии доступны, прогресс сохранится после входа.")).toBeInTheDocument();
+    expect(await screen.findByText("Партии с друзьями доступны без регистрации.")).toBeInTheDocument();
   });
 });

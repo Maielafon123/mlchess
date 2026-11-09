@@ -9,7 +9,7 @@ export const messages = {
     },
     auth: {
       loading: "Проверяем сессию…",
-      guestNotice: "Гостевой режим: партии доступны, прогресс сохранится после входа.",
+      guestNotice: "Партии с друзьями доступны без регистрации.",
       signedInAs: "Вы вошли как",
       signOut: "Выйти",
       error: "Не удалось проверить сессию",
@@ -65,7 +65,7 @@ export const messages = {
     },
     auth: {
       loading: "Checking session…",
-      guestNotice: "Guest mode: games are available; progress is saved after sign-in.",
+      guestNotice: "Play with friends without signing in.",
       signedInAs: "Signed in as",
       signOut: "Sign out",
       error: "The session could not be checked",

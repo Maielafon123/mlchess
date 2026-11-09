@@ -26,6 +26,14 @@ class CpLoss(RootModel[int]):
     root: int = Field(..., ge=0, le=9007199254740991)
 
 
+class AuthProvidersV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    google: bool
+
+
 class CapabilitiesV1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -177,6 +185,18 @@ class GameModeV1(RootModel[Literal["friend", "rated", "ai", "coach"]]):
 
 class GameStatusV1(RootModel[Literal["waiting", "active", "finished", "aborted"]]):
     root: Literal["waiting", "active", "finished", "aborted"]
+
+
+class GoogleLoginStartV1(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    schema_version: Literal[1]
+    authorization_url: str = Field(
+        ...,
+        max_length=2048,
+        pattern="^https://accounts\\.google\\.com/o/oauth2/v2/auth\\?",
+    )
 
 
 class GuestSessionRequestV1(BaseModel):

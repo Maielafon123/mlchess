@@ -10,6 +10,9 @@ type AuthContextValue = {
   status: AuthStatus;
   user: AuthUser | null;
   errorCode: string | null;
+  googleAvailable: boolean;
+  googlePending: boolean;
+  googleFailed: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -21,6 +24,18 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [googleAvailable, setGoogleAvailable] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
+  const [googleFailed, setGoogleFailed] = useState(() => new URLSearchParams(window.location.search).get("auth") === "google-failed");
+
+  useEffect(() => {
+    if (config.mode !== "guest" && config.mode !== "oidc") return;
+    const controller = new AbortController();
+    void client.providers(controller.signal).then((available) => {
+      if (!controller.signal.aborted) setGoogleAvailable(available);
+    }).catch(() => {});
+    return () => controller.abort();
+  }, [client, config.mode]);
 
   useEffect(() => {
     let active = true;
@@ -29,7 +44,7 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
       setStatus("guest");
       return () => { active = false; };
     }
-    void (config.mode === "guest" ? ensureGuestSession() : client.getMe()).then((currentUser) => {
+    void (config.mode === "guest" || config.mode === "oidc" ? ensureGuestSession() : client.getMe()).then((currentUser) => {
       if (!active) return;
       setUser(currentUser);
       setStatus(currentUser ? "authenticated" : "guest");
@@ -46,6 +61,9 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
     status,
     user,
     errorCode,
+    googleAvailable,
+    googlePending,
+    googleFailed,
     signIn: async () => {
       setErrorCode(null);
       if (config.mode === "fake") {
@@ -63,7 +81,20 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
         }
         return;
       }
-      if (config.mode === "guest") {
+      if (googleAvailable) {
+        if (googlePending) return;
+        setGooglePending(true);
+        setGoogleFailed(false);
+        try {
+          await ensureGuestSession();
+          await client.beginSignIn();
+        } catch {
+          setGoogleFailed(true);
+          setGooglePending(false);
+        }
+        return;
+      }
+      if (config.mode === "guest" || config.mode === "oidc") {
         try {
           setUser(await ensureGuestSession());
           setStatus("authenticated");
@@ -71,9 +102,7 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
           setErrorCode(error instanceof Error ? error.name : "GUEST_SESSION_FAILED");
           setStatus("error");
         }
-        return;
       }
-      client.beginSignIn();
     },
     signOut: async () => {
       try {
@@ -86,7 +115,7 @@ export function AuthProvider({ children, config = authConfig }: { children: Reac
         setStatus("error");
       }
     },
-  }), [client, config.mode, errorCode, status, user]);
+  }), [client, config.mode, errorCode, googleAvailable, googleFailed, googlePending, status, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

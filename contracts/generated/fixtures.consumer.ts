@@ -1365,3 +1365,15 @@ export const fixture54 = {
   "can_accept_draw": true,
   "can_claim_draw": false
 } satisfies components["schemas"]["GameActionsV1"];
+
+// auth/providers.json
+export const fixture55 = {
+  "schema_version": 1,
+  "google": false
+} satisfies components["schemas"]["AuthProvidersV1"];
+
+// auth/google-start.json
+export const fixture56 = {
+  "schema_version": 1,
+  "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=fixture.apps.googleusercontent.com"
+} satisfies components["schemas"]["GoogleLoginStartV1"];

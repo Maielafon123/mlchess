@@ -424,3 +424,29 @@ and persisted Elo on a 320px viewport. Rated HTTP integration 4 PASS, web unit
 The route preflight reports surface-present. Real PostgreSQL pairing and
 flagfall races and live Compose browser acceptance are separate CI checks.
 Google OAuth is not configured on the public IP.
+
+PR45 merged caa5ee92f1feb8f6b7e12e3291ea55279c409ba6 after six PASS jobs in
+42542198120 on 4670d1553d79599b23b114429151d0c4baa0d809; exact merge
+42542564715 passed. PostgreSQL joins/replay, cancel-vs-pair and timeout settlement
+races passed. Local backend 568 PASS / 25 SKIP. Migration 0007 and nine container
+health checks passed on the VPS; trusted public HTTPS guest regression 17/17
+PASS in 36.3s. Rated acceptance uses real test accounts on isolated CI; the
+public deployment never enables test login.
+
+## A-I16 Google account integration and session hardening
+
+Optional Google Authorization Code flow uses PKCE S256, nonce and a five-minute
+single-use state bound to the initiating opaque session. State survives API
+restart; a callback from another browser cannot consume it. Provider calls are
+bounded and restricted to fixed Google endpoints. RSA signature, issuer,
+audience, expiry and nonce are verified; no email or provider token is stored.
+A successful callback rotates both session and CSRF, revoking the prior session
+in the same transaction. Existing Google accounts resolve by provider subject.
+Guest games and progress are separate from the account.
+
+HTTPS uses the documented `__Host-mlchess_session` cookie; valid old guest
+cookies are promoted without changing the actor. HTTP and WebSocket use the
+same session selection. The host overlay takes the client IP only from the
+configured loopback Caddy gateway, which overwrites the application header.
+Public IP deployments advertise Google as unavailable. See the server runbook
+for DNS and credentials required to enable it.

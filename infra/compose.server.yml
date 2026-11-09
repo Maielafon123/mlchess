@@ -70,7 +70,10 @@ services:
     build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
     mem_limit: 256m
     cpus: 0.5
-    environment: *backend-env
+    environment:
+      <<: *backend-env
+      MLCHESS_GOOGLE_CLIENT_ID: ${MLCHESS_GOOGLE_CLIENT_ID:-}
+      MLCHESS_GOOGLE_CLIENT_SECRET: ${MLCHESS_GOOGLE_CLIENT_SECRET:-}
     command: [uvicorn, backend.app.main:create_app, --factory, --host, 0.0.0.0, --port, "8000", --no-proxy-headers, --no-access-log, --log-level, warning, --ws, websockets, --ws-max-size, "2048", --ws-max-queue, "4", --ws-per-message-deflate, "false", --limit-concurrency, "64", --backlog, "64", --timeout-keep-alive, "5"]
     networks: [edge, data]
     depends_on:
