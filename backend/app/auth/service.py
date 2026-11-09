@@ -44,10 +44,12 @@ class SessionRecord:
     csrf_token_hash: str | None = None
 
 
-class SessionStore(Protocol):
-    async def put(self, record: SessionRecord) -> None: ...
-
+class SessionReader(Protocol):
     async def get(self, token_hash: str) -> SessionRecord | None: ...
+
+
+class SessionStore(SessionReader, Protocol):
+    async def put(self, record: SessionRecord) -> None: ...
 
     async def revoke(self, token_hash: str, when: datetime) -> None: ...
 
@@ -138,8 +140,31 @@ class SqlAlchemySessionStore:
             await session.commit()
 
 
-class AuthService:
+class SessionAuthenticator:
+    def __init__(self, reader: SessionReader):
+        self.reader = reader
+
+    async def authenticate(self, token: str | None) -> SessionRecord | None:
+        if not token or re.fullmatch(r"[A-Za-z0-9_-]{43}", token) is None:
+            return None
+        record = await self.reader.get(digest(token))
+        if record is None or record.revoked_at is not None:
+            return None
+        if record.expires_at <= now_utc():
+            return None
+        return record
+
+    @staticmethod
+    def valid_csrf(record: SessionRecord, supplied: str | None) -> bool:
+        if supplied is None or re.fullmatch(r"[A-Za-z0-9_-]{1,256}", supplied) is None:
+            return False
+        expected = record.csrf_token_hash or digest(record.csrf_token)
+        return hmac.compare_digest(expected, digest(supplied))
+
+
+class AuthService(SessionAuthenticator):
     def __init__(self, store: SessionStore, *, session_ttl_seconds: int = 3600) -> None:
+        super().__init__(store)
         self.store = store
         self.session_ttl_seconds = session_ttl_seconds
 
@@ -184,25 +209,8 @@ class AuthService:
         )
         return token, csrf, user
 
-    async def authenticate(self, token: str | None) -> SessionRecord | None:
-        if not token or re.fullmatch(r"[A-Za-z0-9_-]{43}", token) is None:
-            return None
-        record = await self.store.get(digest(token))
-        if record is None or record.revoked_at is not None:
-            return None
-        if record.expires_at <= now_utc():
-            return None
-        return record
-
     async def revoke(self, token: str) -> None:
         await self.store.revoke(digest(token), now_utc())
-
-    @staticmethod
-    def valid_csrf(record: SessionRecord, supplied: str | None) -> bool:
-        if supplied is None or re.fullmatch(r"[A-Za-z0-9_-]{1,256}", supplied) is None:
-            return False
-        expected = record.csrf_token_hash or digest(record.csrf_token)
-        return hmac.compare_digest(expected, digest(supplied))
 
 
 def _aware(value: datetime) -> datetime:

@@ -6,6 +6,7 @@ import { createIdempotencyKey } from "../../api/client";
 import { GameBoard } from "../../components/GameBoard";
 import { PlayerClocks } from "../../components/PlayerClocks";
 import { GameActionControls } from "../../components/GameActionControls";
+import { GameReviewLink } from "../../components/GameReviewLink";
 import { useGameRealtime } from "../game/useGameRealtime";
 import { useHumanGameActions } from "../game/useHumanGameActions";
 
@@ -164,7 +165,7 @@ export function MatchmakingScreen({ api, gameApi, eligible = false, userId }: { 
         <PlayerClocks clock={snapshot.clock} />
         <GameBoard fen={snapshot.fen} moves={snapshot.moves} orientation={side} disabled={actions.pending || !snapshot.capabilities.can_move} onMoveAttempt={actions.move} />
         {active && <GameActionControls actions={actions.capabilities} disabled={actions.pending} onAction={actions.action} />}
-        {snapshot.status === "finished" && <button className="button button-primary" type="button" disabled={actions.pending} onClick={another}>Новый поиск</button>}
+        {snapshot.status === "finished" && <div className="game-actions"><button className="button button-primary" type="button" disabled={actions.pending} onClick={another}>Новый поиск</button><GameReviewLink game={snapshot} /></div>}
       </div>}
     </>}
   </section>;

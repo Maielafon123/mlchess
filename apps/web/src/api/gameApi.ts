@@ -2,7 +2,6 @@ import { ApiClient } from "./client";
 import type { CreateGameV1, GameSnapshotV1, MoveAcceptedV1, SubmitMoveV1 } from "./contracts";
 import type { components } from "../../../../contracts/generated/api";
 
-/** Temporary B-008 boundary. Replace with generated A-008 GameSnapshotV1 types. */
 export type GameSnapshot = GameSnapshotV1;
 
 export type MoveCommand = SubmitMoveV1;
@@ -25,8 +24,8 @@ export class GameApi {
     return this.client.post<GameSnapshot>("/api/v1/games", { mode, ...options }, { idempotencyKey });
   }
 
-  get(gameId: string) {
-    return this.client.get<GameSnapshot>(`/api/v1/games/${encodeURIComponent(gameId)}`);
+  get(gameId: string, signal?: AbortSignal) {
+    return this.client.get<GameSnapshot>(`/api/v1/games/${encodeURIComponent(gameId)}`, { signal });
   }
 
   move(gameId: string, command: MoveCommand) {

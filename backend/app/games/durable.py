@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import asdict, replace
 from datetime import datetime, timezone, timedelta
 from uuid import UUID, uuid4
@@ -37,13 +35,8 @@ from backend.app.infra.models import (
     WorkerJob,
 )
 from backend.app.infra.problems import PublicProblem
+from backend.app.infra.transactions import database_now, fingerprint, iso
 from backend.app.matchmaking.settlement import settle_rated
-
-
-def iso(value: datetime) -> str:
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def encode_domain(game: GameDomain) -> dict:
@@ -125,22 +118,11 @@ def public_clock(clock: ServerClock | None, now: datetime) -> dict | None:
     )
 
 
-def fingerprint(operation: str, payload: dict) -> str:
-    return hashlib.sha256(
-        json.dumps([operation, payload], sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-
-
 class DurableGameService:
     def __init__(self, factory: async_sessionmaker[AsyncSession]):
         self.factory = factory
 
-    @staticmethod
-    async def now(session: AsyncSession) -> datetime:
-        if session.bind.dialect.name == "postgresql":
-            # CURRENT_TIMESTAMP is transaction start time, possibly before a lock wait.
-            return await session.scalar(select(func.clock_timestamp()))
-        return datetime.now(timezone.utc)
+    now = staticmethod(database_now)
 
     @staticmethod
     async def lock_actor(session: AsyncSession, actor_id: UUID) -> None:

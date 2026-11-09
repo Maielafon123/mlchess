@@ -4,6 +4,13 @@
 }
 :8080 {
 	@backend path /api/* /ws/* /health/*
-	reverse_proxy @backend api:8000
-	reverse_proxy web:8080
+	handle /api/v1/learning/* {
+		reverse_proxy learning:8000
+	}
+	handle @backend {
+		reverse_proxy api:8000
+	}
+	handle {
+		reverse_proxy web:8080
+	}
 }

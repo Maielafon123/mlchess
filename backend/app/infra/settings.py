@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     google_client_id: str = Field(default="", max_length=255)
     google_client_secret: SecretStr = Field(default=SecretStr(""), repr=False)
     trust_loopback_gateway: bool = False
+    learning_split: bool = False
 
     @field_validator("public_origin")
     @classmethod

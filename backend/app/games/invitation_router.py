@@ -5,8 +5,7 @@ from fastapi import APIRouter, Depends, Header, Request
 from pydantic import ConfigDict
 
 from backend.app.auth.service import SessionRecord
-from backend.app.auth.router import current_session
-from backend.app.games.router import GameId, key, writer
+from backend.app.auth.dependencies import GameId, current_session, key, writer
 from backend.app.infra.generated.contracts import (
     AcceptInvitationV1,
     CreateInvitationV1,

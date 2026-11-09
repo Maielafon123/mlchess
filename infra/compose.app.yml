@@ -56,8 +56,10 @@ services:
     build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
     mem_limit: 256m
     cpus: 0.5
-    environment: *backend-env
-    command: [alembic, -c, backend/alembic.ini, upgrade, head]
+    environment:
+      <<: *backend-env
+      MLCHESS_LEARNING_PASSWORD: ${MLCHESS_LEARNING_PASSWORD:?Set a unique learning role password}
+    command: [sh, -ec, 'alembic -c backend/alembic.ini upgrade head && python -m backend.app.learning.install_role']
     networks: [data]
     depends_on:
       postgres: {condition: service_healthy}
@@ -67,13 +69,34 @@ services:
     build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
     mem_limit: 256m
     cpus: 0.5
-    environment: *backend-env
+    environment:
+      <<: *backend-env
+      MLCHESS_LEARNING_SPLIT: "true"
     networks: [edge, data]
     depends_on:
       migrate: {condition: service_completed_successfully}
     healthcheck:
       test: [CMD, python, -m, infra.container_probe]
       interval: 5s
+      timeout: 5s
+      retries: 12
+  learning:
+    <<: *runtime
+    image: mlchess-api:${MLCHESS_IMAGE_TAG:-local}
+    build: {context: .., dockerfile: infra/Dockerfile.backend, target: api}
+    mem_limit: 192m
+    cpus: 0.25
+    environment:
+      MLCHESS_ENVIRONMENT: development
+      MLCHESS_PUBLIC_ORIGIN: ${MLCHESS_PUBLIC_ORIGIN:?Required}
+      MLCHESS_DATABASE_URL: postgresql+asyncpg://mlchess_learning:${MLCHESS_LEARNING_PASSWORD:?Required}@postgres:5432/mlchess
+    command: [uvicorn, backend.app.learning.app:create_app, --factory, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers, --log-level, warning, --limit-concurrency, "32", --timeout-keep-alive, "5"]
+    networks: [edge, data]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -m, infra.container_probe]
+      interval: 10s
       timeout: 5s
       retries: 12
   worker:
@@ -170,6 +193,7 @@ services:
     networks: [edge]
     depends_on:
       api: {condition: service_healthy}
+      learning: {condition: service_healthy}
       web: {condition: service_healthy}
 networks:
   edge:

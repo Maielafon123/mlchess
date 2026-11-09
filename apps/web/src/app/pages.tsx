@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { lazy } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { CoachPrivacyNotice } from "../components/CoachPrivacyNotice";
@@ -7,7 +7,7 @@ import { useAuth } from "../auth/AuthProvider";
 
 const AiGameScreen = lazy(() => import("../features/ai/AiGameScreen").then((module) => ({ default: module.AiGameScreen })));
 const CoachGameScreen = lazy(() => import("../features/coach/CoachGameScreen").then((module) => ({ default: module.CoachGameScreen })));
-const PostGameReport = lazy(() => import("../components/PostGameReport").then((module) => ({ default: module.PostGameReport })));
+const PostGameReview = lazy(() => import("../features/game/PostGameReview").then((module) => ({ default: module.PostGameReview })));
 const FriendInviteScreen = lazy(() => import("../features/friend/FriendInviteScreen").then((module) => ({ default: module.FriendInviteScreen })));
 const MatchmakingScreen = lazy(() => import("../features/matchmaking/MatchmakingScreen").then((module) => ({ default: module.MatchmakingScreen })));
 const LessonCatalog = lazy(() => import("../features/learning/LessonCatalog").then((module) => ({ default: module.LessonCatalog })));
@@ -67,8 +67,10 @@ export function CoachPage() {
 }
 
 export function ReportPage() {
-  const { t } = useI18n();
-  return <div className="page"><section className="page-heading"><div className="eyebrow">Post-game review</div><h1>{t.home.title}</h1><p>Review only verified engine decisions from a finished game.</p></section><PostGameReport report={{ game_id: "pending", status: "pending", result: "unknown", analyzed_plies: 0, total_plies: 0, decisions: [] }} /></div>;
+  const [params] = useSearchParams();
+  const id = params.get("game");
+  const valid = id && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id);
+  return <div className="page"><section className="page-heading"><h1>Разбор партии</h1><p>Выберите ход, чтобы посмотреть оценку и варианты Stockfish.</p></section>{valid ? <PostGameReview key={id} gameId={id} /> : <p>Откройте разбор из завершённой партии. <Link to="/play">К играм</Link></p>}</div>;
 }
 
 export function FriendPage() {

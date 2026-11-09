@@ -71,6 +71,16 @@ test("rated search pairs two accounts, streams a move and saves both Elo results
     await expect(status(white, "Рейтинг 1200 → 1216 (+16)")).toBeVisible();
     await expect.poll(() => one.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await one.screenshot({ path: testInfo.outputPath("phone-rated.png"), fullPage: true });
+    await white.getByRole("link", { name: "Разобрать партию" }).click();
+    await expect(white.getByRole("heading", { name: "Разбор партии" })).toBeVisible();
+    const review = white.getByRole("button", { name: "Разобрать ход" });
+    await expect(review).toBeVisible();
+    // The loopback harness has no Linux Stockfish worker; Compose acceptance does.
+    if (process.env.MLCHESS_LOCAL_RATED !== "1") {
+      await review.click();
+      await expect(white.getByRole("region", { name: "Engine analysis" })).toContainText("Stockfish", { timeout: 25000 });
+    }
+    await expect.poll(() => white.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   } finally {
     await Promise.allSettled([first.close(), second.close()]);
   }

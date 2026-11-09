@@ -46,6 +46,7 @@ def create(path: Path, origin: str, *, server: bool = False) -> None:
         prefix + f"POSTGRES_PASSWORD={secrets.token_urlsafe(32)}\n"
         f"REDIS_PASSWORD={secrets.token_urlsafe(32)}\n"
         f"MLCHESS_INVITATION_SECRET={secrets.token_urlsafe(32)}\n"
+        f"MLCHESS_LEARNING_PASSWORD={secrets.token_urlsafe(32)}\n"
     )
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:

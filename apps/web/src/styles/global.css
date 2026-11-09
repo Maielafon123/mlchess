@@ -100,13 +100,6 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .report-filters { display: flex; flex-wrap: wrap; gap: 12px; }
 .report-filters label { display: grid; gap: 6px; color: var(--color-muted); font-size: 0.82rem; }
 .report-filters select { min-width: 150px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
-.report-content { display: grid; grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr); gap: 16px; }
-.decision-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.decision-list button { display: grid; gap: 4px; width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); text-align: left; cursor: pointer; }
-.decision-list button.active { border-color: var(--color-accent); background: var(--color-accent-soft); }
-.decision-list span { color: var(--color-muted); font-size: 0.8rem; }
-.decision-detail { display: grid; gap: 10px; }
-.decision-detail > p { margin: 0; }
 .friend-screen { display: grid; gap: 16px; max-width: 720px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
 .friend-screen > *, .page > *, .play-layout > *, .coach-game-layout > * { min-width: 0; }
 .friend-description { margin: 0; color: var(--color-muted); line-height: 1.55; }
@@ -167,7 +160,7 @@ h2 { margin-top: 8px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
 .privacy-notice { padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); color: var(--color-muted); }
 .privacy-notice strong { color: var(--color-ink); }
 .privacy-notice p { margin: 6px 0 0; line-height: 1.45; }
-@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .report-content, .catalog-grid, .puzzle-layout, .progress-grid { grid-template-columns: 1fr; } .page { gap: 38px; } }
+@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 16px 20px; } .primary-nav { order: 3; flex-basis: 100%; overflow-x: auto; padding-bottom: 2px; } .page-content { padding: 42px 20px 64px; } .card-grid-3, .play-layout, .coach-game-layout, .catalog-grid, .puzzle-layout, .progress-grid { grid-template-columns: 1fr; } .page { gap: 38px; } }
 @media (max-width: 480px) {
   .topbar { gap: 10px; padding: 12px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); }
   .topbar-actions { margin-left: auto; gap: 8px; flex-wrap: wrap; max-width: 100%; }

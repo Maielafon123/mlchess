@@ -30,7 +30,8 @@ No VPN checks are a prerequisite. Do not change host routes, sysctls/firewall or
 restart host Docker/networking. The VPS overlay creates no Docker networks or
 published-port NAT. PostgreSQL55432, Redis56379, API58000 and static-web58080
 bind127.0.0.1 only. Gateway alone binds the configured public IP on80/443.
-API/worker/static web remain non-root and read-only. Gateway runs with only
+The learning service also binds only to 127.0.0.1:58120. API, learning,
+workers and static web remain non-root and read-only. Gateway runs with only
 NET_BIND_SERVICE capability to bind privileged host ports without changing
 host sysctls. Host network sharing trades container network isolation for
 avoiding changes to the host's networking; data services remain loopback-only.
@@ -74,6 +75,14 @@ The trusted loopback header is overwritten by Caddy; enable
 gateway. Do not expose the backend port. Public cookies migrate to
 `__Host-mlchess_session`; a rollback to images predating the cookie change
 may require visitors who have already migrated to re-establish their session.
+
+Compose provisions a separate learning role after Alembic. The initializer
+sets `MLCHESS_LEARNING_PASSWORD` for new installations. For an existing
+installation generate a unique URL-safe password of at least 43 characters
+on the server, store it in a second root-readable env file, and pass that
+file as a second `--env-file` after the existing server env. Preserve both
+files across releases. Learning never receives the primary DB or Google
+credential. See [service boundary](../docs/architecture/learning-service.md).
 
 Before upgrades, back up PostgreSQL and record current SHA/image IDs. Migrations
 are expand-only; rollback compatible application images while retaining schema

@@ -42,6 +42,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
             "MLCHESS_SITE_ADDRESS": "chess.example.test" if domain else "203.0.113.10",
             "MLCHESS_BIND_ADDRESS": "203.0.113.10" if domain else "",
             "MLCHESS_INVITATION_SECRET": "x" * 43,
+            "MLCHESS_LEARNING_PASSWORD": "y" * 43,
             "POSTGRES_PASSWORD": "disposable_config_only",
             "REDIS_PASSWORD": "disposable_config_only",
         },
@@ -55,6 +56,7 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
     services = config["services"]
     assert set(services) == {
         "api",
+        "learning",
         "worker",
         "analysis-worker",
         "coach-worker",
@@ -75,6 +77,15 @@ def test_rendered_vps_stack_has_no_bridges_nat_or_network_admin(tmp_path, domain
     assert services["gateway"]["cap_add"] == ["NET_BIND_SERVICE"]
     assert services["gateway"]["environment"]["MLCHESS_BIND_ADDRESS"] == "203.0.113.10"
     assert "ALL" in services["gateway"]["cap_drop"]
+    assert services["api"]["environment"]["MLCHESS_LEARNING_SPLIT"] == "true"
+    learning = services["learning"]
+    assert learning["command"][learning["command"].index("--host") + 1] == "127.0.0.1"
+    assert learning["command"][learning["command"].index("--port") + 1] == "58120"
+    assert learning["environment"]["MLCHESS_DATABASE_URL"].startswith(
+        "postgresql+asyncpg://mlchess_learning:"
+    )
+    assert "MLCHESS_INVITATION_SECRET" not in learning["environment"]
+    assert "MLCHESS_GOOGLE_CLIENT_SECRET" not in learning["environment"]
     tls_mounts = [
         mount for mount in services["gateway"]["volumes"] if mount["type"] == "volume"
     ]

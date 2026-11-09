@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { GameBoard } from "../../components/GameBoard";
 import { PlayerClocks } from "../../components/PlayerClocks";
+import { GameReviewLink } from "../../components/GameReviewLink";
 import { type AiGameOptions, aiProfiles as profiles } from "../../api/aiGameApi";
 import { useAiGameSession } from "./useAiGameSession";
 
@@ -24,7 +25,7 @@ export function AiGameScreen() {
         {snapshot.termination === "timeout" && <p role="status">Партия завершена: время вышло.</p>}
         <PlayerClocks clock={snapshot.clock} />
         <GameBoard fen={snapshot.fen} moves={snapshot.moves} orientation={snapshot.player_side} disabled={session.pending !== null || !snapshot.capabilities.can_move} onMoveAttempt={session.move} />
-        <div className="game-actions"><span className="status-chip">{snapshot.ai_profile.label}</span><button className="button button-secondary" type="button" onClick={() => void session.takeback()} disabled={(session.pending !== null && session.pending !== "engine") || !snapshot.capabilities.can_takeback}>Take back</button></div>
+        <div className="game-actions"><span className="status-chip">{snapshot.ai_profile.label}</span><button className="button button-secondary" type="button" onClick={() => void session.takeback()} disabled={(session.pending !== null && session.pending !== "engine") || !snapshot.capabilities.can_takeback}>Take back</button><GameReviewLink game={snapshot} /></div>
       </>}
     </section>
   );

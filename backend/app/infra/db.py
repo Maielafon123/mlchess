@@ -14,9 +14,13 @@ from sqlalchemy.ext.asyncio import (
 from .models import Base
 
 
-def create_engine(database_url: str, *, echo: bool = False) -> AsyncEngine:
+def create_engine(
+    database_url: str, *, echo: bool = False, **pool_options
+) -> AsyncEngine:
     """Create an engine without opening a connection during application import."""
-    return create_async_engine(database_url, echo=echo, pool_pre_ping=True)
+    return create_async_engine(
+        database_url, echo=echo, pool_pre_ping=True, **pool_options
+    )
 
 
 def session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
